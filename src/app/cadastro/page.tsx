@@ -12,42 +12,45 @@ export default function CadastroPage() {
   const [error, setError] = useState("");
 
   async function handleCadastro(e: React.FormEvent) {
-  e.preventDefault();
+    e.preventDefault();
 
-  setLoading(true);
-  setMessage("");
-  setError("");
+    setLoading(true);
+    setMessage("");
+    setError("");
 
-  try {
-    const supabase = createClient();
+    try {
+      const supabase = createClient();
 
-    const { error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        data: {
-          nome,
+      const { error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: {
+            nome,
+          },
         },
-      },
-    });
+      });
 
-    if (error) {
-      setError(error.message);
-      return;
+      if (error) {
+        setError(error.message);
+        return;
+      }
+
+      setMessage(
+        "Conta criada! Verifique seu e-mail para confirmar o cadastro."
+      );
+    } catch (err) {
+      console.error(err);
+
+      setError(
+        err instanceof Error
+          ? err.message
+          : "Erro desconhecido ao conectar ao Supabase."
+      );
+    } finally {
+      setLoading(false);
     }
-
-    setMessage(
-      "Conta criada! Verifique seu e-mail para confirmar o cadastro."
-    );
-  } catch (err) {
-  console.error(err);
-  setError(
-    err instanceof Error
-      ? err.message
-      : "Erro desconhecido ao conectar ao Supabase."
-  );
-}
-}
+  }
 
   return (
     <main
