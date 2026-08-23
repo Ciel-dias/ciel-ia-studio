@@ -40,11 +40,13 @@ export default function CadastroPage() {
       "Conta criada! Verifique seu e-mail para confirmar o cadastro."
     );
   } catch (err) {
-    console.error(err);
-    setError("Não foi possível conectar ao serviço de autenticação.");
-  } finally {
-    setLoading(false);
-  }
+  console.error(err);
+  setError(
+    err instanceof Error
+      ? err.message
+      : "Erro desconhecido ao conectar ao Supabase."
+  );
+}
 }
 
   return (
