@@ -12,12 +12,13 @@ export default function CadastroPage() {
   const [error, setError] = useState("");
 
   async function handleCadastro(e: React.FormEvent) {
-    e.preventDefault();
+  e.preventDefault();
 
-    setLoading(true);
-    setMessage("");
-    setError("");
+  setLoading(true);
+  setMessage("");
+  setError("");
 
+  try {
     const supabase = createClient();
 
     const { error } = await supabase.auth.signUp({
@@ -32,16 +33,19 @@ export default function CadastroPage() {
 
     if (error) {
       setError(error.message);
-      setLoading(false);
       return;
     }
 
     setMessage(
       "Conta criada! Verifique seu e-mail para confirmar o cadastro."
     );
-
+  } catch (err) {
+    console.error(err);
+    setError("Não foi possível conectar ao serviço de autenticação.");
+  } finally {
     setLoading(false);
   }
+}
 
   return (
     <main
