@@ -135,12 +135,36 @@ export default function DashboardPage() {
             marginBottom: "24px",
           }}
         >
-          <p style={{ color: "#a1a1aa", marginBottom: "8px" }}>
-            Usuário conectado
-          </p>
+          <p
+  style={{
+    color: "#a1a1aa",
+    marginBottom: "8px",
+    fontSize: "14px",
+  }}
+>
+  Usuário conectado
+</p>
 
-          <h2 style={{ fontSize: "20px" }}>{email}</h2>
-        </div>
+<h2
+  style={{
+    fontSize: "22px",
+    fontWeight: 600,
+    marginBottom: "6px",
+    wordBreak: "break-word",
+  }}
+>
+  {nome || "Usuário"}
+</h2>
+
+<p
+  style={{
+    color: "#a1a1aa",
+    fontSize: "14px",
+    wordBreak: "break-word",
+  }}
+>
+  {email}
+</p>
 
         <div
           style={{
