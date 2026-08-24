@@ -7,6 +7,7 @@ import { createClient } from "@/lib/supabase/client";
 export default function DashboardPage() {
   const [loading, setLoading] = useState(true);
   const [email, setEmail] = useState("");
+  const [nome, setNome] = useState("");
 
   useEffect(() => {
     async function loadUser() {
@@ -22,6 +23,7 @@ export default function DashboardPage() {
       }
 
       setEmail(user.email ?? "");
+      setNome(user.user_metadata?.nome ?? "");
       setLoading(false);
     }
 
