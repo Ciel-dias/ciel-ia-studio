@@ -80,19 +80,42 @@ export default function DashboardPage() {
           </p>
         </div>
 
-        <button
-          onClick={handleLogout}
-          style={{
-            padding: "10px 16px",
-            borderRadius: "10px",
-            border: "1px solid #363642",
-            background: "#15151c",
-            color: "#ffffff",
-            cursor: "pointer",
-          }}
-        >
-          Sair
-        </button>
+        <div
+  style={{
+    display: "flex",
+    gap: "10px",
+    alignItems: "center",
+  }}
+>
+  <a
+    href="/configuracoes"
+    style={{
+      padding: "10px 16px",
+      borderRadius: "10px",
+      border: "1px solid #363642",
+      background: "#15151c",
+      color: "#ffffff",
+      textDecoration: "none",
+      cursor: "pointer",
+    }}
+  >
+    Configurações
+  </a>
+
+  <button
+    onClick={handleLogout}
+    style={{
+      padding: "10px 16px",
+      borderRadius: "10px",
+      border: "1px solid #363642",
+      background: "#15151c",
+      color: "#ffffff",
+      cursor: "pointer",
+    }}
+  >
+    Sair
+  </button>
+</div>
       </header>
 
       <section
