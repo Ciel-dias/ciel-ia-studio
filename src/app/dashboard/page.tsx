@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useEffect, useState } from "react";
@@ -83,41 +82,41 @@ export default function DashboardPage() {
         </div>
 
         <div
-  style={{
-    display: "flex",
-    gap: "10px",
-    alignItems: "center",
-  }}
->
-  <a
-    href="/configuracoes"
-    style={{
-      padding: "10px 16px",
-      borderRadius: "10px",
-      border: "1px solid #363642",
-      background: "#15151c",
-      color: "#ffffff",
-      textDecoration: "none",
-      cursor: "pointer",
-    }}
-  >
-    Configurações
-  </a>
+          style={{
+            display: "flex",
+            gap: "10px",
+            alignItems: "center",
+          }}
+        >
+          <a
+            href="/configuracoes"
+            style={{
+              padding: "10px 16px",
+              borderRadius: "10px",
+              border: "1px solid #363642",
+              background: "#15151c",
+              color: "#ffffff",
+              textDecoration: "none",
+              cursor: "pointer",
+            }}
+          >
+            Configurações
+          </a>
 
-  <button
-    onClick={handleLogout}
-    style={{
-      padding: "10px 16px",
-      borderRadius: "10px",
-      border: "1px solid #363642",
-      background: "#15151c",
-      color: "#ffffff",
-      cursor: "pointer",
-    }}
-  >
-    Sair
-  </button>
-</div>
+          <button
+            onClick={handleLogout}
+            style={{
+              padding: "10px 16px",
+              borderRadius: "10px",
+              border: "1px solid #363642",
+              background: "#15151c",
+              color: "#ffffff",
+              cursor: "pointer",
+            }}
+          >
+            Sair
+          </button>
+        </div>
       </header>
 
       <section
@@ -136,35 +135,36 @@ export default function DashboardPage() {
           }}
         >
           <p
-  style={{
-    color: "#a1a1aa",
-    marginBottom: "8px",
-    fontSize: "14px",
-  }}
->
-  Usuário conectado
-</p>
+            style={{
+              color: "#a1a1aa",
+              marginBottom: "8px",
+              fontSize: "14px",
+            }}
+          >
+            Usuário conectado
+          </p>
 
-<h2
-  style={{
-    fontSize: "22px",
-    fontWeight: 600,
-    marginBottom: "6px",
-    wordBreak: "break-word",
-  }}
->
-  {nome || "Usuário"}
-</h2>
+          <h2
+            style={{
+              fontSize: "22px",
+              fontWeight: 600,
+              marginBottom: "6px",
+              wordBreak: "break-word",
+            }}
+          >
+            {nome || "Usuário"}
+          </h2>
 
-<p
-  style={{
-    color: "#a1a1aa",
-    fontSize: "14px",
-    wordBreak: "break-word",
-  }}
->
-  {email}
-</p>
+          <p
+            style={{
+              color: "#a1a1aa",
+              fontSize: "14px",
+              wordBreak: "break-word",
+            }}
+          >
+            {email}
+          </p>
+        </div>
 
         <div
           style={{
