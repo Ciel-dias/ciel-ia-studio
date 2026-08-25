@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState } from "react";
@@ -21,7 +20,7 @@ export default function CriarPrompts() {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          prompt: `Transforme essa ideia em um prompt profissional para criação de imagem ou vídeo com IA:
+          prompt: `Crie um prompt profissional de alta qualidade para IA baseado nesta ideia:
 
 ${ideia}`,
         }),
@@ -29,61 +28,91 @@ ${ideia}`,
 
       const data = await response.json();
 
-      setPrompt(data.result || data.message || "Não foi possível gerar o prompt.");
-    } catch (error) {
-      setPrompt("Erro ao conectar com a OpenAI.");
+      setPrompt(
+        data.result ||
+        data.message ||
+        "Não foi possível gerar o prompt."
+      );
+
+    } catch {
+      setPrompt("Erro ao conectar com a inteligência artificial.");
     }
 
     setLoading(false);
   }
 
   return (
-    <main className="min-h-screen bg-black text-white p-8">
-      <div className="max-w-3xl mx-auto">
+    <main className="min-h-screen bg-gradient-to-br from-black via-blue-950 to-black text-white p-6">
 
-        <h1 className="text-4xl font-bold mb-6">
-          ✨ Criar Prompts
-        </h1>
+      <div className="max-w-4xl mx-auto">
 
-        <p className="text-gray-400 mb-6">
-          Transforme suas ideias em prompts profissionais usando IA.
-        </p>
+        {/* Cabeçalho */}
+        <div className="mb-8">
 
-        <textarea
-          className="w-full h-40 p-4 rounded-xl bg-gray-900 border border-gray-700"
-          placeholder="Digite sua ideia..."
-          value={ideia}
-          onChange={(e) => setIdeia(e.target.value)}
-        />
+          <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-400 to-cyan-300 bg-clip-text text-transparent">
+            ✨ Criar Prompts
+          </h1>
 
-        <button
-          onClick={gerarPrompt}
-          disabled={loading}
-          className="mt-5 px-6 py-3 rounded-xl bg-blue-600 hover:bg-blue-700"
-        >
-          {loading ? "Gerando..." : "✨ Gerar Prompt"}
-        </button>
+          <p className="text-gray-400 mt-3">
+            Transforme suas ideias em prompts profissionais usando IA.
+          </p>
 
+        </div>
+
+
+        {/* Card principal */}
+        <div className="bg-black/40 backdrop-blur-xl border border-blue-500/30 rounded-3xl p-6 shadow-2xl">
+
+          <label className="text-sm text-gray-300">
+            Sua ideia
+          </label>
+
+          <textarea
+            className="w-full h-44 mt-3 p-4 rounded-2xl bg-gray-950 border border-blue-500/30 focus:border-blue-400 outline-none text-white placeholder-gray-500"
+            placeholder="Ex: Uma mulher caminhando em uma cidade futurista com estilo cinematográfico..."
+            value={ideia}
+            onChange={(e) => setIdeia(e.target.value)}
+          />
+
+
+          <button
+            onClick={gerarPrompt}
+            disabled={loading}
+            className="mt-5 w-full py-4 rounded-2xl bg-gradient-to-r from-blue-600 to-cyan-500 font-bold hover:scale-[1.02] transition disabled:opacity-50"
+          >
+            {loading ? "🤖 Criando..." : "✨ Gerar Prompt"}
+          </button>
+
+        </div>
+
+
+        {/* Resultado */}
         {prompt && (
-          <div className="mt-8 p-5 rounded-xl bg-gray-900 border border-gray-700">
-            <h2 className="text-xl font-bold mb-3">
-              Prompt gerado:
+
+          <div className="mt-8 bg-black/40 backdrop-blur-xl border border-cyan-500/30 rounded-3xl p-6">
+
+            <h2 className="text-xl font-bold mb-4">
+              🚀 Prompt gerado
             </h2>
 
-            <p className="whitespace-pre-wrap">
+            <div className="bg-gray-950 rounded-2xl p-5 text-gray-200 whitespace-pre-wrap">
               {prompt}
-            </p>
+            </div>
+
 
             <button
-              className="mt-4 px-4 py-2 bg-gray-700 rounded-lg"
               onClick={() => navigator.clipboard.writeText(prompt)}
+              className="mt-5 px-6 py-3 rounded-xl bg-blue-600 hover:bg-blue-700 font-semibold"
             >
               📋 Copiar Prompt
             </button>
+
           </div>
+
         )}
 
       </div>
+
     </main>
   );
 }
