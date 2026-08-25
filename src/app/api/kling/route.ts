@@ -1,6 +1,9 @@
 import { NextResponse } from "next/server";
 import crypto from "crypto";
 
+export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
+
 const KLING_API_URL = "https://api.klingai.com";
 
 function createKlingJWT() {
@@ -9,7 +12,7 @@ function createKlingJWT() {
 
   if (!accessKey || !secretKey) {
     throw new Error(
-      "KLING_ACCESS_KEY ou KLING_SECRET_KEY não configurada."
+      "KLING_ACCESS_KEY ou KLING_SECRET_KEY não configurada na Vercel."
     );
   }
 
@@ -27,8 +30,7 @@ function createKlingJWT() {
   };
 
   const encode = (obj: object) =>
-    Buffer.from(JSON.stringify(obj))
-      .toString("base64url");
+    Buffer.from(JSON.stringify(obj)).toString("base64url");
 
   const encodedHeader = encode(header);
   const encodedPayload = encode(payload);
@@ -45,9 +47,8 @@ function createKlingJWT() {
 
 /**
  * GET
- *
- * Testa somente a configuração.
- * NÃO gera vídeo e NÃO consome créditos.
+ * Apenas verifica se as variáveis da Kling
+ * estão chegando ao servidor.
  */
 export async function GET() {
   const accessKey = process.env.KLING_ACCESS_KEY;
@@ -55,23 +56,22 @@ export async function GET() {
 
   return NextResponse.json({
     status: "ok",
-    message: "API Kling do CIEL IA STUDIO está funcionando",
-    routeVersion: "v3",
-    accessKeyExists: !!accessKey,
-    secretKeyExists: !!secretKey,
-    accessKeyLength: accessKey?.length || 0,
-    secretKeyLength: secretKey?.length || 0,
+    routeVersion: "v4",
+    runtime: "nodejs",
+
+    accessKeyExists: Boolean(accessKey),
+    secretKeyExists: Boolean(secretKey),
+
+    accessKeyLength: accessKey?.length ?? 0,
+    secretKeyLength: secretKey?.length ?? 0,
+
     generationTest: false,
   });
 }
 
 /**
  * POST
- *
- * Cria uma tarefa de geração de vídeo na Kling.
- *
- * ATENÇÃO:
- * Este endpoint REALMENTE pode consumir créditos.
+ * Envia uma geração de vídeo para a Kling.
  */
 export async function POST(request: Request) {
   try {
@@ -94,12 +94,10 @@ export async function POST(request: Request) {
     const klingBody = {
       model_name: body.model_name || "kling-v1",
       prompt,
-      negative_prompt:
-        body.negative_prompt || "",
+      negative_prompt: body.negative_prompt || "",
       mode: body.mode || "std",
       duration: body.duration || "5",
-      aspect_ratio:
-        body.aspect_ratio || "16:9",
+      aspect_ratio: body.aspect_ratio || "16:9",
     };
 
     const response = await fetch(
