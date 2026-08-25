@@ -3,50 +3,10 @@
 import { useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 
-type Tool = {
-  title: string;
-  icon: string;
-  description: string;
-};
-
-const tools: Tool[] = [
-  {
-    title: "Criar Prompts",
-    icon: "✨",
-    description: "Crie e aperfeiçoe prompts para suas criações.",
-  },
-  {
-    title: "Texto → Imagem",
-    icon: "📝",
-    description: "Transforme suas ideias em imagens com IA.",
-  },
-  {
-    title: "Texto → Vídeo",
-    icon: "🎬",
-    description: "Transforme suas ideias em vídeos com IA.",
-  },
-  {
-    title: "Imagem → Imagem",
-    icon: "🖼️",
-    description: "Transforme suas imagens com IA.",
-  },
-  {
-    title: "Imagem → Vídeo",
-    icon: "🎞️",
-    description: "Dê vida às suas imagens com IA.",
-  },
-  {
-    title: "Meus Projetos",
-    icon: "📁",
-    description: "Acesse e gerencie suas criações.",
-  },
-];
-
 export default function DashboardPage() {
   const [loading, setLoading] = useState(true);
   const [email, setEmail] = useState("");
   const [nome, setNome] = useState("");
-  const [selectedTool, setSelectedTool] = useState<Tool | null>(null);
 
   useEffect(() => {
     async function loadUser() {
@@ -79,41 +39,64 @@ export default function DashboardPage() {
 
   if (loading) {
     return (
-      <>
-        <style>{`
-          * {
-            box-sizing: border-box;
-          }
-
-          html,
-          body {
-            margin: 0;
-            padding: 0;
-            width: 100%;
-            overflow-x: hidden;
-            background: #0b0b0f;
-          }
-        `}</style>
-
-        <main
-          style={{
-            minHeight: "100vh",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            background: "#0b0b0f",
-            color: "#ffffff",
-          }}
-        >
-          Carregando...
-        </main>
-      </>
+      <main
+        style={{
+          minHeight: "100vh",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          background: "#07111f",
+          color: "#ffffff",
+          fontFamily: "Arial, sans-serif",
+        }}
+      >
+        Carregando...
+      </main>
     );
   }
 
+  const cards = [
+    {
+      icon: "✨",
+      title: "CRIAR PROMPTS",
+      description: "Crie e melhore ideias em imagens",
+      href: "/criar-prompts",
+    },
+    {
+      icon: "📝",
+      title: "TEXTO → IMAGEM",
+      description: "Transforme suas ideias em imagens",
+      href: "/texto-imagem",
+    },
+    {
+      icon: "🎥",
+      title: "TEXTO → VÍDEO",
+      description: "Transforme suas ideias em vídeos",
+      href: "/texto-video",
+    },
+    {
+      icon: "🖼️",
+      title: "IMAGEM → IMAGEM",
+      description: "Transforme suas imagens com IA",
+      href: "/imagem-imagem",
+    },
+    {
+      icon: "🎬",
+      title: "IMAGEM → VÍDEO",
+      description: "Dê vida às suas imagens com IA",
+      href: "/imagem-video",
+    },
+    {
+      icon: "📁",
+      title: "MEUS PROJETOS",
+      description: "Acesse suas criações",
+      href: "/projetos",
+    },
+  ];
+
   return (
     <>
-      <style>{`
+      <style jsx global>{`
         * {
           box-sizing: border-box;
         }
@@ -122,446 +105,521 @@ export default function DashboardPage() {
         body {
           margin: 0;
           padding: 0;
-          width: 100%;
-          max-width: 100%;
-          overflow-x: hidden;
-          background: #0b0b0f;
+          background: #07111f;
         }
 
         body {
+          font-family: Arial, Helvetica, sans-serif;
+        }
+
+        a {
+          -webkit-tap-highlight-color: transparent;
+        }
+
+        .dashboard-page {
+          min-height: 100vh;
+          color: #ffffff;
+          background:
+            radial-gradient(
+              circle at 75% 20%,
+              rgba(20, 119, 190, 0.42),
+              transparent 38%
+            ),
+            radial-gradient(
+              circle at 15% 65%,
+              rgba(15, 76, 125, 0.32),
+              transparent 40%
+            ),
+            linear-gradient(
+              135deg,
+              #06101e 0%,
+              #081a30 48%,
+              #0b3556 100%
+            );
           overflow-x: hidden;
         }
 
-        .dashboard-header {
+        .topbar {
+          width: 100%;
+          min-height: 74px;
           display: flex;
+          align-items: center;
           justify-content: space-between;
-          align-items: center;
           gap: 20px;
-          margin-bottom: 48px;
+          padding: 0 42px;
+          background: rgba(4, 12, 24, 0.88);
+          border-bottom: 1px solid rgba(100, 180, 255, 0.18);
+          backdrop-filter: blur(12px);
         }
 
-        .top-menu {
+        .brand {
           display: flex;
           align-items: center;
-          justify-content: flex-end;
-          gap: 8px;
-          flex-wrap: wrap;
-        }
-
-        .top-menu a,
-        .top-menu button {
+          gap: 10px;
           white-space: nowrap;
         }
 
-        .cards-grid {
-          width: 100%;
-          display: grid;
-          grid-template-columns: repeat(3, minmax(0, 1fr));
-          gap: 20px;
+        .brand-icon {
+          font-size: 28px;
         }
 
-        .dashboard-card {
-          width: 100%;
-          min-width: 0;
-          min-height: 260px;
-          padding: 24px;
-          border-radius: 18px;
-          background: #15151c;
-          border: 1px solid #292936;
-          overflow: hidden;
+        .brand-name {
+          font-size: 20px;
+          font-weight: 700;
+          letter-spacing: 0.4px;
+        }
+
+        .nav {
+          display: flex;
+          align-items: center;
+          gap: 28px;
+        }
+
+        .nav a,
+        .nav button {
+          color: #e8eef7;
+          background: transparent;
+          border: none;
+          text-decoration: none;
+          font-size: 15px;
           cursor: pointer;
           transition:
-            border-color 0.2s ease,
-            background 0.2s ease,
-            transform 0.2s ease,
-            box-shadow 0.2s ease;
+            color 0.2s ease,
+            text-shadow 0.2s ease;
+          white-space: nowrap;
         }
 
-        .dashboard-card:hover {
-          border-color: #60a5fa;
-          background: #191923;
-          transform: translateY(-3px);
-          box-shadow: 0 0 18px rgba(96, 165, 250, 0.18);
+        .nav a:hover,
+        .nav button:hover {
+          color: #72d5ff;
+          text-shadow: 0 0 12px rgba(75, 199, 255, 0.8);
         }
 
-        .dashboard-card:active {
+        .hero {
+          text-align: center;
+          padding: 68px 20px 46px;
+        }
+
+        .hero h1 {
+          margin: 0 auto;
+          max-width: 720px;
+          font-size: clamp(34px, 5vw, 58px);
+          line-height: 1.12;
+          font-weight: 700;
+          letter-spacing: 0.5px;
+          text-transform: uppercase;
+        }
+
+        .hero p {
+          margin: 20px auto 0;
+          color: #b9c5d4;
+          font-size: clamp(17px, 2vw, 22px);
+          max-width: 650px;
+        }
+
+        .cards-container {
+          width: min(1180px, calc(100% - 48px));
+          margin: 0 auto;
+          display: grid;
+          grid-template-columns: repeat(3, minmax(0, 1fr));
+          gap: 28px;
+          padding-bottom: 76px;
+        }
+
+        .card {
+          min-width: 0;
+          min-height: 260px;
+          display: flex;
+          flex-direction: column;
+          justify-content: space-between;
+          align-items: center;
+          text-align: center;
+          padding: 32px 24px;
+          border-radius: 22px;
+          text-decoration: none;
+          color: #ffffff;
+          background:
+            linear-gradient(
+              145deg,
+              rgba(35, 47, 65, 0.94),
+              rgba(14, 25, 40, 0.96)
+            );
+          border: 2px solid #58c9ff;
+          box-shadow:
+            0 0 8px rgba(70, 199, 255, 0.9),
+            0 0 22px rgba(43, 167, 255, 0.48),
+            inset 0 0 22px rgba(56, 174, 255, 0.08);
+          transition:
+            transform 0.22s ease,
+            box-shadow 0.22s ease,
+            background 0.22s ease;
+        }
+
+        .card:hover {
+          transform: translateY(-5px);
+          background:
+            linear-gradient(
+              145deg,
+              rgba(42, 65, 89, 0.98),
+              rgba(15, 31, 50, 0.98)
+            );
+          box-shadow:
+            0 0 12px rgba(85, 211, 255, 1),
+            0 0 32px rgba(43, 167, 255, 0.7),
+            inset 0 0 25px rgba(56, 174, 255, 0.12);
+        }
+
+        .card:active {
           transform: scale(0.98);
-          border-color: #60a5fa;
+        }
+
+        .card-icon {
+          font-size: 50px;
+          line-height: 1;
+          margin-bottom: 18px;
+        }
+
+        .card-title {
+          font-size: 20px;
+          font-weight: 700;
+          line-height: 1.25;
+          margin: 0;
         }
 
         .card-description {
-          color: #a1a1aa;
-          line-height: 1.5;
+          color: #c0cad6;
+          font-size: 15px;
+          line-height: 1.45;
+          margin: 12px 0 0;
+          max-width: 230px;
         }
 
-        /* TABLET */
-        @media (max-width: 1024px) {
-          .cards-grid {
-            grid-template-columns: repeat(2, minmax(0, 1fr));
-          }
+        .card-arrow {
+          margin-top: 22px;
+          color: #69cfff;
+          font-size: 15px;
+          font-weight: 700;
         }
 
-        /* CELULAR EM PÉ */
-        @media (max-width: 599px) and (orientation: portrait) {
-          .dashboard-container {
-            padding: 20px 16px !important;
-          }
-
-          .dashboard-header {
-            flex-direction: column;
-            align-items: flex-start;
-            margin-bottom: 32px;
-          }
-
-          .top-menu {
-            width: 100%;
-            justify-content: flex-start;
-            gap: 8px;
-          }
-
-          .top-menu a,
-          .top-menu button {
-            padding: 9px 12px !important;
-            font-size: 13px !important;
-          }
-
-          .cards-grid {
-            grid-template-columns: 1fr;
-            gap: 16px;
-          }
-
-          .dashboard-card {
-            min-height: 230px;
-            padding: 24px;
-          }
+        .footer {
+          border-top: 1px solid rgba(100, 180, 255, 0.18);
+          background:
+            linear-gradient(
+              180deg,
+              rgba(4, 15, 29, 0.96),
+              rgba(3, 11, 22, 1)
+            );
+          padding: 52px 42px 24px;
         }
 
-        /* CELULAR DEITADO */
-        @media (max-width: 900px) and (orientation: landscape) {
-          .dashboard-container {
-            padding: 24px !important;
+        .footer-inner {
+          width: min(1180px, 100%);
+          margin: 0 auto;
+        }
+
+        .footer-brand {
+          margin-bottom: 42px;
+        }
+
+        .footer-brand h2 {
+          margin: 0 0 8px;
+          font-size: 24px;
+        }
+
+        .footer-brand p {
+          margin: 0;
+          color: #9eacbd;
+          font-size: 15px;
+        }
+
+        .footer-columns {
+          display: grid;
+          grid-template-columns: repeat(3, 1fr);
+          gap: 50px;
+        }
+
+        .footer-column h3 {
+          margin: 0 0 18px;
+          font-size: 16px;
+        }
+
+        .footer-column a {
+          display: block;
+          width: fit-content;
+          margin-bottom: 12px;
+          color: #aebaca;
+          text-decoration: none;
+          font-size: 14px;
+          transition: color 0.2s ease;
+        }
+
+        .footer-column a:hover {
+          color: #68d2ff;
+        }
+
+        .footer-bottom {
+          margin-top: 36px;
+          padding-top: 22px;
+          border-top: 1px solid rgba(100, 180, 255, 0.16);
+          text-align: center;
+          color: #8997a9;
+          font-size: 13px;
+        }
+
+        @media (max-width: 900px) {
+          .topbar {
+            padding: 0 24px;
           }
 
-          .cards-grid {
-            grid-template-columns: repeat(2, minmax(0, 1fr));
+          .nav {
             gap: 18px;
           }
 
-          .dashboard-card {
-            min-height: 240px;
+          .nav a,
+          .nav button {
+            font-size: 14px;
+          }
+
+          .cards-container {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 24px;
           }
         }
 
-        /* JANELA DA FERRAMENTA */
-        .tool-overlay {
-          position: fixed;
-          inset: 0;
-          z-index: 9999;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          padding: 20px;
-          background: rgba(0, 0, 0, 0.72);
-          backdrop-filter: blur(5px);
+        @media (max-width: 650px) {
+          .topbar {
+            min-height: 68px;
+            padding: 0 16px;
+            gap: 12px;
+          }
+
+          .brand-name {
+            font-size: 16px;
+          }
+
+          .brand-icon {
+            font-size: 23px;
+          }
+
+          .nav {
+            gap: 12px;
+          }
+
+          .nav a,
+          .nav button {
+            font-size: 12px;
+          }
+
+          .hero {
+            padding: 48px 18px 36px;
+          }
+
+          .cards-container {
+            width: min(430px, calc(100% - 32px));
+            grid-template-columns: 1fr;
+            gap: 20px;
+            padding-bottom: 55px;
+          }
+
+          .card {
+            min-height: 230px;
+            padding: 30px 22px;
+          }
+
+          .footer {
+            padding: 42px 24px 22px;
+          }
+
+          .footer-columns {
+            grid-template-columns: 1fr;
+            gap: 30px;
+          }
         }
 
-        .tool-modal {
-          width: 100%;
-          max-width: 500px;
-          padding: 30px;
-          border-radius: 20px;
-          background: #15151c;
-          border: 1px solid #363642;
-          box-shadow: 0 20px 60px rgba(0, 0, 0, 0.45);
-          text-align: center;
-        }
+        @media (max-width: 430px) {
+          .topbar {
+            flex-wrap: wrap;
+            justify-content: center;
+            padding: 14px 10px;
+          }
 
-        .tool-modal-icon {
-          font-size: 48px;
-          margin-bottom: 14px;
-        }
+          .brand {
+            width: 100%;
+            justify-content: center;
+          }
 
-        .tool-modal-title {
-          margin: 0 0 12px;
-          font-size: 24px;
-          color: #ffffff;
-        }
+          .nav {
+            width: 100%;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 12px 18px;
+          }
 
-        .tool-modal-text {
-          margin: 0;
-          color: #a1a1aa;
-          line-height: 1.6;
-        }
+          .hero h1 {
+            font-size: 34px;
+          }
 
-        .tool-modal-button {
-          margin-top: 24px;
-          padding: 12px 24px;
-          border: 1px solid #363642;
-          border-radius: 10px;
-          background: #ffffff;
-          color: #000000;
-          font-weight: 600;
-          cursor: pointer;
-        }
+          .hero p {
+            font-size: 16px;
+          }
 
-        .tool-modal-button:hover {
-          background: #e4e4e7;
+          .card {
+            min-height: 240px;
+          }
+
+          .card-title {
+            font-size: 21px;
+          }
+
+          .card-description {
+            font-size: 16px;
+          }
         }
       `}</style>
 
-      <main
-        style={{
-          minHeight: "100vh",
-          width: "100%",
-          maxWidth: "100%",
-          background: "#0b0b0f",
-          color: "#ffffff",
-          padding: "32px",
-          overflowX: "hidden",
-        }}
-      >
-        <div
-          className="dashboard-container"
-          style={{
-            width: "100%",
-            maxWidth: "1200px",
-            margin: "0 auto",
-          }}
-        >
-          {/* CABEÇALHO */}
-          <header className="dashboard-header">
-            <div style={{ minWidth: 0 }}>
-              <h1
-                style={{
-                  fontSize: "32px",
-                  fontWeight: 700,
-                  margin: 0,
-                }}
-              >
-                CIEL IA STUDIO
-              </h1>
+      <div className="dashboard-page">
 
-              <p
-                style={{
-                  color: "#a1a1aa",
-                  marginTop: "6px",
-                  marginBottom: 0,
-                }}
-              >
-                Seu estúdio de criação com inteligência artificial.
-              </p>
-            </div>
-
-            {/* MENU SUPERIOR */}
-            <div className="top-menu">
-              <a
-                href="/conta"
-                style={{
-                  padding: "10px 14px",
-                  borderRadius: "10px",
-                  border: "1px solid #363642",
-                  background: "#15151c",
-                  color: "#ffffff",
-                  textDecoration: "none",
-                  cursor: "pointer",
-                }}
-              >
-                Minha Conta
-              </a>
-
-              <a
-                href="/projetos"
-                style={{
-                  padding: "10px 14px",
-                  borderRadius: "10px",
-                  border: "1px solid #363642",
-                  background: "#15151c",
-                  color: "#ffffff",
-                  textDecoration: "none",
-                  cursor: "pointer",
-                }}
-              >
-                Meus Projetos
-              </a>
-
-              <a
-                href="/creditos"
-                style={{
-                  padding: "10px 14px",
-                  borderRadius: "10px",
-                  border: "1px solid #363642",
-                  background: "#15151c",
-                  color: "#ffffff",
-                  textDecoration: "none",
-                  cursor: "pointer",
-                }}
-              >
-                Créditos
-              </a>
-
-              <a
-                href="/configuracoes"
-                style={{
-                  padding: "10px 14px",
-                  borderRadius: "10px",
-                  border: "1px solid #363642",
-                  background: "#15151c",
-                  color: "#ffffff",
-                  textDecoration: "none",
-                  cursor: "pointer",
-                }}
-              >
-                Configurações
-              </a>
-
-              <button
-                onClick={handleLogout}
-                style={{
-                  padding: "10px 14px",
-                  borderRadius: "10px",
-                  border: "1px solid #363642",
-                  background: "#15151c",
-                  color: "#ffffff",
-                  cursor: "pointer",
-                }}
-              >
-                Sair
-              </button>
-            </div>
-          </header>
-
-          {/* USUÁRIO */}
-          <section>
-            <div
-              style={{
-                padding: "28px",
-                borderRadius: "20px",
-                background: "#15151c",
-                border: "1px solid #292936",
-                marginBottom: "24px",
-              }}
-            >
-              <p
-                style={{
-                  color: "#a1a1aa",
-                  marginBottom: "8px",
-                  fontSize: "14px",
-                }}
-              >
-                Usuário conectado
-              </p>
-
-              <h2
-                style={{
-                  fontSize: "22px",
-                  fontWeight: 600,
-                  marginBottom: "6px",
-                  wordBreak: "break-word",
-                }}
-              >
-                {nome || "Usuário"}
-              </h2>
-
-              <p
-                style={{
-                  color: "#a1a1aa",
-                  fontSize: "14px",
-                  wordBreak: "break-word",
-                  margin: 0,
-                }}
-              >
-                {email}
-              </p>
-            </div>
-
-            {/* 6 CARDS */}
-            <div className="cards-grid">
-              {tools.map((tool) => (
-                <div
-                  key={tool.title}
-                  className="dashboard-card"
-                  onClick={() => setSelectedTool(tool)}
-                  role="button"
-                  tabIndex={0}
-                  onKeyDown={(event) => {
-                    if (event.key === "Enter" || event.key === " ") {
-                      setSelectedTool(tool);
-                    }
-                  }}
-                >
-                  <div
-                    style={{
-                      fontSize: "42px",
-                      marginBottom: "18px",
-                    }}
-                  >
-                    {tool.icon}
-                  </div>
-
-                  <h3
-                    style={{
-                      fontSize: "20px",
-                      marginBottom: "10px",
-                      marginTop: 0,
-                    }}
-                  >
-                    {tool.title}
-                  </h3>
-
-                  <p className="card-description">
-                    {tool.description}
-                  </p>
-
-                  <div
-                    style={{
-                      marginTop: "auto",
-                      paddingTop: "24px",
-                      color: "#60a5fa",
-                      fontWeight: 600,
-                    }}
-                  >
-                    Abrir →
-                  </div>
-                </div>
-              ))}
-            </div>
-          </section>
-        </div>
-      </main>
-
-      {/* JANELA AO CLICAR NO CARD */}
-      {selectedTool && (
-        <div
-          className="tool-overlay"
-          onClick={() => setSelectedTool(null)}
-        >
-          <div
-            className="tool-modal"
-            onClick={(event) => event.stopPropagation()}
-          >
-            <div className="tool-modal-icon">
-              {selectedTool.icon}
-            </div>
-
-            <h2 className="tool-modal-title">
-              {selectedTool.title}
-            </h2>
-
-            <p className="tool-modal-text">
-              Esta ferramenta fará parte do CIEL IA STUDIO.
-              <br />
-              Estamos preparando essa área para você.
-            </p>
-
-            <button
-              className="tool-modal-button"
-              onClick={() => setSelectedTool(null)}
-            >
-              Fechar
-            </button>
+        {/* CABEÇALHO */}
+        <header className="topbar">
+          <div className="brand">
+            <span className="brand-icon">✨</span>
+            <span className="brand-name">CIEL IA STUDIO</span>
           </div>
-        </div>
-      )}
+
+          <nav className="nav">
+            <a href="/conta">Minha Conta</a>
+            <a href="/projetos">Meus Projetos</a>
+            <a href="/creditos">Créditos</a>
+            <a href="/configuracoes">Configurações</a>
+
+            <button onClick={handleLogout}>
+              Sair
+            </button>
+          </nav>
+        </header>
+
+        {/* HERO */}
+        <section className="hero">
+          <h1>O QUE VOCÊ QUER CRIAR HOJE?</h1>
+
+          <p>
+            Crie imagens, vídeos e prompts com IA.
+          </p>
+        </section>
+
+        {/* CARDS */}
+        <section className="cards-container">
+          {cards.map((card) => (
+            <a
+              key={card.title}
+              href={card.href}
+              className="card"
+            >
+              <div>
+                <div className="card-icon">
+                  {card.icon}
+                </div>
+
+                <h2 className="card-title">
+                  {card.title}
+                </h2>
+
+                <p className="card-description">
+                  {card.description}
+                </p>
+              </div>
+
+              <span className="card-arrow">
+                Abrir →
+              </span>
+            </a>
+          ))}
+        </section>
+
+        {/* RODAPÉ */}
+        <footer className="footer">
+          <div className="footer-inner">
+
+            <div className="footer-brand">
+              <h2>CIEL IA STUDIO</h2>
+
+              <p>
+                Crie. Transforme. Inove com IA.
+              </p>
+            </div>
+
+            <div className="footer-columns">
+
+              <div className="footer-column">
+                <h3>Produto</h3>
+
+                <a href="/criar-prompts">
+                  Criar Prompts
+                </a>
+
+                <a href="/texto-imagem">
+                  Texto → Imagem
+                </a>
+
+                <a href="/texto-video">
+                  Texto → Vídeo
+                </a>
+
+                <a href="/imagem-imagem">
+                  Imagem → Imagem
+                </a>
+
+                <a href="/imagem-video">
+                  Imagem → Vídeo
+                </a>
+
+                <a href="/projetos">
+                  Meus Projetos
+                </a>
+              </div>
+
+              <div className="footer-column">
+                <h3>Suporte</h3>
+
+                <a href="/ajuda">
+                  Central de Ajuda
+                </a>
+
+                <a href="/contato">
+                  Contato
+                </a>
+
+                <a href="/sobre">
+                  Sobre o CIEL IA STUDIO
+                </a>
+              </div>
+
+              <div className="footer-column">
+                <h3>Legal</h3>
+
+                <a href="/termos">
+                  Termos de Uso
+                </a>
+
+                <a href="/privacidade">
+                  Política de Privacidade
+                </a>
+
+                <a href="/reembolso">
+                  Política de Reembolso
+                </a>
+              </div>
+
+            </div>
+
+            <div className="footer-bottom">
+              © 2026 CIEL IA STUDIO. Todos os direitos reservados.
+            </div>
+
+          </div>
+        </footer>
+
+      </div>
     </>
   );
 }
