@@ -3,10 +3,50 @@
 import { useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 
+type Tool = {
+  title: string;
+  icon: string;
+  description: string;
+};
+
+const tools: Tool[] = [
+  {
+    title: "Criar Prompts",
+    icon: "✨",
+    description: "Crie e aperfeiçoe prompts para suas criações.",
+  },
+  {
+    title: "Texto → Imagem",
+    icon: "📝",
+    description: "Transforme suas ideias em imagens com IA.",
+  },
+  {
+    title: "Texto → Vídeo",
+    icon: "🎬",
+    description: "Transforme suas ideias em vídeos com IA.",
+  },
+  {
+    title: "Imagem → Imagem",
+    icon: "🖼️",
+    description: "Transforme suas imagens com IA.",
+  },
+  {
+    title: "Imagem → Vídeo",
+    icon: "🎞️",
+    description: "Dê vida às suas imagens com IA.",
+  },
+  {
+    title: "Meus Projetos",
+    icon: "📁",
+    description: "Acesse e gerencie suas criações.",
+  },
+];
+
 export default function DashboardPage() {
   const [loading, setLoading] = useState(true);
   const [email, setEmail] = useState("");
   const [nome, setNome] = useState("");
+  const [selectedTool, setSelectedTool] = useState<Tool | null>(null);
 
   useEffect(() => {
     async function loadUser() {
@@ -129,6 +169,29 @@ export default function DashboardPage() {
           background: #15151c;
           border: 1px solid #292936;
           overflow: hidden;
+          cursor: pointer;
+          transition:
+            border-color 0.2s ease,
+            background 0.2s ease,
+            transform 0.2s ease,
+            box-shadow 0.2s ease;
+        }
+
+        .dashboard-card:hover {
+          border-color: #60a5fa;
+          background: #191923;
+          transform: translateY(-3px);
+          box-shadow: 0 0 18px rgba(96, 165, 250, 0.18);
+        }
+
+        .dashboard-card:active {
+          transform: scale(0.98);
+          border-color: #60a5fa;
+        }
+
+        .card-description {
+          color: #a1a1aa;
+          line-height: 1.5;
         }
 
         /* TABLET */
@@ -187,6 +250,62 @@ export default function DashboardPage() {
           .dashboard-card {
             min-height: 240px;
           }
+        }
+
+        /* JANELA DA FERRAMENTA */
+        .tool-overlay {
+          position: fixed;
+          inset: 0;
+          z-index: 9999;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          padding: 20px;
+          background: rgba(0, 0, 0, 0.72);
+          backdrop-filter: blur(5px);
+        }
+
+        .tool-modal {
+          width: 100%;
+          max-width: 500px;
+          padding: 30px;
+          border-radius: 20px;
+          background: #15151c;
+          border: 1px solid #363642;
+          box-shadow: 0 20px 60px rgba(0, 0, 0, 0.45);
+          text-align: center;
+        }
+
+        .tool-modal-icon {
+          font-size: 48px;
+          margin-bottom: 14px;
+        }
+
+        .tool-modal-title {
+          margin: 0 0 12px;
+          font-size: 24px;
+          color: #ffffff;
+        }
+
+        .tool-modal-text {
+          margin: 0;
+          color: #a1a1aa;
+          line-height: 1.6;
+        }
+
+        .tool-modal-button {
+          margin-top: 24px;
+          padding: 12px 24px;
+          border: 1px solid #363642;
+          border-radius: 10px;
+          background: #ffffff;
+          color: #000000;
+          font-weight: 600;
+          cursor: pointer;
+        }
+
+        .tool-modal-button:hover {
+          background: #e4e4e7;
         }
       `}</style>
 
@@ -357,215 +476,92 @@ export default function DashboardPage() {
 
             {/* 6 CARDS */}
             <div className="cards-grid">
-
-              {/* 1 */}
-              <div className="dashboard-card">
-                <h3
-                  style={{
-                    fontSize: "20px",
-                    marginBottom: "10px",
+              {tools.map((tool) => (
+                <div
+                  key={tool.title}
+                  className="dashboard-card"
+                  onClick={() => setSelectedTool(tool)}
+                  role="button"
+                  tabIndex={0}
+                  onKeyDown={(event) => {
+                    if (event.key === "Enter" || event.key === " ") {
+                      setSelectedTool(tool);
+                    }
                   }}
                 >
-                  ✨ Criar Prompts
-                </h3>
+                  <div
+                    style={{
+                      fontSize: "42px",
+                      marginBottom: "18px",
+                    }}
+                  >
+                    {tool.icon}
+                  </div>
 
-                <p
-                  style={{
-                    color: "#a1a1aa",
-                    lineHeight: 1.5,
-                  }}
-                >
-                  Crie e aperfeiçoe prompts para suas criações.
-                </p>
+                  <h3
+                    style={{
+                      fontSize: "20px",
+                      marginBottom: "10px",
+                      marginTop: 0,
+                    }}
+                  >
+                    {tool.title}
+                  </h3>
 
-                <a
-                  href="#"
-                  style={{
-                    display: "inline-block",
-                    marginTop: "24px",
-                    color: "#60a5fa",
-                    textDecoration: "none",
-                    fontWeight: 600,
-                  }}
-                >
-                  Abrir →
-                </a>
-              </div>
+                  <p className="card-description">
+                    {tool.description}
+                  </p>
 
-              {/* 2 */}
-              <div className="dashboard-card">
-                <h3
-                  style={{
-                    fontSize: "20px",
-                    marginBottom: "10px",
-                  }}
-                >
-                  📝 Texto → Imagem
-                </h3>
-
-                <p
-                  style={{
-                    color: "#a1a1aa",
-                    lineHeight: 1.5,
-                  }}
-                >
-                  Transforme suas ideias em imagens com IA.
-                </p>
-
-                <a
-                  href="#"
-                  style={{
-                    display: "inline-block",
-                    marginTop: "24px",
-                    color: "#60a5fa",
-                    textDecoration: "none",
-                    fontWeight: 600,
-                  }}
-                >
-                  Abrir →
-                </a>
-              </div>
-
-              {/* 3 */}
-              <div className="dashboard-card">
-                <h3
-                  style={{
-                    fontSize: "20px",
-                    marginBottom: "10px",
-                  }}
-                >
-                  🎬 Texto → Vídeo
-                </h3>
-
-                <p
-                  style={{
-                    color: "#a1a1aa",
-                    lineHeight: 1.5,
-                  }}
-                >
-                  Transforme suas ideias em vídeos com IA.
-                </p>
-
-                <a
-                  href="#"
-                  style={{
-                    display: "inline-block",
-                    marginTop: "24px",
-                    color: "#60a5fa",
-                    textDecoration: "none",
-                    fontWeight: 600,
-                  }}
-                >
-                  Abrir →
-                </a>
-              </div>
-
-              {/* 4 */}
-              <div className="dashboard-card">
-                <h3
-                  style={{
-                    fontSize: "20px",
-                    marginBottom: "10px",
-                  }}
-                >
-                  🖼️ Imagem → Imagem
-                </h3>
-
-                <p
-                  style={{
-                    color: "#a1a1aa",
-                    lineHeight: 1.5,
-                  }}
-                >
-                  Transforme suas imagens com IA.
-                </p>
-
-                <a
-                  href="#"
-                  style={{
-                    display: "inline-block",
-                    marginTop: "24px",
-                    color: "#60a5fa",
-                    textDecoration: "none",
-                    fontWeight: 600,
-                  }}
-                >
-                  Abrir →
-                </a>
-              </div>
-
-              {/* 5 */}
-              <div className="dashboard-card">
-                <h3
-                  style={{
-                    fontSize: "20px",
-                    marginBottom: "10px",
-                  }}
-                >
-                  🎞️ Imagem → Vídeo
-                </h3>
-
-                <p
-                  style={{
-                    color: "#a1a1aa",
-                    lineHeight: 1.5,
-                  }}
-                >
-                  Dê vida às suas imagens com IA.
-                </p>
-
-                <a
-                  href="#"
-                  style={{
-                    display: "inline-block",
-                    marginTop: "24px",
-                    color: "#60a5fa",
-                    textDecoration: "none",
-                    fontWeight: 600,
-                  }}
-                >
-                  Abrir →
-                </a>
-              </div>
-
-              {/* 6 */}
-              <div className="dashboard-card">
-                <h3
-                  style={{
-                    fontSize: "20px",
-                    marginBottom: "10px",
-                  }}
-                >
-                  📁 Meus Projetos
-                </h3>
-
-                <p
-                  style={{
-                    color: "#a1a1aa",
-                    lineHeight: 1.5,
-                  }}
-                >
-                  Acesse e gerencie suas criações.
-                </p>
-
-                <a
-                  href="#"
-                  style={{
-                    display: "inline-block",
-                    marginTop: "24px",
-                    color: "#60a5fa",
-                    textDecoration: "none",
-                    fontWeight: 600,
-                  }}
-                >
-                  Abrir →
-                </a>
-              </div>
-
+                  <div
+                    style={{
+                      marginTop: "auto",
+                      paddingTop: "24px",
+                      color: "#60a5fa",
+                      fontWeight: 600,
+                    }}
+                  >
+                    Abrir →
+                  </div>
+                </div>
+              ))}
             </div>
           </section>
         </div>
       </main>
+
+      {/* JANELA AO CLICAR NO CARD */}
+      {selectedTool && (
+        <div
+          className="tool-overlay"
+          onClick={() => setSelectedTool(null)}
+        >
+          <div
+            className="tool-modal"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <div className="tool-modal-icon">
+              {selectedTool.icon}
+            </div>
+
+            <h2 className="tool-modal-title">
+              {selectedTool.title}
+            </h2>
+
+            <p className="tool-modal-text">
+              Esta ferramenta fará parte do CIEL IA STUDIO.
+              <br />
+              Estamos preparando essa área para você.
+            </p>
+
+            <button
+              className="tool-modal-button"
+              onClick={() => setSelectedTool(null)}
+            >
+              Fechar
+            </button>
+          </div>
+        </div>
+      )}
     </>
   );
 }
