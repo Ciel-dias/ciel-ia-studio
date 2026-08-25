@@ -54,13 +54,14 @@ export async function GET() {
   const secretKey = !!process.env.KLING_SECRET_KEY;
 
   return NextResponse.json({
-    status: "ok",
-    message: "API Kling do CIEL IA STUDIO está funcionando",
-    klingConfigured: accessKey && secretKey,
-    accessKeyConfigured: accessKey,
-    secretKeyConfigured: secretKey,
-    generationTest: false,
-  });
+  status: "ok",
+  message: "API Kling do CIEL IA STUDIO está funcionando",
+  routeVersion: "v2",
+  klingConfigured: accessKey && secretKey,
+  accessKeyConfigured: accessKey,
+  secretKeyConfigured: secretKey,
+  generationTest: false,
+});
 }
 
 /**
