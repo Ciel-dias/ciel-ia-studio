@@ -50,18 +50,19 @@ function createKlingJWT() {
  * NÃO gera vídeo e NÃO consome créditos.
  */
 export async function GET() {
-  const accessKey = !!process.env.KLING_ACCESS_KEY;
-  const secretKey = !!process.env.KLING_SECRET_KEY;
+  const accessKey = process.env.KLING_ACCESS_KEY;
+  const secretKey = process.env.KLING_SECRET_KEY;
 
   return NextResponse.json({
-  status: "ok",
-  message: "API Kling do CIEL IA STUDIO está funcionando",
-  routeVersion: "v2",
-  klingConfigured: accessKey && secretKey,
-  accessKeyConfigured: accessKey,
-  secretKeyConfigured: secretKey,
-  generationTest: false,
-});
+    status: "ok",
+    message: "API Kling do CIEL IA STUDIO está funcionando",
+    routeVersion: "v3",
+    accessKeyExists: !!accessKey,
+    secretKeyExists: !!secretKey,
+    accessKeyLength: accessKey?.length || 0,
+    secretKeyLength: secretKey?.length || 0,
+    generationTest: false,
+  });
 }
 
 /**
