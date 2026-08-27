@@ -5,9 +5,10 @@ import {
   useContext,
   useEffect,
   useState,
+  ReactNode,
 } from "react";
 
-type Theme = "dark" | "light";
+export type Theme = "dark" | "light";
 
 type ThemeContextType = {
   theme: Theme;
@@ -22,9 +23,10 @@ const ThemeContext = createContext<ThemeContextType | undefined>(
 export function ThemeProvider({
   children,
 }: {
-  children: React.ReactNode;
+  children: ReactNode;
 }) {
   const [theme, setThemeState] = useState<Theme>("dark");
+  const [ready, setReady] = useState(false);
 
   useEffect(() => {
     const savedTheme = localStorage.getItem("ciel-theme");
@@ -32,12 +34,25 @@ export function ThemeProvider({
     if (savedTheme === "light" || savedTheme === "dark") {
       setThemeState(savedTheme);
     }
+
+    setReady(true);
   }, []);
 
   useEffect(() => {
-    document.documentElement.setAttribute("data-theme", theme);
+    if (!ready) return;
+
     localStorage.setItem("ciel-theme", theme);
-  }, [theme]);
+
+    document.documentElement.setAttribute(
+      "data-theme",
+      theme
+    );
+
+    document.body.setAttribute(
+      "data-theme",
+      theme
+    );
+  }, [theme, ready]);
 
   function setTheme(theme: Theme) {
     setThemeState(theme);
@@ -67,7 +82,7 @@ export function useTheme() {
 
   if (!context) {
     throw new Error(
-      "useTheme deve ser usado dentro de ThemeProvider"
+      "useTheme deve ser usado dentro de ThemeProvider."
     );
   }
 
