@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useState } from "react";
 
 export default function ImagemVideoPage() {
@@ -83,6 +84,7 @@ export default function ImagemVideoPage() {
               #081a30 48%,
               #0b3556 100%
             );
+          overflow-x: hidden;
         }
 
         .topbar {
@@ -118,7 +120,9 @@ export default function ImagemVideoPage() {
           color: #bfeaff;
           text-decoration: none;
           font-size: 14px;
-          transition: 0.2s;
+          transition:
+            color 0.2s ease,
+            text-shadow 0.2s ease;
         }
 
         .back:hover {
@@ -187,6 +191,8 @@ export default function ImagemVideoPage() {
           font-size: 14px;
           font-weight: 700;
         }
+
+        /* CAIXA DE UPLOAD */
 
         .upload-box {
           position: relative;
@@ -262,12 +268,18 @@ export default function ImagemVideoPage() {
           line-height: 1.5;
         }
 
+        /* PRÉVIA DA IMAGEM
+           contain mantém a imagem inteira,
+           sem cortar cabeça, pés ou laterais. */
+
         .image-preview {
           position: absolute;
           inset: 0;
           width: 100%;
           height: 100%;
-          object-fit: cover;
+          object-fit: contain;
+          background: #020c18;
+          display: block;
         }
 
         .image-overlay {
@@ -299,6 +311,7 @@ export default function ImagemVideoPage() {
           color: #ffffff;
           font-size: 15px;
           line-height: 1.5;
+          font-family: Arial, Helvetica, sans-serif;
         }
 
         .prompt:focus {
@@ -356,6 +369,8 @@ export default function ImagemVideoPage() {
           transform: none;
         }
 
+        /* RESULTADO */
+
         .preview {
           min-height: 560px;
           display: flex;
@@ -405,6 +420,8 @@ export default function ImagemVideoPage() {
             opacity: 1;
           }
         }
+
+        /* RODAPÉ */
 
         .footer {
           border-top: 1px solid rgba(100, 180, 255, 0.18);
@@ -526,11 +543,41 @@ export default function ImagemVideoPage() {
             gap: 30px;
           }
         }
+
+        @media (max-width: 430px) {
+          .topbar {
+            flex-wrap: wrap;
+            justify-content: center;
+            padding: 14px 10px;
+          }
+
+          .brand {
+            width: 100%;
+            justify-content: center;
+          }
+
+          .back {
+            margin-top: 4px;
+          }
+
+          .title-area h1 {
+            font-size: 34px;
+          }
+
+          .title-area p {
+            font-size: 16px;
+          }
+
+          .upload-box {
+            height: 220px;
+          }
+        }
       `}</style>
 
       <main className="page">
 
         {/* CABEÇALHO */}
+
         <header className="topbar">
           <div className="brand">
             <span className="brand-icon">✨</span>
@@ -540,12 +587,13 @@ export default function ImagemVideoPage() {
             </span>
           </div>
 
-          <a href="/dashboard" className="back">
+          <Link href="/dashboard" className="back">
             ← Voltar ao Dashboard
-          </a>
+          </Link>
         </header>
 
         {/* CONTEÚDO */}
+
         <section className="content">
 
           <div className="title-area">
@@ -560,6 +608,7 @@ export default function ImagemVideoPage() {
           <div className="workspace">
 
             {/* PAINEL DE CRIAÇÃO */}
+
             <section className="panel">
 
               <h2>🎬 Criar vídeo</h2>
@@ -638,6 +687,7 @@ export default function ImagemVideoPage() {
             </section>
 
             {/* RESULTADO */}
+
             <section className="panel">
 
               <h2>🎥 Resultado</h2>
@@ -675,6 +725,7 @@ export default function ImagemVideoPage() {
         </section>
 
         {/* RODAPÉ */}
+
         <footer className="footer">
 
           <div className="footer-inner">
@@ -693,69 +744,75 @@ export default function ImagemVideoPage() {
 
             <div className="footer-columns">
 
+              {/* PRODUTO */}
+
               <div className="footer-column">
 
                 <h3>Produto</h3>
 
-                <a href="/criar-prompts">
+                <Link href="/criar-prompts">
                   Criar Prompts
-                </a>
+                </Link>
 
-                <a href="/texto-imagem">
+                <Link href="/texto-imagem">
                   Texto → Imagem
-                </a>
+                </Link>
 
-                <a href="/texto-video">
+                <Link href="/texto-video">
                   Texto → Vídeo
-                </a>
+                </Link>
 
-                <a href="/imagem-imagem">
+                <Link href="/imagem-imagem">
                   Imagem → Imagem
-                </a>
+                </Link>
 
-                <a href="/imagem-video">
+                <Link href="/imagem-video">
                   Imagem → Vídeo
-                </a>
+                </Link>
 
-                <a href="/projetos">
+                <Link href="/projetos">
                   Meus Projetos
-                </a>
+                </Link>
 
               </div>
+
+              {/* SUPORTE */}
 
               <div className="footer-column">
 
                 <h3>Suporte</h3>
 
-                <a href="/ajuda">
+                <Link href="/ajuda">
                   Central de Ajuda
-                </a>
+                </Link>
 
-                <a href="/contato">
+                <Link href="/contato">
                   Contato
-                </a>
+                </Link>
 
-                <a href="/sobre">
+                <Link href="/sobre">
                   Sobre o CIEL IA STUDIO
-                </a>
+                </Link>
 
               </div>
+
+              {/* LEGAL */}
 
               <div className="footer-column">
 
                 <h3>Legal</h3>
 
-                <a href="/termos">
+                <Link href="/termos">
                   Termos de Uso
-                </a>
+                </Link>
 
-                <a href="/privacidade">
+                <Link href="/privacidade">
                   Política de Privacidade
-                </a>
+                </Link>
 
-                <a href="/reembolso">
+                <Link href="/reembolso">
                   Política de Reembolso
-                </a>
+                </Link>
 
               </div>
 
