@@ -13,29 +13,15 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="pt-BR">
-      <head>
-        <style>{`
-          html,
-          body {
-            margin: 0;
-            padding: 0;
-            background: #07111f;
-            color: #ffffff;
-          }
-
-          html {
-            background: #07111f;
-          }
-
-          body {
-            min-height: 100vh;
-            background: #07111f;
-          }
-        `}</style>
-      </head>
-
-      <body>
+    <html lang="pt-BR" suppressHydrationWarning>
+      <body
+        style={{
+          margin: 0,
+          padding: 0,
+          minHeight: "100vh",
+          fontFamily: "Arial, Helvetica, sans-serif",
+        }}
+      >
         <ThemeProvider>
           {children}
         </ThemeProvider>
