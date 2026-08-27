@@ -7,24 +7,42 @@ export default function ImagemImagemPage() {
   const [prompt, setPrompt] = useState("");
   const [aspectRatio, setAspectRatio] = useState("1:1");
   const [style, setStyle] = useState("Realista");
-  const [image, setImage] = useState<File | null>(null);
+
+  const [image1, setImage1] = useState<File | null>(null);
+  const [image2, setImage2] = useState<File | null>(null);
+
+  const [preview1, setPreview1] = useState("");
+  const [preview2, setPreview2] = useState("");
+
   const [loading, setLoading] = useState(false);
 
   function handleImageChange(
-    event: React.ChangeEvent<HTMLInputElement>
+    event: React.ChangeEvent<HTMLInputElement>,
+    number: 1 | 2
   ) {
-    const file = event.target.files?.[0] ?? null;
-    setImage(file);
+    const file = event.target.files?.[0];
+
+    if (!file) return;
+
+    const preview = URL.createObjectURL(file);
+
+    if (number === 1) {
+      setImage1(file);
+      setPreview1(preview);
+    } else {
+      setImage2(file);
+      setPreview2(preview);
+    }
   }
 
   async function handleGenerate() {
-    if (!image) {
-      alert("Selecione uma imagem de referência.");
+    if (!image1 && !image2) {
+      alert("Selecione pelo menos uma imagem de referência.");
       return;
     }
 
     if (!prompt.trim()) {
-      alert("Descreva o que deseja transformar na imagem.");
+      alert("Descreva o que deseja criar na imagem.");
       return;
     }
 
@@ -187,14 +205,21 @@ export default function ImagemImagemPage() {
           font-weight: 700;
         }
 
-        .upload-area {
+        /* DUAS CAIXINHAS DE IMAGEM */
+
+        .images-label {
+          margin-bottom: 12px;
+        }
+
+        .images-container {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: 12px;
+        }
+
+        .image-box {
           position: relative;
-          min-height: 185px;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          text-align: center;
-          padding: 20px;
+          height: 175px;
           border-radius: 16px;
           border: 1px dashed rgba(104, 207, 255, 0.55);
           background:
@@ -204,60 +229,98 @@ export default function ImagemImagemPage() {
               transparent 60%
             ),
             rgba(3, 13, 25, 0.72);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          overflow: hidden;
           transition:
             border-color 0.2s ease,
             box-shadow 0.2s ease;
         }
 
-        .upload-area:hover {
+        .image-box:hover {
           border-color: #63d3ff;
           box-shadow: 0 0 18px rgba(70, 199, 255, 0.18);
         }
 
-        .upload-icon {
-          font-size: 50px;
-          margin-bottom: 12px;
+        .image-box.has-image {
+          border-style: solid;
         }
 
-        .upload-title {
-          margin: 0;
-          font-size: 17px;
+        .image-preview {
+          width: 100%;
+          height: 100%;
+          object-fit: cover;
+          display: block;
+        }
+
+        .image-box-content {
+          text-align: center;
+          padding: 10px;
+        }
+
+        .image-box-number {
+          position: absolute;
+          top: 9px;
+          left: 10px;
+          padding: 4px 8px;
+          border-radius: 8px;
+          background: rgba(3, 13, 25, 0.82);
+          color: #bfeaff;
+          font-size: 11px;
           font-weight: 700;
+          z-index: 2;
         }
 
-        .upload-text {
-          margin: 8px 0 0;
-          color: #8798aa;
-          font-size: 13px;
-          line-height: 1.5;
-        }
-
-        .upload-button {
-          display: inline-block;
-          margin-top: 15px;
-          padding: 10px 18px;
-          border-radius: 10px;
+        .plus {
+          width: 54px;
+          height: 54px;
+          margin: 0 auto 10px;
+          border-radius: 50%;
+          display: flex;
+          align-items: center;
+          justify-content: center;
           color: #04101b;
           background: linear-gradient(
-            90deg,
+            135deg,
             #5ed2ff,
             #75e0ff
           );
-          font-size: 14px;
+          font-size: 32px;
+          font-weight: 400;
+          line-height: 1;
+          box-shadow:
+            0 0 10px rgba(70, 199, 255, 0.7),
+            0 0 22px rgba(43, 167, 255, 0.3);
+        }
+
+        .image-box-title {
+          margin: 0;
+          color: #fff;
+          font-size: 13px;
+          font-weight: 700;
+        }
+
+        .image-box-text {
+          margin: 5px 0 0;
+          color: #7f92a5;
+          font-size: 11px;
+          line-height: 1.4;
+        }
+
+        .change-image {
+          position: absolute;
+          bottom: 9px;
+          right: 9px;
+          z-index: 2;
+          padding: 7px 10px;
+          border: none;
+          border-radius: 9px;
+          color: #04101b;
+          background: rgba(117, 224, 255, 0.95);
+          font-size: 11px;
           font-weight: 800;
           cursor: pointer;
-          box-shadow: 0 0 12px rgba(70, 199, 255, 0.4);
-        }
-
-        .upload-button:hover {
-          box-shadow: 0 0 20px rgba(70, 199, 255, 0.65);
-        }
-
-        .file-name {
-          margin-top: 10px;
-          color: #70d7ff;
-          font-size: 13px;
-          word-break: break-word;
         }
 
         .hidden-input {
@@ -521,6 +584,15 @@ export default function ImagemImagemPage() {
             grid-template-columns: 1fr;
           }
 
+          .images-container {
+            grid-template-columns: 1fr 1fr;
+            gap: 9px;
+          }
+
+          .image-box {
+            height: 145px;
+          }
+
           .preview {
             min-height: 320px;
           }
@@ -557,6 +629,20 @@ export default function ImagemImagemPage() {
 
           .title-area p {
             font-size: 16px;
+          }
+
+          .image-box {
+            height: 140px;
+          }
+
+          .plus {
+            width: 48px;
+            height: 48px;
+            font-size: 29px;
+          }
+
+          .image-box-text {
+            font-size: 10px;
           }
         }
       `}</style>
@@ -600,41 +686,139 @@ export default function ImagemImagemPage() {
 
               <h2>🖼️ Transformar imagem</h2>
 
-              <label className="label">
-                Imagem de referência
+              <label className="label images-label">
+                Imagens de referência
               </label>
 
-              <div className="upload-area">
+              <div className="images-container">
 
-                <div>
+                {/* IMAGEM 1 */}
 
-                  <div className="upload-icon">
-                    🖼️
-                  </div>
+                <div
+                  className={`image-box ${
+                    preview1 ? "has-image" : ""
+                  }`}
+                >
 
-                  <p className="upload-title">
-                    Escolha uma imagem
-                  </p>
+                  <span className="image-box-number">
+                    IMAGEM 1
+                  </span>
 
-                  <p className="upload-text">
-                    Envie uma imagem para usar como
-                    referência na criação.
-                  </p>
+                  {preview1 ? (
+                    <>
+                      <img
+                        src={preview1}
+                        alt="Imagem de referência 1"
+                        className="image-preview"
+                      />
 
-                  <label className="upload-button">
-                    📁 Selecionar imagem
+                      <label className="change-image">
+                        Trocar
 
-                    <input
-                      type="file"
-                      accept="image/*"
-                      className="hidden-input"
-                      onChange={handleImageChange}
-                    />
-                  </label>
+                        <input
+                          type="file"
+                          accept="image/*"
+                          className="hidden-input"
+                          onChange={(e) =>
+                            handleImageChange(e, 1)
+                          }
+                        />
+                      </label>
+                    </>
+                  ) : (
+                    <div className="image-box-content">
 
-                  {image && (
-                    <div className="file-name">
-                      ✓ {image.name}
+                      <div className="plus">
+                        +
+                      </div>
+
+                      <p className="image-box-title">
+                        Adicionar foto
+                      </p>
+
+                      <p className="image-box-text">
+                        Pessoa, objeto ou cenário
+                      </p>
+
+                      <label className="upload-button">
+                        Selecionar
+
+                        <input
+                          type="file"
+                          accept="image/*"
+                          className="hidden-input"
+                          onChange={(e) =>
+                            handleImageChange(e, 1)
+                          }
+                        />
+                      </label>
+
+                    </div>
+                  )}
+
+                </div>
+
+                {/* IMAGEM 2 */}
+
+                <div
+                  className={`image-box ${
+                    preview2 ? "has-image" : ""
+                  }`}
+                >
+
+                  <span className="image-box-number">
+                    IMAGEM 2
+                  </span>
+
+                  {preview2 ? (
+                    <>
+                      <img
+                        src={preview2}
+                        alt="Imagem de referência 2"
+                        className="image-preview"
+                      />
+
+                      <label className="change-image">
+                        Trocar
+
+                        <input
+                          type="file"
+                          accept="image/*"
+                          className="hidden-input"
+                          onChange={(e) =>
+                            handleImageChange(e, 2)
+                          }
+                        />
+                      </label>
+                    </>
+                  ) : (
+                    <div className="image-box-content">
+
+                      <div className="plus">
+                        +
+                      </div>
+
+                      <p className="image-box-title">
+                        Adicionar foto
+                      </p>
+
+                      <p className="image-box-text">
+                        Segunda referência
+                      </p>
+
+                      <label className="upload-button">
+                        Selecionar
+
+                        <input
+                          type="file"
+                          accept="image/*"
+                          className="hidden-input"
+                          onChange={(e) =>
+                            handleImageChange(e, 2)
+                          }
+                        />
+                      </label>
+
                     </div>
                   )}
 
@@ -643,7 +827,7 @@ export default function ImagemImagemPage() {
               </div>
 
               <label className="label">
-                O que deseja transformar?
+                O que deseja criar?
               </label>
 
               <textarea
@@ -652,7 +836,7 @@ export default function ImagemImagemPage() {
                 onChange={(e) =>
                   setPrompt(e.target.value)
                 }
-                placeholder="Exemplo: Transforme esta imagem em uma cena cinematográfica, mantendo a pessoa e suas características..."
+                placeholder="Exemplo: Coloque as duas pessoas juntas na mesma imagem, caminhando na praia ao pôr do sol, mantendo as características de cada pessoa..."
               />
 
               <div className="options">
@@ -748,8 +932,8 @@ export default function ImagemImagemPage() {
                   </h3>
 
                   <p>
-                    Envie uma imagem, descreva a
-                    transformação e clique em “Gerar
+                    Envie uma ou duas imagens, descreva
+                    a transformação e clique em “Gerar
                     Imagem” para começar.
                   </p>
 
