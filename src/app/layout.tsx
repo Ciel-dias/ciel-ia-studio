@@ -12,6 +12,27 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="pt-BR">
+      <head>
+        <style>{`
+          html,
+          body {
+            margin: 0;
+            padding: 0;
+            background: #07111f;
+            color: #ffffff;
+          }
+
+          html {
+            background: #07111f;
+          }
+
+          body {
+            min-height: 100vh;
+            background: #07111f;
+          }
+        `}</style>
+      </head>
+
       <body>{children}</body>
     </html>
   );
