@@ -205,8 +205,6 @@ export default function ImagemImagemPage() {
           font-weight: 700;
         }
 
-        /* DUAS CAIXINHAS DE IMAGEM */
-
         .images-label {
           margin-bottom: 12px;
         }
@@ -247,11 +245,19 @@ export default function ImagemImagemPage() {
           border-style: solid;
         }
 
+        /*
+          IMPORTANTE:
+          contain mantém a imagem inteira visível.
+          Nenhuma parte da pessoa, carro, cenário etc.
+          será cortada na prévia.
+        */
         .image-preview {
           width: 100%;
           height: 100%;
-          object-fit: cover;
+          object-fit: contain;
+          object-position: center;
           display: block;
+          background: #020c18;
         }
 
         .image-box-content {
@@ -306,6 +312,25 @@ export default function ImagemImagemPage() {
           color: #7f92a5;
           font-size: 11px;
           line-height: 1.4;
+        }
+
+        .upload-button {
+          display: inline-block;
+          margin-top: 10px;
+          padding: 7px 12px;
+          border-radius: 9px;
+          background: rgba(94, 210, 255, 0.16);
+          border: 1px solid rgba(94, 210, 255, 0.4);
+          color: #bfeaff;
+          font-size: 11px;
+          font-weight: 700;
+          cursor: pointer;
+          transition: 0.2s ease;
+        }
+
+        .upload-button:hover {
+          background: rgba(94, 210, 255, 0.28);
+          border-color: #63d3ff;
         }
 
         .change-image {
@@ -644,6 +669,11 @@ export default function ImagemImagemPage() {
           .image-box-text {
             font-size: 10px;
           }
+
+          .upload-button {
+            font-size: 10px;
+            padding: 6px 9px;
+          }
         }
       `}</style>
 
@@ -836,7 +866,7 @@ export default function ImagemImagemPage() {
                 onChange={(e) =>
                   setPrompt(e.target.value)
                 }
-                placeholder="Exemplo: Coloque as duas pessoas juntas na mesma imagem, caminhando na praia ao pôr do sol, mantendo as características de cada pessoa..."
+                placeholder="Exemplo: Coloque o carro da segunda imagem no cenário da primeira imagem, mantendo o realismo e a iluminação natural..."
               />
 
               <div className="options">
