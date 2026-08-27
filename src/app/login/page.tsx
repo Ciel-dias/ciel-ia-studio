@@ -425,7 +425,7 @@ export default function LoginPage() {
               >
                 {loading
                   ? "Entrando..."
-                  : "Entrar no CIEL IA STUDIO"}
+                  : "ENTRAR"}
               </button>
 
             </form>
