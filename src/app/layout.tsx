@@ -1,8 +1,10 @@
 import type { Metadata } from "next";
+import { ThemeProvider } from "@/components/ThemeProvider";
 
 export const metadata: Metadata = {
   title: "CIEL IA STUDIO",
-  description: "Plataforma de criação com inteligência artificial.",
+  description:
+    "Plataforma de criação com inteligência artificial.",
 };
 
 export default function RootLayout({
@@ -18,8 +20,6 @@ export default function RootLayout({
           body {
             margin: 0;
             padding: 0;
-            background: #07111f;
-            color: #ffffff;
           }
 
           html {
@@ -28,12 +28,17 @@ export default function RootLayout({
 
           body {
             min-height: 100vh;
-            background: #07111f;
+            margin: 0;
+            padding: 0;
           }
         `}</style>
       </head>
 
-      <body>{children}</body>
+      <body>
+        <ThemeProvider>
+          {children}
+        </ThemeProvider>
+      </body>
     </html>
   );
 }
