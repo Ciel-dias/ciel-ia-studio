@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { ThemeProvider } from "@/components/ThemeProvider";
+import "./globals.css";
 
 export const metadata: Metadata = {
   title: "CIEL IA STUDIO",
@@ -13,15 +14,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="pt-BR" suppressHydrationWarning>
-      <body
-        style={{
-          margin: 0,
-          padding: 0,
-          minHeight: "100vh",
-          fontFamily: "Arial, Helvetica, sans-serif",
-        }}
-      >
+    <html lang="pt-BR">
+      <body>
         <ThemeProvider>
           {children}
         </ThemeProvider>
