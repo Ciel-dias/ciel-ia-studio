@@ -322,6 +322,73 @@ export default function TextoVideoPage() {
           }
         }
 
+        /* RODAPÉ */
+
+        .footer {
+          border-top: 1px solid rgba(100, 180, 255, 0.18);
+          background:
+            linear-gradient(
+              180deg,
+              rgba(4, 15, 29, 0.96),
+              rgba(3, 11, 22, 1)
+            );
+          padding: 52px 42px 24px;
+        }
+
+        .footer-inner {
+          width: min(1180px, 100%);
+          margin: 0 auto;
+        }
+
+        .footer-brand {
+          margin-bottom: 42px;
+        }
+
+        .footer-brand h2 {
+          margin: 0 0 8px;
+          font-size: 24px;
+        }
+
+        .footer-brand p {
+          margin: 0;
+          color: #9eacbd;
+          font-size: 15px;
+        }
+
+        .footer-columns {
+          display: grid;
+          grid-template-columns: repeat(3, 1fr);
+          gap: 50px;
+        }
+
+        .footer-column h3 {
+          margin: 0 0 18px;
+          font-size: 16px;
+        }
+
+        .footer-column a {
+          display: block;
+          width: fit-content;
+          margin-bottom: 12px;
+          color: #aebaca;
+          text-decoration: none;
+          font-size: 14px;
+          transition: color 0.2s ease;
+        }
+
+        .footer-column a:hover {
+          color: #68d2ff;
+        }
+
+        .footer-bottom {
+          margin-top: 36px;
+          padding-top: 22px;
+          border-top: 1px solid rgba(100, 180, 255, 0.16);
+          text-align: center;
+          color: #8997a9;
+          font-size: 13px;
+        }
+
         @media (max-width: 850px) {
           .topbar {
             padding: 0 22px;
@@ -336,10 +403,11 @@ export default function TextoVideoPage() {
           }
         }
 
-        @media (max-width: 520px) {
+        @media (max-width: 650px) {
           .topbar {
             min-height: 68px;
-            padding: 0 15px;
+            padding: 0 16px;
+            gap: 12px;
           }
 
           .brand-name {
@@ -351,7 +419,7 @@ export default function TextoVideoPage() {
           }
 
           .content {
-            width: min(100% - 28px, 430px);
+            width: min(430px, calc(100% - 28px));
             padding-top: 38px;
           }
 
@@ -368,6 +436,32 @@ export default function TextoVideoPage() {
             min-height: 320px;
           }
 
+          .footer {
+            padding: 42px 24px 22px;
+          }
+
+          .footer-columns {
+            grid-template-columns: 1fr;
+            gap: 30px;
+          }
+        }
+
+        @media (max-width: 430px) {
+          .topbar {
+            flex-wrap: wrap;
+            justify-content: center;
+            padding: 14px 10px;
+          }
+
+          .brand {
+            width: 100%;
+            justify-content: center;
+          }
+
+          .back {
+            margin-top: 4px;
+          }
+
           .title-area h1 {
             font-size: 34px;
           }
@@ -379,6 +473,9 @@ export default function TextoVideoPage() {
       `}</style>
 
       <main className="page">
+
+        {/* CABEÇALHO */}
+
         <header className="topbar">
           <div className="brand">
             <span className="brand-icon">✨</span>
@@ -393,7 +490,10 @@ export default function TextoVideoPage() {
           </Link>
         </header>
 
+        {/* CONTEÚDO */}
+
         <section className="content">
+
           <div className="title-area">
             <h1>Texto → Vídeo</h1>
 
@@ -406,7 +506,9 @@ export default function TextoVideoPage() {
           <div className="workspace">
 
             {/* PAINEL DE CRIAÇÃO */}
+
             <section className="panel">
+
               <h2>🎥 Criar vídeo</h2>
 
               <label className="label">
@@ -504,10 +606,13 @@ export default function TextoVideoPage() {
                   ? "🎥 Preparando..."
                   : "🎥 Gerar Vídeo"}
               </button>
+
             </section>
 
             {/* RESULTADO */}
+
             <section className="panel">
+
               <h2>🎬 Resultado</h2>
 
               <div
@@ -516,6 +621,7 @@ export default function TextoVideoPage() {
                 }`}
               >
                 <div>
+
                   <div className="preview-icon">
                     {loading ? "🎥" : "🎬"}
                   </div>
@@ -530,12 +636,112 @@ export default function TextoVideoPage() {
                     Escreva um prompt ao lado e clique em
                     “Gerar Vídeo” para começar.
                   </p>
+
                 </div>
               </div>
+
             </section>
 
           </div>
+
         </section>
+
+        {/* RODAPÉ */}
+
+        <footer className="footer">
+          <div className="footer-inner">
+
+            <div className="footer-brand">
+              <h2>CIEL IA STUDIO</h2>
+
+              <p>
+                Crie. Transforme. Inove com IA.
+              </p>
+            </div>
+
+            <div className="footer-columns">
+
+              {/* PRODUTO */}
+
+              <div className="footer-column">
+
+                <h3>Produto</h3>
+
+                <Link href="/criar-prompts">
+                  Criar Prompts
+                </Link>
+
+                <Link href="/texto-imagem">
+                  Texto → Imagem
+                </Link>
+
+                <Link href="/texto-video">
+                  Texto → Vídeo
+                </Link>
+
+                <Link href="/imagem-imagem">
+                  Imagem → Imagem
+                </Link>
+
+                <Link href="/imagem-video">
+                  Imagem → Vídeo
+                </Link>
+
+                <Link href="/projetos">
+                  Meus Projetos
+                </Link>
+
+              </div>
+
+              {/* SUPORTE */}
+
+              <div className="footer-column">
+
+                <h3>Suporte</h3>
+
+                <Link href="/ajuda">
+                  Central de Ajuda
+                </Link>
+
+                <Link href="/contato">
+                  Contato
+                </Link>
+
+                <Link href="/sobre">
+                  Sobre o CIEL IA STUDIO
+                </Link>
+
+              </div>
+
+              {/* LEGAL */}
+
+              <div className="footer-column">
+
+                <h3>Legal</h3>
+
+                <Link href="/termos">
+                  Termos de Uso
+                </Link>
+
+                <Link href="/privacidade">
+                  Política de Privacidade
+                </Link>
+
+                <Link href="/reembolso">
+                  Política de Reembolso
+                </Link>
+
+              </div>
+
+            </div>
+
+            <div className="footer-bottom">
+              © 2026 CIEL IA STUDIO. Todos os direitos reservados.
+            </div>
+
+          </div>
+        </footer>
+
       </main>
     </>
   );
