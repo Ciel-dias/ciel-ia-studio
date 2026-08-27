@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 
@@ -487,10 +488,10 @@ export default function DashboardPage() {
           </div>
 
           <nav className="nav">
-            <a href="/conta">Minha Conta</a>
-            <a href="/projetos">Meus Projetos</a>
-            <a href="/creditos">Créditos</a>
-            <a href="/configuracoes">Configurações</a>
+            <Link href="/conta">Minha Conta</Link>
+            <Link href="/projetos">Meus Projetos</Link>
+            <Link href="/creditos">Créditos</Link>
+            <Link href="/configuracoes">Configurações</Link>
 
             <button onClick={handleLogout}>
               Sair
@@ -510,7 +511,7 @@ export default function DashboardPage() {
         {/* CARDS */}
         <section className="cards-container">
           {cards.map((card) => (
-            <a
+            <Link
               key={card.title}
               href={card.href}
               className="card"
@@ -532,7 +533,7 @@ export default function DashboardPage() {
               <span className="card-arrow">
                 Abrir →
               </span>
-            </a>
+            </Link>
           ))}
         </section>
 
@@ -553,61 +554,61 @@ export default function DashboardPage() {
               <div className="footer-column">
                 <h3>Produto</h3>
 
-                <a href="/criar-prompts">
+                <Link href="/criar-prompts">
                   Criar Prompts
-                </a>
+                </Link>
 
-                <a href="/texto-imagem">
+                <Link href="/texto-imagem">
                   Texto → Imagem
-                </a>
+                </Link>
 
-                <a href="/texto-video">
+                <Link href="/texto-video">
                   Texto → Vídeo
-                </a>
+                </Link>
 
-                <a href="/imagem-imagem">
+                <Link href="/imagem-imagem">
                   Imagem → Imagem
-                </a>
+                </Link>
 
-                <a href="/imagem-video">
+                <Link href="/imagem-video">
                   Imagem → Vídeo
-                </a>
+                </Link>
 
-                <a href="/projetos">
+                <Link href="/projetos">
                   Meus Projetos
-                </a>
+                </Link>
               </div>
 
               <div className="footer-column">
                 <h3>Suporte</h3>
 
-                <a href="/ajuda">
+                <Link href="/ajuda">
                   Central de Ajuda
-                </a>
+                </Link>
 
-                <a href="/contato">
+                <Link href="/contato">
                   Contato
-                </a>
+                </Link>
 
-                <a href="/sobre">
+                <Link href="/sobre">
                   Sobre o CIEL IA STUDIO
-                </a>
+                </Link>
               </div>
 
               <div className="footer-column">
                 <h3>Legal</h3>
 
-                <a href="/termos">
+                <Link href="/termos">
                   Termos de Uso
-                </a>
+                </Link>
 
-                <a href="/privacidade">
+                <Link href="/privacidade">
                   Política de Privacidade
-                </a>
+                </Link>
 
-                <a href="/reembolso">
+                <Link href="/reembolso">
                   Política de Reembolso
-                </a>
+                </Link>
               </div>
 
             </div>
