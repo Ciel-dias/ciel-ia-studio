@@ -3,14 +3,14 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
-
-type Theme = "dark" | "light";
+import { useTheme } from "@/components/ThemeProvider";
 
 export default function DashboardPage() {
   const [loading, setLoading] = useState(true);
   const [email, setEmail] = useState("");
   const [nome, setNome] = useState("");
-  const [theme, setTheme] = useState<Theme>("dark");
+
+  const { theme, toggleTheme } = useTheme();
 
   useEffect(() => {
     async function loadUser() {
@@ -27,30 +27,11 @@ export default function DashboardPage() {
 
       setEmail(user.email ?? "");
       setNome(user.user_metadata?.nome ?? "");
-
-      const savedTheme = localStorage.getItem("ciel-theme");
-
-      if (savedTheme === "light" || savedTheme === "dark") {
-        setTheme(savedTheme);
-      }
-
       setLoading(false);
     }
 
     loadUser();
   }, []);
-
-  useEffect(() => {
-    if (!loading) {
-      localStorage.setItem("ciel-theme", theme);
-    }
-  }, [theme, loading]);
-
-  function toggleTheme() {
-    setTheme((current) =>
-      current === "dark" ? "light" : "dark"
-    );
-  }
 
   async function handleLogout() {
     const supabase = createClient();
@@ -656,13 +637,16 @@ export default function DashboardPage() {
         <header className="topbar">
           <div className="brand">
             <span className="brand-icon">✨</span>
+
             <span className="brand-name">
               CIEL IA STUDIO
             </span>
           </div>
 
           <nav className="nav">
-            <Link href="/conta">Minha Conta</Link>
+            <Link href="/conta">
+              Minha Conta
+            </Link>
 
             <Link href="/projetos">
               Meus Projetos
@@ -700,7 +684,9 @@ export default function DashboardPage() {
         </header>
 
         <section className="hero">
-          <h1>O QUE VOCÊ QUER CRIAR HOJE?</h1>
+          <h1>
+            O QUE VOCÊ QUER CRIAR HOJE?
+          </h1>
 
           <p>
             Crie imagens, vídeos e prompts com IA.
@@ -739,7 +725,9 @@ export default function DashboardPage() {
           <div className="footer-inner">
 
             <div className="footer-brand">
-              <h2>CIEL IA STUDIO</h2>
+              <h2>
+                CIEL IA STUDIO
+              </h2>
 
               <p>
                 Crie. Transforme. Inove com IA.
