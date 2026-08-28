@@ -6,7 +6,10 @@ export default function TextoImagemPage() {
   const [prompt, setPrompt] = useState("");
   const [aspectRatio, setAspectRatio] = useState("1:1");
   const [style, setStyle] = useState("Realista");
+
   const [loading, setLoading] = useState(false);
+  const [result, setResult] = useState<any>(null);
+  const [error, setError] = useState("");
 
   async function handleGenerate() {
     if (!prompt.trim()) {
@@ -15,16 +18,47 @@ export default function TextoImagemPage() {
     }
 
     setLoading(true);
+    setError("");
+    setResult(null);
 
-    await new Promise((resolve) =>
-      setTimeout(resolve, 1200)
-    );
+    try {
+      const finalPrompt =
+        `${prompt.trim()}. ` +
+        `Estilo visual: ${style}. ` +
+        `Alta qualidade, extremamente detalhada, fotorealista.`;
 
-    setLoading(false);
+      const response = await fetch("/api/kling-image", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          prompt: finalPrompt,
+          aspect_ratio: aspectRatio,
+        }),
+      });
 
-    alert(
-      "A estrutura de geração está pronta. Agora vamos conectar a API de imagens."
-    );
+      const data = await response.json();
+
+      if (!response.ok || data?.status !== "success") {
+        throw new Error(
+          data?.message ||
+            "A Kling recusou a solicitação."
+        );
+      }
+
+      setResult(data);
+    } catch (err) {
+      console.error("Erro ao gerar imagem:", err);
+
+      setError(
+        err instanceof Error
+          ? err.message
+          : "Erro ao conectar com a API da Kling."
+      );
+    } finally {
+      setLoading(false);
+    }
   }
 
   return (
@@ -76,10 +110,6 @@ export default function TextoImagemPage() {
 
           overflow-x: hidden;
         }
-
-        /* =========================
-           TOPO
-        ========================= */
 
         .topbar {
           width: 100%;
@@ -135,10 +165,6 @@ export default function TextoImagemPage() {
             0 0 12px rgba(75, 199, 255, 0.8);
         }
 
-        /* =========================
-           CONTEÚDO
-        ========================= */
-
         .content {
           width: min(1180px, calc(100% - 48px));
 
@@ -183,10 +209,6 @@ export default function TextoImagemPage() {
           line-height: 1.5;
         }
 
-        /* =========================
-           ÁREA DE TRABALHO
-        ========================= */
-
         .workspace {
           display: grid;
 
@@ -197,10 +219,6 @@ export default function TextoImagemPage() {
 
           align-items: stretch;
         }
-
-        /* =========================
-           CARDS
-        ========================= */
 
         .panel {
           min-width: 0;
@@ -243,10 +261,6 @@ export default function TextoImagemPage() {
 
           font-size: 21px;
         }
-
-        /* =========================
-           CAMPOS
-        ========================= */
 
         .label {
           display: block;
@@ -344,10 +358,6 @@ export default function TextoImagemPage() {
           font-size: 14px;
         }
 
-        /* =========================
-           BOTÃO
-        ========================= */
-
         .generate {
           width: 100%;
 
@@ -403,10 +413,6 @@ export default function TextoImagemPage() {
           transform: none;
         }
 
-        /* =========================
-           PREVIEW
-        ========================= */
-
         .preview {
           min-height: 500px;
 
@@ -430,6 +436,8 @@ export default function TextoImagemPage() {
               transparent 55%
             ),
             rgba(2, 12, 24, 0.55);
+
+          padding: 25px;
         }
 
         .preview-icon {
@@ -448,7 +456,7 @@ export default function TextoImagemPage() {
           margin:
             10px auto 0;
 
-          max-width: 350px;
+          max-width: 430px;
 
           color: #8798aa;
 
@@ -471,9 +479,59 @@ export default function TextoImagemPage() {
           }
         }
 
-        /* =========================
-           RODAPÉ
-        ========================= */
+        .task-box {
+          margin-top: 22px;
+
+          padding: 16px;
+
+          border-radius: 12px;
+
+          background:
+            rgba(20, 150, 90, 0.12);
+
+          border:
+            1px solid rgba(80, 220, 150, 0.35);
+
+          text-align: left;
+
+          overflow-wrap: anywhere;
+        }
+
+        .task-title {
+          color: #72f0b1;
+
+          font-weight: 700;
+
+          margin-bottom: 8px;
+        }
+
+        .task-id {
+          color: #c8d7e5;
+
+          font-size: 13px;
+
+          line-height: 1.5;
+        }
+
+        .error-box {
+          margin-top: 22px;
+
+          padding: 16px;
+
+          border-radius: 12px;
+
+          background:
+            rgba(180, 40, 40, 0.15);
+
+          border:
+            1px solid rgba(255, 100, 100, 0.35);
+
+          color: #ffb0b0;
+
+          text-align: left;
+
+          line-height: 1.5;
+        }
 
         .footer {
           border-top:
@@ -568,10 +626,6 @@ export default function TextoImagemPage() {
           font-size: 13px;
         }
 
-        /* =========================
-           TABLET
-        ========================= */
-
         @media (max-width: 850px) {
           .topbar {
             padding:
@@ -586,10 +640,6 @@ export default function TextoImagemPage() {
             min-height: 380px;
           }
         }
-
-        /* =========================
-           CELULAR
-        ========================= */
 
         @media (max-width: 650px) {
           .topbar {
@@ -671,7 +721,6 @@ export default function TextoImagemPage() {
         <header className="topbar">
 
           <div className="brand">
-
             <span className="brand-icon">
               ✨
             </span>
@@ -679,7 +728,6 @@ export default function TextoImagemPage() {
             <span className="brand-name">
               CIEL IA STUDIO
             </span>
-
           </div>
 
           <a
@@ -806,7 +854,7 @@ export default function TextoImagemPage() {
                 disabled={loading}
               >
                 {loading
-                  ? "✨ Preparando..."
+                  ? "✨ Enviando para a Kling..."
                   : "✨ Gerar Imagem"}
               </button>
 
@@ -832,20 +880,60 @@ export default function TextoImagemPage() {
                   <div className="preview-icon">
                     {loading
                       ? "✨"
+                      : result
+                      ? "✅"
+                      : error
+                      ? "⚠️"
                       : "🖼️"}
                   </div>
 
+
                   <h3>
+
                     {loading
-                      ? "Preparando sua criação..."
+                      ? "Enviando sua criação para a Kling..."
+                      : result
+                      ? "Tarefa enviada com sucesso!"
+                      : error
+                      ? "Não foi possível enviar"
                       : "Sua imagem aparecerá aqui"}
+
                   </h3>
 
+
                   <p>
-                    Escreva um prompt ao lado e
-                    clique em “Gerar Imagem” para
-                    começar.
+
+                    {loading
+                      ? "Aguarde enquanto a Kling recebe seu pedido."
+                      : result
+                      ? "A Kling recebeu a solicitação. Agora temos o identificador da tarefa."
+                      : error
+                      ? "Verifique a mensagem abaixo."
+                      : "Escreva um prompt ao lado e clique em “Gerar Imagem” para começar."}
+
                   </p>
+
+
+                  {result?.taskId && (
+                    <div className="task-box">
+
+                      <div className="task-title">
+                        ✅ Task ID recebido
+                      </div>
+
+                      <div className="task-id">
+                        {result.taskId}
+                      </div>
+
+                    </div>
+                  )}
+
+
+                  {error && (
+                    <div className="error-box">
+                      {error}
+                    </div>
+                  )}
 
                 </div>
 
