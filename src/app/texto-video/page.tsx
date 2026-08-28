@@ -3,6 +3,22 @@
 import Link from "next/link";
 import { useState } from "react";
 
+type KlingResponse = {
+  status?: string;
+  message?: string;
+  taskId?: string | null;
+  klingStatus?: number;
+  klingResponse?: {
+    code?: number;
+    message?: string;
+    request_id?: string;
+    data?: {
+      task_id?: string;
+    };
+    task_id?: string;
+  };
+};
+
 export default function TextoVideoPage() {
   const [prompt, setPrompt] = useState("");
   const [aspectRatio, setAspectRatio] = useState("9:16");
@@ -10,15 +26,43 @@ export default function TextoVideoPage() {
   const [style, setStyle] = useState("Realista");
   const [loading, setLoading] = useState(false);
 
+  const [result, setResult] = useState<{
+    type: "idle" | "loading" | "success" | "error";
+    message: string;
+    details?: KlingResponse;
+  }>({
+    type: "idle",
+    message: "",
+  });
+
   async function handleGenerate() {
     if (!prompt.trim()) {
-      alert("Digite uma descrição para gerar seu vídeo.");
+      setResult({
+        type: "error",
+        message: "Digite uma descrição para gerar seu vídeo.",
+      });
+
       return;
     }
 
     setLoading(true);
 
+    setResult({
+      type: "loading",
+      message: "Enviando sua criação para a Kling...",
+    });
+
     try {
+      /*
+       * A rota atual da Kling trabalha com:
+       * 5 ou 10 segundos.
+       */
+
+      const durationValue =
+        duration === "10 segundos"
+          ? "10"
+          : "5";
+
       const response = await fetch("/api/kling", {
         method: "POST",
 
@@ -31,51 +75,111 @@ export default function TextoVideoPage() {
 
           aspect_ratio: aspectRatio,
 
-          duration:
-            duration === "10 segundos"
-              ? "10"
-              : "5",
+          duration: durationValue,
 
           mode: "std",
 
           model_name: "kling-v3",
+
+          negative_prompt:
+            "baixa qualidade, deformações, mãos deformadas, rosto deformado",
         }),
       });
 
-      const data = await response.json();
+      const data: KlingResponse =
+        await response.json();
 
-      console.log("Resposta da Kling:", data);
+      /*
+       * Erro retornado pela API.
+       */
 
-      if (!response.ok || data.status !== "success") {
-        const klingResponse =
-          data?.klingResponse;
+      if (!response.ok || data.status === "error") {
+        const klingData =
+          data.klingResponse;
 
-        const message =
-          klingResponse?.message ||
-          data?.message ||
-          "Não foi possível enviar o vídeo para a Kling.";
+        const klingCode =
+          klingData?.code ?? "N/A";
 
-        alert(
-          `Erro na geração:\n\n${message}`
-        );
+        const klingMessage =
+          klingData?.message ||
+          data.message ||
+          "A Kling recusou a solicitação.";
+
+        const requestId =
+          klingData?.request_id ||
+          "N/A";
+
+        /*
+         * Código 1102:
+         * Account balance not enough
+         */
+
+        if (
+          klingCode === 1102 ||
+          klingMessage
+            .toLowerCase()
+            .includes(
+              "account balance not enough"
+            )
+        ) {
+          setResult({
+            type: "error",
+
+            message:
+              "Saldo insuficiente na Kling para gerar este vídeo.",
+
+            details: data,
+          });
+
+          return;
+        }
+
+        setResult({
+          type: "error",
+
+          message: klingMessage,
+
+          details: data,
+        });
 
         return;
       }
 
-      alert(
-        `Vídeo enviado para a Kling com sucesso!\n\nTask ID: ${
-          data.taskId || "não informado"
-        }`
-      );
+      /*
+       * Solicitação aceita pela Kling.
+       */
+
+      const taskId =
+        data.taskId ||
+        data.klingResponse?.data?.task_id ||
+        data.klingResponse?.task_id ||
+        null;
+
+      setResult({
+        type: "success",
+
+        message:
+          "Sua tarefa foi enviada para a Kling com sucesso!",
+
+        details: {
+          ...data,
+          taskId,
+        },
+      });
     } catch (error) {
       console.error(
         "Erro ao chamar /api/kling:",
         error
       );
 
-      alert(
-        "Erro de conexão com a rota da Kling."
-      );
+      setResult({
+        type: "error",
+
+        message:
+          error instanceof Error
+            ? error.message
+            : "Não foi possível conectar à API Kling.",
+      });
     } finally {
       setLoading(false);
     }
@@ -96,15 +200,23 @@ export default function TextoVideoPage() {
         }
 
         body {
-          font-family: Arial, Helvetica, sans-serif;
+          font-family:
+            Arial,
+            Helvetica,
+            sans-serif;
         }
 
-        a {
-          -webkit-tap-highlight-color: transparent;
+        a,
+        button,
+        textarea,
+        select {
+          -webkit-tap-highlight-color:
+            transparent;
         }
 
         .page {
           min-height: 100vh;
+
           color: #fff;
 
           background:
@@ -128,25 +240,40 @@ export default function TextoVideoPage() {
           overflow-x: hidden;
         }
 
+        /* =========================
+           TOPO
+        ========================= */
+
         .topbar {
           min-height: 74px;
+
           padding: 0 42px;
 
           display: flex;
+
           align-items: center;
+
           justify-content: space-between;
 
-          background: rgba(4, 12, 24, 0.9);
+          background:
+            rgba(4, 12, 24, 0.9);
 
           border-bottom:
-            1px solid rgba(100, 180, 255, 0.18);
+            1px solid rgba(
+              100,
+              180,
+              255,
+              0.18
+            );
 
           backdrop-filter: blur(12px);
         }
 
         .brand {
           display: flex;
+
           align-items: center;
+
           gap: 10px;
         }
 
@@ -156,13 +283,17 @@ export default function TextoVideoPage() {
 
         .brand-name {
           font-size: 20px;
+
           font-weight: 700;
+
           letter-spacing: 0.4px;
         }
 
         .back {
           color: #bfeaff;
+
           text-decoration: none;
+
           font-size: 14px;
 
           transition:
@@ -174,11 +305,17 @@ export default function TextoVideoPage() {
           color: #6ed7ff;
 
           text-shadow:
-            0 0 12px rgba(75, 199, 255, 0.8);
+            0 0 12px
+            rgba(75, 199, 255, 0.8);
         }
 
+        /* =========================
+           CONTEÚDO
+        ========================= */
+
         .content {
-          width: min(1180px, calc(100% - 40px));
+          width:
+            min(1180px, calc(100% - 40px));
 
           margin: 0 auto;
 
@@ -214,6 +351,10 @@ export default function TextoVideoPage() {
           line-height: 1.5;
         }
 
+        /* =========================
+           WORKSPACE
+        ========================= */
+
         .workspace {
           display: grid;
 
@@ -224,6 +365,10 @@ export default function TextoVideoPage() {
 
           align-items: stretch;
         }
+
+        /* =========================
+           PAINÉIS
+        ========================= */
 
         .panel {
           border-radius: 22px;
@@ -241,9 +386,14 @@ export default function TextoVideoPage() {
             2px solid #58c9ff;
 
           box-shadow:
-            0 0 8px rgba(70, 199, 255, 0.8),
-            0 0 22px rgba(43, 167, 255, 0.35),
-            inset 0 0 22px rgba(56, 174, 255, 0.07);
+            0 0 8px
+            rgba(70, 199, 255, 0.8),
+
+            0 0 22px
+            rgba(43, 167, 255, 0.35),
+
+            inset 0 0 22px
+            rgba(56, 174, 255, 0.07);
         }
 
         .panel h2 {
@@ -252,6 +402,10 @@ export default function TextoVideoPage() {
 
           font-size: 21px;
         }
+
+        /* =========================
+           CAMPOS
+        ========================= */
 
         .label {
           display: block;
@@ -276,7 +430,8 @@ export default function TextoVideoPage() {
           padding: 16px;
 
           border:
-            1px solid rgba(94, 203, 255, 0.45);
+            1px solid
+            rgba(94, 203, 255, 0.45);
 
           border-radius: 14px;
 
@@ -305,7 +460,8 @@ export default function TextoVideoPage() {
           border-color: #63d3ff;
 
           box-shadow:
-            0 0 15px rgba(70, 199, 255, 0.25);
+            0 0 15px
+            rgba(70, 199, 255, 0.25);
         }
 
         .options {
@@ -325,7 +481,8 @@ export default function TextoVideoPage() {
           border-radius: 12px;
 
           border:
-            1px solid rgba(94, 203, 255, 0.35);
+            1px solid
+            rgba(94, 203, 255, 0.35);
 
           outline: none;
 
@@ -342,13 +499,19 @@ export default function TextoVideoPage() {
           border-color: #63d3ff;
 
           box-shadow:
-            0 0 12px rgba(70, 199, 255, 0.2);
+            0 0 12px
+            rgba(70, 199, 255, 0.2);
         }
+
+        /* =========================
+           CRÉDITOS
+        ========================= */
 
         .credits {
           margin-top: 20px;
 
-          padding: 13px 15px;
+          padding:
+            13px 15px;
 
           border-radius: 12px;
 
@@ -356,12 +519,17 @@ export default function TextoVideoPage() {
             rgba(29, 112, 157, 0.16);
 
           border:
-            1px solid rgba(94, 203, 255, 0.25);
+            1px solid
+            rgba(94, 203, 255, 0.25);
 
           color: #bfeaff;
 
           font-size: 14px;
         }
+
+        /* =========================
+           BOTÃO
+        ========================= */
 
         .generate {
           width: 100%;
@@ -390,8 +558,11 @@ export default function TextoVideoPage() {
           font-weight: 800;
 
           box-shadow:
-            0 0 10px rgba(70, 199, 255, 0.7),
-            0 0 24px rgba(43, 167, 255, 0.35);
+            0 0 10px
+            rgba(70, 199, 255, 0.7),
+
+            0 0 24px
+            rgba(43, 167, 255, 0.35);
 
           transition:
             transform 0.2s,
@@ -402,8 +573,11 @@ export default function TextoVideoPage() {
           transform: translateY(-2px);
 
           box-shadow:
-            0 0 14px rgba(85, 211, 255, 1),
-            0 0 32px rgba(43, 167, 255, 0.55);
+            0 0 14px
+            rgba(85, 211, 255, 1),
+
+            0 0 32px
+            rgba(43, 167, 255, 0.55);
         }
 
         .generate:active {
@@ -417,6 +591,10 @@ export default function TextoVideoPage() {
 
           transform: none;
         }
+
+        /* =========================
+           PREVIEW
+        ========================= */
 
         .preview {
           min-height: 500px;
@@ -432,7 +610,8 @@ export default function TextoVideoPage() {
           border-radius: 16px;
 
           border:
-            1px dashed rgba(104, 207, 255, 0.35);
+            1px dashed
+            rgba(104, 207, 255, 0.35);
 
           background:
             radial-gradient(
@@ -443,6 +622,8 @@ export default function TextoVideoPage() {
             rgba(2, 12, 24, 0.55);
 
           overflow: hidden;
+
+          padding: 28px;
         }
 
         .preview-icon {
@@ -461,12 +642,16 @@ export default function TextoVideoPage() {
           margin:
             10px auto 0;
 
-          max-width: 350px;
+          max-width: 430px;
 
           color: #8798aa;
 
           line-height: 1.5;
         }
+
+        /* =========================
+           ESTADOS
+        ========================= */
 
         .loading {
           animation:
@@ -484,13 +669,106 @@ export default function TextoVideoPage() {
           }
         }
 
+        .result-loading {
+          width: 100%;
+
+          padding: 24px;
+        }
+
+        .result-success {
+          width: 100%;
+
+          padding: 24px;
+
+          border-radius: 16px;
+
+          background:
+            rgba(26, 126, 91, 0.14);
+
+          border:
+            1px solid
+            rgba(78, 220, 164, 0.45);
+        }
+
+        .result-success
+          .preview-icon {
+          margin-bottom: 10px;
+        }
+
+        .result-error {
+          width: 100%;
+
+          padding: 24px;
+
+          border-radius: 16px;
+
+          background:
+            rgba(145, 35, 45, 0.16);
+
+          border:
+            1px solid
+            rgba(255, 105, 120, 0.5);
+        }
+
+        .result-error
+          .preview-icon {
+          margin-bottom: 10px;
+        }
+
+        .details {
+          margin-top: 22px;
+
+          padding: 16px;
+
+          text-align: left;
+
+          border-radius: 12px;
+
+          background:
+            rgba(0, 0, 0, 0.25);
+
+          border:
+            1px solid
+            rgba(255, 255, 255, 0.08);
+
+          font-size: 13px;
+
+          line-height: 1.8;
+
+          word-break: break-word;
+        }
+
+        .details strong {
+          color: #d9f5ff;
+        }
+
+        .task-id {
+          margin-top: 15px;
+
+          padding: 12px;
+
+          border-radius: 10px;
+
+          background:
+            rgba(94, 203, 255, 0.08);
+
+          border:
+            1px solid
+            rgba(94, 203, 255, 0.25);
+
+          word-break: break-all;
+
+          color: #bfeaff;
+        }
+
         /* =========================
            RODAPÉ
         ========================= */
 
         .footer {
           border-top:
-            1px solid rgba(100, 180, 255, 0.18);
+            1px solid
+            rgba(100, 180, 255, 0.18);
 
           background:
             linear-gradient(
@@ -572,7 +850,8 @@ export default function TextoVideoPage() {
           padding-top: 22px;
 
           border-top:
-            1px solid rgba(100, 180, 255, 0.16);
+            1px solid
+            rgba(100, 180, 255, 0.16);
 
           text-align: center;
 
@@ -587,8 +866,7 @@ export default function TextoVideoPage() {
 
         @media (max-width: 850px) {
           .topbar {
-            padding:
-              0 22px;
+            padding: 0 22px;
           }
 
           .workspace {
@@ -608,8 +886,7 @@ export default function TextoVideoPage() {
           .topbar {
             min-height: 68px;
 
-            padding:
-              0 16px;
+            padding: 0 16px;
 
             gap: 12px;
           }
@@ -712,7 +989,6 @@ export default function TextoVideoPage() {
 
         </header>
 
-
         {/* CONTEÚDO */}
 
         <section className="content">
@@ -724,12 +1000,11 @@ export default function TextoVideoPage() {
             </h1>
 
             <p>
-              Transforme suas ideias em vídeos incríveis
-              usando inteligência artificial.
+              Transforme suas ideias em vídeos
+              incríveis usando inteligência artificial.
             </p>
 
           </div>
-
 
           <div className="workspace">
 
@@ -754,8 +1029,9 @@ export default function TextoVideoPage() {
                 placeholder="Exemplo: Uma mulher caminhando em uma cidade futurista ao pôr do sol, câmera cinematográfica acompanhando seus movimentos..."
               />
 
-
               <div className="options">
+
+                {/* PROPORÇÃO */}
 
                 <div>
 
@@ -766,7 +1042,9 @@ export default function TextoVideoPage() {
                   <select
                     value={aspectRatio}
                     onChange={(e) =>
-                      setAspectRatio(e.target.value)
+                      setAspectRatio(
+                        e.target.value
+                      )
                     }
                   >
 
@@ -786,6 +1064,7 @@ export default function TextoVideoPage() {
 
                 </div>
 
+                {/* DURAÇÃO */}
 
                 <div>
 
@@ -796,7 +1075,9 @@ export default function TextoVideoPage() {
                   <select
                     value={duration}
                     onChange={(e) =>
-                      setDuration(e.target.value)
+                      setDuration(
+                        e.target.value
+                      )
                     }
                   >
 
@@ -814,6 +1095,7 @@ export default function TextoVideoPage() {
 
               </div>
 
+              {/* ESTILO */}
 
               <label className="label">
                 Estilo
@@ -848,31 +1130,33 @@ export default function TextoVideoPage() {
 
               </select>
 
+              {/* CRÉDITOS */}
 
               <div className="credits">
+
                 💎 Seus créditos:{" "}
+
                 <strong>
                   30
                 </strong>
+
               </div>
 
+              {/* BOTÃO */}
 
               <button
-                className={`generate ${
-                  loading ? "loading" : ""
-                }`}
+                className="generate"
                 onClick={handleGenerate}
                 disabled={loading}
               >
 
                 {loading
-                  ? "🎥 Enviando para a Kling..."
+                  ? "🎥 Enviando para Kling..."
                   : "🎥 Gerar Vídeo"}
 
               </button>
 
             </section>
-
 
             {/* RESULTADO */}
 
@@ -882,33 +1166,153 @@ export default function TextoVideoPage() {
                 🎬 Resultado
               </h2>
 
-              <div
-                className={`preview ${
-                  loading ? "loading" : ""
-                }`}
-              >
+              <div className="preview">
 
-                <div>
+                {/* ESTADO INICIAL */}
 
-                  <div className="preview-icon">
-                    {loading
-                      ? "🎥"
-                      : "🎬"}
+                {result.type === "idle" && (
+                  <div>
+
+                    <div className="preview-icon">
+                      🎬
+                    </div>
+
+                    <h3>
+                      Seu vídeo aparecerá aqui
+                    </h3>
+
+                    <p>
+                      Escreva um prompt ao lado e
+                      clique em “Gerar Vídeo” para
+                      começar.
+                    </p>
+
                   </div>
+                )}
 
-                  <h3>
-                    {loading
-                      ? "Enviando seu vídeo para a Kling..."
-                      : "Seu vídeo aparecerá aqui"}
-                  </h3>
+                {/* ENVIANDO */}
 
-                  <p>
-                    Escreva um prompt ao lado e
-                    clique em “Gerar Vídeo” para
-                    começar.
-                  </p>
+                {result.type === "loading" && (
+                  <div
+                    className=
+                      "result-loading loading"
+                  >
 
-                </div>
+                    <div className="preview-icon">
+                      🎥
+                    </div>
+
+                    <h3>
+                      Enviando para a Kling...
+                    </h3>
+
+                    <p>
+                      Estamos enviando sua
+                      solicitação de geração
+                      de vídeo.
+                    </p>
+
+                  </div>
+                )}
+
+                {/* SUCESSO */}
+
+                {result.type === "success" && (
+                  <div className="result-success">
+
+                    <div className="preview-icon">
+                      ✅
+                    </div>
+
+                    <h3>
+                      Tarefa enviada com sucesso!
+                    </h3>
+
+                    <p>
+                      A Kling aceitou sua
+                      solicitação e iniciou o
+                      processamento.
+                    </p>
+
+                    {result.details?.taskId && (
+                      <div className="task-id">
+
+                        <strong>
+                          Task ID:
+                        </strong>
+
+                        <br />
+
+                        {result.details.taskId}
+
+                      </div>
+                    )}
+
+                  </div>
+                )}
+
+                {/* ERRO */}
+
+                {result.type === "error" && (
+                  <div className="result-error">
+
+                    <div className="preview-icon">
+                      ⚠️
+                    </div>
+
+                    <h3>
+                      {result.message}
+                    </h3>
+
+                    {result.details && (
+                      <div className="details">
+
+                        <div>
+                          <strong>
+                            HTTP:
+                          </strong>{" "}
+                          {result.details
+                            .klingStatus ??
+                            "N/A"}
+                        </div>
+
+                        <div>
+                          <strong>
+                            Código Kling:
+                          </strong>{" "}
+                          {result.details
+                            .klingResponse
+                            ?.code ??
+                            "N/A"}
+                        </div>
+
+                        <div>
+                          <strong>
+                            Mensagem Kling:
+                          </strong>{" "}
+                          {result.details
+                            .klingResponse
+                            ?.message ??
+                            result.details
+                              .message ??
+                            "N/A"}
+                        </div>
+
+                        <div>
+                          <strong>
+                            Request ID:
+                          </strong>{" "}
+                          {result.details
+                            .klingResponse
+                            ?.request_id ??
+                            "N/A"}
+                        </div>
+
+                      </div>
+                    )}
+
+                  </div>
+                )}
 
               </div>
 
@@ -917,7 +1321,6 @@ export default function TextoVideoPage() {
           </div>
 
         </section>
-
 
         {/* RODAPÉ */}
 
@@ -936,7 +1339,6 @@ export default function TextoVideoPage() {
               </p>
 
             </div>
-
 
             <div className="footer-columns">
 
@@ -974,7 +1376,6 @@ export default function TextoVideoPage() {
 
               </div>
 
-
               {/* SUPORTE */}
 
               <div className="footer-column">
@@ -996,7 +1397,6 @@ export default function TextoVideoPage() {
                 </Link>
 
               </div>
-
 
               {/* LEGAL */}
 
@@ -1022,9 +1422,11 @@ export default function TextoVideoPage() {
 
             </div>
 
-
             <div className="footer-bottom">
-              © 2026 CIEL IA STUDIO. Todos os direitos reservados.
+
+              © 2026 CIEL IA STUDIO.
+              Todos os direitos reservados.
+
             </div>
 
           </div>
