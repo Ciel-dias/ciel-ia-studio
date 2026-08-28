@@ -15,6 +15,7 @@ export default function ImagemImagemPage() {
   const [preview2, setPreview2] = useState("");
 
   const [loading, setLoading] = useState(false);
+  const [resultImage, setResultImage] = useState("");
 
   function handleImageChange(
     event: React.ChangeEvent<HTMLInputElement>,
@@ -35,27 +36,169 @@ export default function ImagemImagemPage() {
     }
   }
 
+  async function fileToDataUrl(file: File | null) {
+    if (!file) return null;
+
+    return new Promise<string>((resolve, reject) => {
+      const reader = new FileReader();
+
+      reader.onload = () => {
+        if (typeof reader.result === "string") {
+          resolve(reader.result);
+        } else {
+          reject(
+            new Error("Não foi possível preparar a imagem.")
+          );
+        }
+      };
+
+      reader.onerror = () => {
+        reject(
+          new Error("Erro ao ler a imagem.")
+        );
+      };
+
+      reader.readAsDataURL(file);
+    });
+  }
+
   async function handleGenerate() {
     if (!image1 && !image2) {
-      alert("Selecione pelo menos uma imagem de referência.");
+      alert(
+        "Selecione pelo menos uma imagem de referência."
+      );
       return;
     }
 
     if (!prompt.trim()) {
-      alert("Descreva o que deseja criar na imagem.");
+      alert(
+        "Descreva o que deseja criar na imagem."
+      );
       return;
     }
 
     setLoading(true);
+    setResultImage("");
 
-    // Futuramente conectaremos aqui a API de geração de imagens.
-    await new Promise((resolve) => setTimeout(resolve, 1200));
+    try {
+      const imageData1 = await fileToDataUrl(image1);
+      const imageData2 = await fileToDataUrl(image2);
 
-    setLoading(false);
+      if (!imageData1) {
+        alert(
+          "Não foi possível preparar a imagem de referência."
+        );
+        return;
+      }
 
-    alert(
-      "A estrutura de geração está pronta. Agora vamos conectar a API de imagens."
-    );
+      const response = await fetch(
+        "/api/kling-image-to-image",
+        {
+          method: "POST",
+
+          headers: {
+            "Content-Type": "application/json",
+          },
+
+          body: JSON.stringify({
+            image: imageData1,
+
+            ...(imageData2
+              ? {
+                  image2: imageData2,
+                }
+              : {}),
+
+            prompt: prompt.trim(),
+
+            aspect_ratio: aspectRatio,
+
+            style,
+
+            model_name: "kling-image",
+          }),
+        }
+      );
+
+      const data = await response.json();
+
+      console.log(
+        "Resposta Imagem → Imagem:",
+        data
+      );
+
+      if (
+        !response.ok ||
+        data?.status === "error"
+      ) {
+        console.error(
+          "Erro Imagem → Imagem:",
+          data
+        );
+
+        if (
+          data?.klingStatus === 429 ||
+          data?.klingCode === 1102
+        ) {
+          alert(
+            "No momento não foi possível gerar a imagem. Tente novamente mais tarde."
+          );
+        } else {
+          alert(
+            data?.message ||
+              "Não foi possível gerar a imagem."
+          );
+        }
+
+        return;
+      }
+
+      /*
+       * Algumas respostas podem trazer
+       * a URL da imagem imediatamente.
+       */
+      const responseData = data?.data;
+
+      const imageUrl =
+        responseData?.image_url ||
+        responseData?.url ||
+        responseData?.images?.[0]?.url ||
+        data?.image_url ||
+        data?.url ||
+        data?.images?.[0]?.url ||
+        "";
+
+      if (imageUrl) {
+        setResultImage(imageUrl);
+      }
+
+      /*
+       * A Kling normalmente trabalha com tarefa.
+       * Guardamos o taskId para a próxima etapa
+       * de consulta do resultado.
+       */
+      if (data?.taskId) {
+        console.log(
+          "Task ID da Kling:",
+          data.taskId
+        );
+      }
+
+      alert(
+        "Sua solicitação foi enviada com sucesso! ✨"
+      );
+    } catch (error) {
+      console.error(
+        "Erro ao conectar Imagem → Imagem:",
+        error
+      );
+
+      alert(
+        "Não foi possível conectar ao serviço de geração. Tente novamente."
+      );
+    } finally {
+      setLoading(false);
+    }
   }
 
   return (
@@ -110,7 +253,8 @@ export default function ImagemImagemPage() {
           align-items: center;
           justify-content: space-between;
           background: rgba(4, 12, 24, 0.9);
-          border-bottom: 1px solid rgba(100, 180, 255, 0.18);
+          border-bottom: 1px solid
+            rgba(100, 180, 255, 0.18);
           backdrop-filter: blur(12px);
         }
 
@@ -141,11 +285,16 @@ export default function ImagemImagemPage() {
 
         .back:hover {
           color: #6ed7ff;
-          text-shadow: 0 0 12px rgba(75, 199, 255, 0.8);
+          text-shadow:
+            0 0 12px
+            rgba(75, 199, 255, 0.8);
         }
 
         .content {
-          width: min(1180px, calc(100% - 40px));
+          width: min(
+            1180px,
+            calc(100% - 40px)
+          );
           margin: 0 auto;
           padding: 55px 0 70px;
         }
@@ -157,7 +306,11 @@ export default function ImagemImagemPage() {
 
         .title-area h1 {
           margin: 0;
-          font-size: clamp(32px, 5vw, 52px);
+          font-size: clamp(
+            32px,
+            5vw,
+            52px
+          );
           text-transform: uppercase;
         }
 
@@ -171,7 +324,8 @@ export default function ImagemImagemPage() {
 
         .workspace {
           display: grid;
-          grid-template-columns: 0.9fr 1.1fr;
+          grid-template-columns:
+            0.9fr 1.1fr;
           gap: 28px;
           align-items: stretch;
         }
@@ -187,9 +341,12 @@ export default function ImagemImagemPage() {
             );
           border: 2px solid #58c9ff;
           box-shadow:
-            0 0 8px rgba(70, 199, 255, 0.8),
-            0 0 22px rgba(43, 167, 255, 0.35),
-            inset 0 0 22px rgba(56, 174, 255, 0.07);
+            0 0 8px
+              rgba(70, 199, 255, 0.8),
+            0 0 22px
+              rgba(43, 167, 255, 0.35),
+            inset 0 0 22px
+              rgba(56, 174, 255, 0.07);
         }
 
         .panel h2 {
@@ -211,7 +368,8 @@ export default function ImagemImagemPage() {
 
         .images-container {
           display: grid;
-          grid-template-columns: 1fr 1fr;
+          grid-template-columns:
+            1fr 1fr;
           gap: 12px;
         }
 
@@ -219,7 +377,8 @@ export default function ImagemImagemPage() {
           position: relative;
           height: 175px;
           border-radius: 16px;
-          border: 1px dashed rgba(104, 207, 255, 0.55);
+          border: 1px dashed
+            rgba(104, 207, 255, 0.55);
           background:
             radial-gradient(
               circle,
@@ -238,19 +397,15 @@ export default function ImagemImagemPage() {
 
         .image-box:hover {
           border-color: #63d3ff;
-          box-shadow: 0 0 18px rgba(70, 199, 255, 0.18);
+          box-shadow:
+            0 0 18px
+            rgba(70, 199, 255, 0.18);
         }
 
         .image-box.has-image {
           border-style: solid;
         }
 
-        /*
-          IMPORTANTE:
-          contain mantém a imagem inteira visível.
-          Nenhuma parte da pessoa, carro, cenário etc.
-          será cortada na prévia.
-        */
         .image-preview {
           width: 100%;
           height: 100%;
@@ -271,7 +426,12 @@ export default function ImagemImagemPage() {
           left: 10px;
           padding: 4px 8px;
           border-radius: 8px;
-          background: rgba(3, 13, 25, 0.82);
+          background: rgba(
+            3,
+            13,
+            25,
+            0.82
+          );
           color: #bfeaff;
           font-size: 11px;
           font-weight: 700;
@@ -287,17 +447,20 @@ export default function ImagemImagemPage() {
           align-items: center;
           justify-content: center;
           color: #04101b;
-          background: linear-gradient(
-            135deg,
-            #5ed2ff,
-            #75e0ff
-          );
+          background:
+            linear-gradient(
+              135deg,
+              #5ed2ff,
+              #75e0ff
+            );
           font-size: 32px;
           font-weight: 400;
           line-height: 1;
           box-shadow:
-            0 0 10px rgba(70, 199, 255, 0.7),
-            0 0 22px rgba(43, 167, 255, 0.3);
+            0 0 10px
+              rgba(70, 199, 255, 0.7),
+            0 0 22px
+              rgba(43, 167, 255, 0.3);
         }
 
         .image-box-title {
@@ -319,8 +482,10 @@ export default function ImagemImagemPage() {
           margin-top: 10px;
           padding: 7px 12px;
           border-radius: 9px;
-          background: rgba(94, 210, 255, 0.16);
-          border: 1px solid rgba(94, 210, 255, 0.4);
+          background:
+            rgba(94, 210, 255, 0.16);
+          border: 1px solid
+            rgba(94, 210, 255, 0.4);
           color: #bfeaff;
           font-size: 11px;
           font-weight: 700;
@@ -329,7 +494,8 @@ export default function ImagemImagemPage() {
         }
 
         .upload-button:hover {
-          background: rgba(94, 210, 255, 0.28);
+          background:
+            rgba(94, 210, 255, 0.28);
           border-color: #63d3ff;
         }
 
@@ -342,7 +508,8 @@ export default function ImagemImagemPage() {
           border: none;
           border-radius: 9px;
           color: #04101b;
-          background: rgba(117, 224, 255, 0.95);
+          background:
+            rgba(117, 224, 255, 0.95);
           font-size: 11px;
           font-weight: 800;
           cursor: pointer;
@@ -357,14 +524,19 @@ export default function ImagemImagemPage() {
           min-height: 150px;
           resize: vertical;
           padding: 16px;
-          border: 1px solid rgba(94, 203, 255, 0.45);
+          border: 1px solid
+            rgba(94, 203, 255, 0.45);
           border-radius: 14px;
           outline: none;
-          background: rgba(3, 13, 25, 0.8);
+          background:
+            rgba(3, 13, 25, 0.8);
           color: #fff;
           font-size: 15px;
           line-height: 1.5;
-          font-family: Arial, Helvetica, sans-serif;
+          font-family:
+            Arial,
+            Helvetica,
+            sans-serif;
         }
 
         .prompt::placeholder {
@@ -373,12 +545,15 @@ export default function ImagemImagemPage() {
 
         .prompt:focus {
           border-color: #63d3ff;
-          box-shadow: 0 0 15px rgba(70, 199, 255, 0.25);
+          box-shadow:
+            0 0 15px
+            rgba(70, 199, 255, 0.25);
         }
 
         .options {
           display: grid;
-          grid-template-columns: 1fr 1fr;
+          grid-template-columns:
+            1fr 1fr;
           gap: 12px;
         }
 
@@ -386,7 +561,8 @@ export default function ImagemImagemPage() {
           width: 100%;
           padding: 13px;
           border-radius: 12px;
-          border: 1px solid rgba(94, 203, 255, 0.35);
+          border: 1px solid
+            rgba(94, 203, 255, 0.35);
           outline: none;
           background: #0a192b;
           color: #fff;
@@ -396,15 +572,19 @@ export default function ImagemImagemPage() {
 
         select:focus {
           border-color: #63d3ff;
-          box-shadow: 0 0 12px rgba(70, 199, 255, 0.2);
+          box-shadow:
+            0 0 12px
+            rgba(70, 199, 255, 0.2);
         }
 
         .credits {
           margin-top: 20px;
           padding: 13px 15px;
           border-radius: 12px;
-          background: rgba(29, 112, 157, 0.16);
-          border: 1px solid rgba(94, 203, 255, 0.25);
+          background:
+            rgba(29, 112, 157, 0.16);
+          border: 1px solid
+            rgba(94, 203, 255, 0.25);
           color: #bfeaff;
           font-size: 14px;
         }
@@ -417,16 +597,19 @@ export default function ImagemImagemPage() {
           border-radius: 14px;
           cursor: pointer;
           color: #04101b;
-          background: linear-gradient(
-            90deg,
-            #5ed2ff,
-            #75e0ff
-          );
+          background:
+            linear-gradient(
+              90deg,
+              #5ed2ff,
+              #75e0ff
+            );
           font-size: 16px;
           font-weight: 800;
           box-shadow:
-            0 0 10px rgba(70, 199, 255, 0.7),
-            0 0 24px rgba(43, 167, 255, 0.35);
+            0 0 10px
+              rgba(70, 199, 255, 0.7),
+            0 0 24px
+              rgba(43, 167, 255, 0.35);
           transition:
             transform 0.2s,
             box-shadow 0.2s;
@@ -435,8 +618,10 @@ export default function ImagemImagemPage() {
         .generate:hover {
           transform: translateY(-2px);
           box-shadow:
-            0 0 14px rgba(85, 211, 255, 1),
-            0 0 32px rgba(43, 167, 255, 0.55);
+            0 0 14px
+              rgba(85, 211, 255, 1),
+            0 0 32px
+              rgba(43, 167, 255, 0.55);
         }
 
         .generate:active {
@@ -456,7 +641,8 @@ export default function ImagemImagemPage() {
           justify-content: center;
           text-align: center;
           border-radius: 16px;
-          border: 1px dashed rgba(104, 207, 255, 0.35);
+          border: 1px dashed
+            rgba(104, 207, 255, 0.35);
           background:
             radial-gradient(
               circle,
@@ -465,6 +651,15 @@ export default function ImagemImagemPage() {
             ),
             rgba(2, 12, 24, 0.55);
           overflow: hidden;
+        }
+
+        .result-image {
+          width: 100%;
+          height: 100%;
+          max-height: 560px;
+          object-fit: contain;
+          border-radius: 14px;
+          display: block;
         }
 
         .preview-icon {
@@ -499,10 +694,9 @@ export default function ImagemImagemPage() {
           }
         }
 
-        /* RODAPÉ */
-
         .footer {
-          border-top: 1px solid rgba(100, 180, 255, 0.18);
+          border-top: 1px solid
+            rgba(100, 180, 255, 0.18);
           background:
             linear-gradient(
               180deg,
@@ -534,7 +728,8 @@ export default function ImagemImagemPage() {
 
         .footer-columns {
           display: grid;
-          grid-template-columns: repeat(3, 1fr);
+          grid-template-columns:
+            repeat(3, 1fr);
           gap: 50px;
         }
 
@@ -560,7 +755,8 @@ export default function ImagemImagemPage() {
         .footer-bottom {
           margin-top: 36px;
           padding-top: 22px;
-          border-top: 1px solid rgba(100, 180, 255, 0.16);
+          border-top: 1px solid
+            rgba(100, 180, 255, 0.16);
           text-align: center;
           color: #8997a9;
           font-size: 13px;
@@ -596,7 +792,10 @@ export default function ImagemImagemPage() {
           }
 
           .content {
-            width: min(430px, calc(100% - 28px));
+            width: min(
+              430px,
+              calc(100% - 28px)
+            );
             padding-top: 38px;
           }
 
@@ -610,7 +809,8 @@ export default function ImagemImagemPage() {
           }
 
           .images-container {
-            grid-template-columns: 1fr 1fr;
+            grid-template-columns:
+              1fr 1fr;
             gap: 9px;
           }
 
@@ -678,58 +878,55 @@ export default function ImagemImagemPage() {
       `}</style>
 
       <main className="page">
-
-        {/* CABEÇALHO */}
-
         <header className="topbar">
           <div className="brand">
-            <span className="brand-icon">✨</span>
+            <span className="brand-icon">
+              ✨
+            </span>
 
             <span className="brand-name">
               CIEL IA STUDIO
             </span>
           </div>
 
-          <Link href="/dashboard" className="back">
+          <Link
+            href="/dashboard"
+            className="back"
+          >
             ← Voltar ao Dashboard
           </Link>
         </header>
 
-        {/* CONTEÚDO */}
-
         <section className="content">
-
           <div className="title-area">
-            <h1>Imagem → Imagem</h1>
+            <h1>
+              Imagem → Imagem
+            </h1>
 
             <p>
-              Transforme suas imagens com inteligência
-              artificial.
+              Transforme suas imagens com
+              inteligência artificial.
             </p>
           </div>
 
           <div className="workspace">
-
-            {/* PAINEL DE CRIAÇÃO */}
-
             <section className="panel">
-
-              <h2>🖼️ Transformar imagem</h2>
+              <h2>
+                🖼️ Transformar imagem
+              </h2>
 
               <label className="label images-label">
                 Imagens de referência
               </label>
 
               <div className="images-container">
-
-                {/* IMAGEM 1 */}
-
                 <div
                   className={`image-box ${
-                    preview1 ? "has-image" : ""
+                    preview1
+                      ? "has-image"
+                      : ""
                   }`}
                 >
-
                   <span className="image-box-number">
                     IMAGEM 1
                   </span>
@@ -750,14 +947,16 @@ export default function ImagemImagemPage() {
                           accept="image/*"
                           className="hidden-input"
                           onChange={(e) =>
-                            handleImageChange(e, 1)
+                            handleImageChange(
+                              e,
+                              1
+                            )
                           }
                         />
                       </label>
                     </>
                   ) : (
                     <div className="image-box-content">
-
                       <div className="plus">
                         +
                       </div>
@@ -767,7 +966,8 @@ export default function ImagemImagemPage() {
                       </p>
 
                       <p className="image-box-text">
-                        Pessoa, objeto ou cenário
+                        Pessoa, objeto ou
+                        cenário
                       </p>
 
                       <label className="upload-button">
@@ -778,24 +978,24 @@ export default function ImagemImagemPage() {
                           accept="image/*"
                           className="hidden-input"
                           onChange={(e) =>
-                            handleImageChange(e, 1)
+                            handleImageChange(
+                              e,
+                              1
+                            )
                           }
                         />
                       </label>
-
                     </div>
                   )}
-
                 </div>
-
-                {/* IMAGEM 2 */}
 
                 <div
                   className={`image-box ${
-                    preview2 ? "has-image" : ""
+                    preview2
+                      ? "has-image"
+                      : ""
                   }`}
                 >
-
                   <span className="image-box-number">
                     IMAGEM 2
                   </span>
@@ -816,14 +1016,16 @@ export default function ImagemImagemPage() {
                           accept="image/*"
                           className="hidden-input"
                           onChange={(e) =>
-                            handleImageChange(e, 2)
+                            handleImageChange(
+                              e,
+                              2
+                            )
                           }
                         />
                       </label>
                     </>
                   ) : (
                     <div className="image-box-content">
-
                       <div className="plus">
                         +
                       </div>
@@ -844,16 +1046,16 @@ export default function ImagemImagemPage() {
                           accept="image/*"
                           className="hidden-input"
                           onChange={(e) =>
-                            handleImageChange(e, 2)
+                            handleImageChange(
+                              e,
+                              2
+                            )
                           }
                         />
                       </label>
-
                     </div>
                   )}
-
                 </div>
-
               </div>
 
               <label className="label">
@@ -870,9 +1072,7 @@ export default function ImagemImagemPage() {
               />
 
               <div className="options">
-
                 <div>
-
                   <label className="label">
                     Proporção
                   </label>
@@ -880,7 +1080,9 @@ export default function ImagemImagemPage() {
                   <select
                     value={aspectRatio}
                     onChange={(e) =>
-                      setAspectRatio(e.target.value)
+                      setAspectRatio(
+                        e.target.value
+                      )
                     }
                   >
                     <option value="1:1">
@@ -895,11 +1097,9 @@ export default function ImagemImagemPage() {
                       16:9 — Paisagem
                     </option>
                   </select>
-
                 </div>
 
                 <div>
-
                   <label className="label">
                     Estilo
                   </label>
@@ -907,22 +1107,37 @@ export default function ImagemImagemPage() {
                   <select
                     value={style}
                     onChange={(e) =>
-                      setStyle(e.target.value)
+                      setStyle(
+                        e.target.value
+                      )
                     }
                   >
-                    <option>Realista</option>
-                    <option>Cinematográfico</option>
-                    <option>Artístico</option>
-                    <option>Anime</option>
-                    <option>3D</option>
+                    <option>
+                      Realista
+                    </option>
+
+                    <option>
+                      Cinematográfico
+                    </option>
+
+                    <option>
+                      Artístico
+                    </option>
+
+                    <option>
+                      Anime
+                    </option>
+
+                    <option>
+                      3D
+                    </option>
                   </select>
-
                 </div>
-
               </div>
 
               <div className="credits">
-                💎 Seus créditos: <strong>30</strong>
+                💎 Seus créditos:{" "}
+                <strong>30</strong>
               </div>
 
               <button
@@ -931,79 +1146,73 @@ export default function ImagemImagemPage() {
                 disabled={loading}
               >
                 {loading
-                  ? "✨ Preparando..."
+                  ? "✨ Enviando..."
                   : "✨ Gerar Imagem"}
               </button>
-
             </section>
 
-            {/* RESULTADO */}
-
             <section className="panel">
-
-              <h2>🖼️ Resultado</h2>
+              <h2>
+                🖼️ Resultado
+              </h2>
 
               <div
                 className={`preview ${
-                  loading ? "loading" : ""
+                  loading
+                    ? "loading"
+                    : ""
                 }`}
               >
+                {resultImage ? (
+                  <img
+                    src={resultImage}
+                    alt="Imagem gerada"
+                    className="result-image"
+                  />
+                ) : (
+                  <div>
+                    <div className="preview-icon">
+                      {loading
+                        ? "✨"
+                        : "🖼️"}
+                    </div>
 
-                <div>
+                    <h3>
+                      {loading
+                        ? "Enviando sua transformação..."
+                        : "Sua nova imagem aparecerá aqui"}
+                    </h3>
 
-                  <div className="preview-icon">
-                    {loading ? "✨" : "🖼️"}
+                    <p>
+                      Envie uma ou duas
+                      imagens, descreva a
+                      transformação e clique
+                      em “Gerar Imagem” para
+                      começar.
+                    </p>
                   </div>
-
-                  <h3>
-                    {loading
-                      ? "Preparando sua transformação..."
-                      : "Sua nova imagem aparecerá aqui"}
-                  </h3>
-
-                  <p>
-                    Envie uma ou duas imagens, descreva
-                    a transformação e clique em “Gerar
-                    Imagem” para começar.
-                  </p>
-
-                </div>
-
+                )}
               </div>
-
             </section>
-
           </div>
-
         </section>
 
-        {/* RODAPÉ */}
-
         <footer className="footer">
-
           <div className="footer-inner">
-
             <div className="footer-brand">
-
               <h2>
                 CIEL IA STUDIO
               </h2>
 
               <p>
-                Crie. Transforme. Inove com IA.
+                Crie. Transforme. Inove com
+                IA.
               </p>
-
             </div>
 
             <div className="footer-columns">
-
-              {/* PRODUTO */}
-
               <div className="footer-column">
-
-                <h3>
-                  Produto
-                </h3>
+                <h3>Produto</h3>
 
                 <Link href="/criar-prompts">
                   Criar Prompts
@@ -1028,16 +1237,10 @@ export default function ImagemImagemPage() {
                 <Link href="/projetos">
                   Meus Projetos
                 </Link>
-
               </div>
 
-              {/* SUPORTE */}
-
               <div className="footer-column">
-
-                <h3>
-                  Suporte
-                </h3>
+                <h3>Suporte</h3>
 
                 <Link href="/ajuda">
                   Central de Ajuda
@@ -1050,16 +1253,10 @@ export default function ImagemImagemPage() {
                 <Link href="/sobre">
                   Sobre o CIEL IA STUDIO
                 </Link>
-
               </div>
 
-              {/* LEGAL */}
-
               <div className="footer-column">
-
-                <h3>
-                  Legal
-                </h3>
+                <h3>Legal</h3>
 
                 <Link href="/termos">
                   Termos de Uso
@@ -1072,19 +1269,15 @@ export default function ImagemImagemPage() {
                 <Link href="/reembolso">
                   Política de Reembolso
                 </Link>
-
               </div>
-
             </div>
 
             <div className="footer-bottom">
-              © 2026 CIEL IA STUDIO. Todos os direitos reservados.
+              © 2026 CIEL IA STUDIO. Todos os
+              direitos reservados.
             </div>
-
           </div>
-
         </footer>
-
       </main>
     </>
   );
