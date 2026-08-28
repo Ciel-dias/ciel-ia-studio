@@ -26,33 +26,29 @@ export function ThemeProvider({
   children: ReactNode;
 }) {
   const [theme, setThemeState] = useState<Theme>("dark");
-  const [ready, setReady] = useState(false);
+  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
     const savedTheme = localStorage.getItem("ciel-theme");
 
-    if (savedTheme === "light" || savedTheme === "dark") {
-      setThemeState(savedTheme);
-    }
+    const initialTheme: Theme =
+      savedTheme === "light" ? "light" : "dark";
 
-    setReady(true);
+    setThemeState(initialTheme);
+    document.documentElement.dataset.theme = initialTheme;
+    document.body.dataset.theme = initialTheme;
+
+    setMounted(true);
   }, []);
 
   useEffect(() => {
-    if (!ready) return;
+    if (!mounted) return;
 
     localStorage.setItem("ciel-theme", theme);
 
-    document.documentElement.setAttribute(
-      "data-theme",
-      theme
-    );
-
-    document.body.setAttribute(
-      "data-theme",
-      theme
-    );
-  }, [theme, ready]);
+    document.documentElement.dataset.theme = theme;
+    document.body.dataset.theme = theme;
+  }, [theme, mounted]);
 
   function setTheme(theme: Theme) {
     setThemeState(theme);
