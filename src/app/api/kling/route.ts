@@ -1,69 +1,24 @@
 import { NextResponse } from "next/server";
-import crypto from "crypto";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-const KLING_API_URL = "https://api.klingai.com";
-
-function createKlingJWT() {
-  const accessKey = process.env.KLING_ACCESS_KEY;
-  const secretKey = process.env.KLING_SECRET_KEY;
-
-  if (!accessKey || !secretKey) {
-    throw new Error(
-      "KLING_ACCESS_KEY ou KLING_SECRET_KEY não configurada na Vercel."
-    );
-  }
-
-  const now = Math.floor(Date.now() / 1000);
-
-  const header = {
-    alg: "HS256",
-    typ: "JWT",
-  };
-
-  const payload = {
-    iss: accessKey,
-    exp: now + 1800,
-    nbf: now - 5,
-  };
-
-  const encode = (obj: object) =>
-    Buffer.from(JSON.stringify(obj)).toString("base64url");
-
-  const encodedHeader = encode(header);
-  const encodedPayload = encode(payload);
-
-  const unsignedToken = `${encodedHeader}.${encodedPayload}`;
-
-  const signature = crypto
-    .createHmac("sha256", secretKey)
-    .update(unsignedToken)
-    .digest("base64url");
-
-  return `${unsignedToken}.${signature}`;
-}
+const KLING_API_URL = "https://api-singapore.klingai.com";
 
 /**
  * GET
- * Apenas verifica se as variáveis da Kling
- * estão chegando ao servidor.
+ * Verifica se a API Key da Kling está configurada.
  */
 export async function GET() {
-  const accessKey = process.env.KLING_ACCESS_KEY;
-  const secretKey = process.env.KLING_SECRET_KEY;
+  const apiKey = process.env.KLING_API_KEY;
 
   return NextResponse.json({
     status: "ok",
-    routeVersion: "v4",
+    routeVersion: "v5",
     runtime: "nodejs",
 
-    accessKeyExists: Boolean(accessKey),
-    secretKeyExists: Boolean(secretKey),
-
-    accessKeyLength: accessKey?.length ?? 0,
-    secretKeyLength: secretKey?.length ?? 0,
+    klingConfigured: Boolean(apiKey),
+    apiKeyLength: apiKey?.length ?? 0,
 
     generationTest: false,
   });
@@ -75,6 +30,19 @@ export async function GET() {
  */
 export async function POST(request: Request) {
   try {
+    const apiKey = process.env.KLING_API_KEY;
+
+    if (!apiKey) {
+      return NextResponse.json(
+        {
+          status: "error",
+          message:
+            "KLING_API_KEY não está configurada na Vercel.",
+        },
+        { status: 500 }
+      );
+    }
+
     const body = await request.json();
 
     const prompt = body?.prompt;
@@ -89,10 +57,8 @@ export async function POST(request: Request) {
       );
     }
 
-    const token = createKlingJWT();
-
     const klingBody = {
-      model_name: body.model_name || "kling-v1",
+      model_name: body.model_name || "kling-v2-1",
       prompt,
       negative_prompt: body.negative_prompt || "",
       mode: body.mode || "std",
@@ -104,15 +70,27 @@ export async function POST(request: Request) {
       `${KLING_API_URL}/v1/videos/text2video`,
       {
         method: "POST",
+
         headers: {
-          Authorization: `Bearer ${token}`,
+          Authorization: `Bearer ${apiKey}`,
           "Content-Type": "application/json",
         },
+
         body: JSON.stringify(klingBody),
       }
     );
 
-    const data = await response.json();
+    const responseText = await response.text();
+
+    let data: any;
+
+    try {
+      data = JSON.parse(responseText);
+    } catch {
+      data = {
+        rawResponse: responseText,
+      };
+    }
 
     if (!response.ok) {
       return NextResponse.json(
@@ -129,7 +107,10 @@ export async function POST(request: Request) {
     return NextResponse.json({
       status: "success",
       message: "Tarefa enviada para a Kling.",
-      taskId: data?.data?.task_id || data?.task_id || null,
+      taskId:
+        data?.data?.task_id ||
+        data?.task_id ||
+        null,
       klingResponse: data,
     });
   } catch (error) {
