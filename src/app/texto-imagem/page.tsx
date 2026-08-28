@@ -9,7 +9,7 @@ export default function TextoImagemPage() {
 
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<any>(null);
-  const [error, setError] = useState("");
+  const [errorData, setErrorData] = useState<any>(null);
 
   async function handleGenerate() {
     if (!prompt.trim()) {
@@ -18,8 +18,8 @@ export default function TextoImagemPage() {
     }
 
     setLoading(true);
-    setError("");
     setResult(null);
+    setErrorData(null);
 
     try {
       const finalPrompt =
@@ -41,21 +41,27 @@ export default function TextoImagemPage() {
       const data = await response.json();
 
       if (!response.ok || data?.status !== "success") {
+        setErrorData(data);
+
         throw new Error(
           data?.message ||
-            "A Kling recusou a solicitação."
+            "A Kling recusou a solicitação de imagem."
         );
       }
 
       setResult(data);
-    } catch (err) {
-      console.error("Erro ao gerar imagem:", err);
+    } catch (error) {
+      console.error("Erro ao gerar imagem:", error);
 
-      setError(
-        err instanceof Error
-          ? err.message
-          : "Erro ao conectar com a API da Kling."
-      );
+      if (!errorData) {
+        setErrorData({
+          status: "error",
+          message:
+            error instanceof Error
+              ? error.message
+              : "Erro ao conectar com a API da Kling.",
+        });
+      }
     } finally {
       setLoading(false);
     }
@@ -152,17 +158,10 @@ export default function TextoImagemPage() {
           color: #e8eef7;
           text-decoration: none;
           font-size: 15px;
-
-          transition:
-            color 0.2s ease,
-            text-shadow 0.2s ease;
         }
 
         .back:hover {
           color: #72d5ff;
-
-          text-shadow:
-            0 0 12px rgba(75, 199, 255, 0.8);
         }
 
         .content {
@@ -241,18 +240,6 @@ export default function TextoImagemPage() {
             0 0 8px rgba(70, 199, 255, 0.9),
             0 0 22px rgba(43, 167, 255, 0.48),
             inset 0 0 22px rgba(56, 174, 255, 0.08);
-
-          transition:
-            transform 0.22s ease,
-            box-shadow 0.22s ease,
-            background 0.22s ease;
-        }
-
-        .panel:hover {
-          box-shadow:
-            0 0 12px rgba(85, 211, 255, 1),
-            0 0 32px rgba(43, 167, 255, 0.7),
-            inset 0 0 25px rgba(56, 174, 255, 0.12);
         }
 
         .panel h2 {
@@ -336,10 +323,6 @@ export default function TextoImagemPage() {
           font-size: 14px;
         }
 
-        select:focus {
-          border-color: #63d3ff;
-        }
-
         .credits {
           margin-top: 20px;
 
@@ -387,30 +370,12 @@ export default function TextoImagemPage() {
           box-shadow:
             0 0 10px rgba(70, 199, 255, 0.7),
             0 0 24px rgba(43, 167, 255, 0.35);
-
-          transition:
-            transform 0.2s ease,
-            box-shadow 0.2s ease;
-        }
-
-        .generate:hover {
-          transform: translateY(-2px);
-
-          box-shadow:
-            0 0 14px rgba(85, 211, 255, 1),
-            0 0 32px rgba(43, 167, 255, 0.55);
-        }
-
-        .generate:active {
-          transform: scale(0.98);
         }
 
         .generate:disabled {
           cursor: wait;
 
           opacity: 0.65;
-
-          transform: none;
         }
 
         .preview {
@@ -516,7 +481,7 @@ export default function TextoImagemPage() {
         .error-box {
           margin-top: 22px;
 
-          padding: 16px;
+          padding: 18px;
 
           border-radius: 12px;
 
@@ -530,7 +495,52 @@ export default function TextoImagemPage() {
 
           text-align: left;
 
-          line-height: 1.5;
+          line-height: 1.6;
+
+          overflow-wrap: anywhere;
+        }
+
+        .error-title {
+          color: #ff8080;
+
+          font-size: 17px;
+
+          font-weight: 800;
+
+          margin-bottom: 14px;
+        }
+
+        .error-line {
+          margin-bottom: 7px;
+        }
+
+        .error-label {
+          color: #ffffff;
+
+          font-weight: 700;
+        }
+
+        .error-json {
+          margin-top: 14px;
+
+          padding: 12px;
+
+          max-height: 260px;
+
+          overflow: auto;
+
+          border-radius: 8px;
+
+          background: rgba(0, 0, 0, 0.35);
+
+          color: #d7e8f5;
+
+          font-family:
+            monospace;
+
+          font-size: 11px;
+
+          white-space: pre-wrap;
         }
 
         .footer {
@@ -602,13 +612,6 @@ export default function TextoImagemPage() {
           text-decoration: none;
 
           font-size: 14px;
-
-          transition:
-            color 0.2s ease;
-        }
-
-        .footer-column a:hover {
-          color: #68d2ff;
         }
 
         .footer-bottom {
@@ -716,8 +719,6 @@ export default function TextoImagemPage() {
 
       <main className="page">
 
-        {/* CABEÇALHO */}
-
         <header className="topbar">
 
           <div className="brand">
@@ -740,8 +741,6 @@ export default function TextoImagemPage() {
         </header>
 
 
-        {/* CONTEÚDO */}
-
         <section className="content">
 
           <div className="title-area">
@@ -759,8 +758,6 @@ export default function TextoImagemPage() {
 
 
           <div className="workspace">
-
-            {/* PAINEL DE CRIAÇÃO */}
 
             <section className="panel">
 
@@ -861,8 +858,6 @@ export default function TextoImagemPage() {
             </section>
 
 
-            {/* RESULTADO */}
-
             <section className="panel">
 
               <h2>
@@ -882,7 +877,7 @@ export default function TextoImagemPage() {
                       ? "✨"
                       : result
                       ? "✅"
-                      : error
+                      : errorData
                       ? "⚠️"
                       : "🖼️"}
                   </div>
@@ -894,8 +889,8 @@ export default function TextoImagemPage() {
                       ? "Enviando sua criação para a Kling..."
                       : result
                       ? "Tarefa enviada com sucesso!"
-                      : error
-                      ? "Não foi possível enviar"
+                      : errorData
+                      ? "A Kling recusou a solicitação"
                       : "Sua imagem aparecerá aqui"}
 
                   </h3>
@@ -906,9 +901,9 @@ export default function TextoImagemPage() {
                     {loading
                       ? "Aguarde enquanto a Kling recebe seu pedido."
                       : result
-                      ? "A Kling recebeu a solicitação. Agora temos o identificador da tarefa."
-                      : error
-                      ? "Verifique a mensagem abaixo."
+                      ? "A Kling recebeu a solicitação."
+                      : errorData
+                      ? "Confira abaixo os detalhes retornados pela API."
                       : "Escreva um prompt ao lado e clique em “Gerar Imagem” para começar."}
 
                   </p>
@@ -929,9 +924,50 @@ export default function TextoImagemPage() {
                   )}
 
 
-                  {error && (
+                  {errorData && (
                     <div className="error-box">
-                      {error}
+
+                      <div className="error-title">
+                        ⚠️ Detalhes do erro
+                      </div>
+
+                      <div className="error-line">
+                        <span className="error-label">
+                          HTTP:
+                        </span>{" "}
+                        {errorData.httpStatus ?? "N/A"}
+                      </div>
+
+                      <div className="error-line">
+                        <span className="error-label">
+                          Código Kling:
+                        </span>{" "}
+                        {errorData.klingCode ?? "N/A"}
+                      </div>
+
+                      <div className="error-line">
+                        <span className="error-label">
+                          Mensagem Kling:
+                        </span>{" "}
+                        {errorData.klingMessage ?? "N/A"}
+                      </div>
+
+                      <div className="error-line">
+                        <span className="error-label">
+                          Request ID:
+                        </span>{" "}
+                        {errorData.requestId ?? "N/A"}
+                      </div>
+
+                      <div className="error-json">
+                        {JSON.stringify(
+                          errorData.klingResponse ??
+                            errorData,
+                          null,
+                          2
+                        )}
+                      </div>
+
                     </div>
                   )}
 
@@ -945,8 +981,6 @@ export default function TextoImagemPage() {
 
         </section>
 
-
-        {/* RODAPÉ */}
 
         <footer className="footer">
 
