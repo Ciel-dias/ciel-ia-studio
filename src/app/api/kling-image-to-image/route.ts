@@ -7,77 +7,38 @@ const KLING_API_URL =
   process.env.KLING_API_BASE_URL ||
   "https://api-singapore.klingai.com";
 
-/**
- * GET
- * Teste da rota Imagem → Imagem.
- *
- * URL:
- * /api/kling/image-to-image
- */
 export async function GET() {
   const apiKey = process.env.KLING_API_KEY;
 
   return NextResponse.json({
     status: "ok",
-    routeVersion: "image-to-image-v2",
+    routeVersion: "image-to-image-v3",
     runtime: "nodejs",
-
     klingConfigured: Boolean(apiKey),
     apiKeyExists: Boolean(apiKey),
     apiKeyLength: apiKey?.length ?? 0,
-
     apiUrl: KLING_API_URL,
-
     endpoint: `${KLING_API_URL}/v1/images/generations`,
-
     generationTest: false,
   });
 }
 
-/**
- * POST
- *
- * Card 4 — Imagem → Imagem
- *
- * Recebe:
- *
- * {
- *   prompt: string,
- *   image: string,
- *   image2?: string,
- *   aspect_ratio?: "1:1" | "16:9" | "9:16",
- *   style?: string
- * }
- *
- * As imagens podem ser enviadas como:
- * - Data URL
- * - Base64
- * - URL pública
- */
 export async function POST(request: Request) {
   try {
     const apiKey = process.env.KLING_API_KEY;
 
-    /*
-     * Verifica a configuração antes de qualquer chamada.
-     */
     if (!apiKey) {
       return NextResponse.json(
         {
           status: "error",
           message:
-            "O serviço de geração de imagens está temporariamente indisponível.",
+            "Serviço de geração de imagens temporariamente indisponível.",
         },
-        {
-          status: 500,
-        }
+        { status: 500 }
       );
     }
 
-    /*
-     * Lê o corpo enviado pelo Card 4.
-     */
-    let body: Record<string, unknown>;
+    let body: any;
 
     try {
       body = await request.json();
@@ -85,48 +46,37 @@ export async function POST(request: Request) {
       return NextResponse.json(
         {
           status: "error",
-          message: "Dados da solicitação inválidos.",
+          message: "Dados de solicitação inválidos.",
         },
-        {
-          status: 400,
-        }
+        { status: 400 }
       );
     }
 
     const prompt =
-      typeof body.prompt === "string"
+      typeof body?.prompt === "string"
         ? body.prompt.trim()
         : "";
 
     const image =
-      typeof body.image === "string"
+      typeof body?.image === "string"
         ? body.image
         : "";
 
     const image2 =
-      typeof body.image2 === "string"
+      typeof body?.image2 === "string"
         ? body.image2
         : "";
 
-    /*
-     * Validação do prompt.
-     */
     if (!prompt) {
       return NextResponse.json(
         {
           status: "error",
-          message:
-            "Descreva o que deseja criar na imagem.",
+          message: "Descreva o que deseja criar.",
         },
-        {
-          status: 400,
-        }
+        { status: 400 }
       );
     }
 
-    /*
-     * Pelo menos uma imagem é obrigatória.
-     */
     if (!image) {
       return NextResponse.json(
         {
@@ -134,59 +84,37 @@ export async function POST(request: Request) {
           message:
             "Envie pelo menos uma imagem de referência.",
         },
-        {
-          status: 400,
-        }
+        { status: 400 }
       );
     }
 
-    /*
-     * Proporção.
-     */
-    const allowedAspectRatios = [
-      "1:1",
-      "16:9",
-      "9:16",
-    ];
-
     const aspectRatio =
-      typeof body.aspect_ratio === "string" &&
-      allowedAspectRatios.includes(
-        body.aspect_ratio
+      ["1:1", "16:9", "9:16"].includes(
+        body?.aspect_ratio
       )
         ? body.aspect_ratio
         : "1:1";
 
-    /*
-     * Estilo.
-     */
     const style =
-      typeof body.style === "string" &&
+      typeof body?.style === "string" &&
       body.style.trim()
         ? body.style.trim()
         : "Realista";
 
-    /*
-     * Prompt final.
-     */
     const finalPrompt = `${prompt}
 
-Estilo visual: ${style}.
-Preserve os elementos importantes das imagens de referência.
-Mantenha aparência natural, coerência visual, iluminação consistente e alta qualidade.`;
+Estilo visual: ${style}.`;
 
     /*
      * Corpo enviado para a Kling.
      *
      * Mantemos somente os campos necessários
-     * para o endpoint de geração.
+     * para evitar que opções do frontend causem
+     * rejeição da API.
      */
     const klingBody: Record<string, unknown> = {
       model_name:
-        typeof body.model_name === "string" &&
-        body.model_name.trim()
-          ? body.model_name
-          : "kling-image",
+        body?.model_name || "kling-image",
 
       prompt: finalPrompt,
 
@@ -196,28 +124,16 @@ Mantenha aparência natural, coerência visual, iluminação consistente e alta 
     };
 
     /*
-     * Negative prompt opcional.
-     */
-    if (
-      typeof body.negative_prompt === "string" &&
-      body.negative_prompt.trim()
-    ) {
-      klingBody.negative_prompt =
-        body.negative_prompt.trim();
-    }
-
-    /*
-     * Segunda imagem opcional.
-     *
-     * Só enviamos quando realmente existe.
+     * Segunda imagem é opcional.
      */
     if (image2) {
       klingBody.image2 = image2;
     }
 
-    /*
-     * Envia para a Kling.
-     */
+    console.log(
+      "CIEL IA STUDIO - Enviando Imagem → Imagem para Kling"
+    );
+
     const response = await fetch(
       `${KLING_API_URL}/v1/images/generations`,
       {
@@ -235,143 +151,108 @@ Mantenha aparência natural, coerência visual, iluminação consistente e alta 
       }
     );
 
-    /*
-     * A Kling pode retornar JSON ou texto.
-     */
-    const responseText =
-      await response.text();
+    const responseText = await response.text();
 
-    let klingData: unknown;
+    let klingData: any;
 
     try {
-      klingData =
-        responseText
-          ? JSON.parse(responseText)
-          : null;
+      klingData = JSON.parse(responseText);
     } catch {
       klingData = {
         rawResponse: responseText,
       };
     }
 
+    console.log(
+      "CIEL IA STUDIO - Kling HTTP:",
+      response.status
+    );
+
     /*
-     * Tratamento de erro.
+     * Kling recusou a solicitação.
      *
-     * O usuário NÃO recebe detalhes internos
-     * da Kling.
+     * O usuário recebe uma mensagem amigável.
+     * Os detalhes técnicos continuam somente
+     * no servidor.
      */
     if (!response.ok) {
-      const errorData =
-        klingData as {
-          code?: number | string;
-          message?: string;
-          request_id?: string;
-        };
-
       console.error(
-        "Kling Image-to-Image error:",
-        {
-          status: response.status,
-          code: errorData?.code,
-          message: errorData?.message,
-          request_id:
-            errorData?.request_id,
-        }
+        "CIEL IA STUDIO - Kling error:",
+        klingData
       );
 
-      /*
-       * Saldo insuficiente.
-       */
-      if (
-        response.status === 429 ||
-        String(errorData?.code) === "1102"
-      ) {
-        return NextResponse.json(
-          {
-            status: "error",
-            message:
-              "No momento não foi possível gerar sua imagem. Tente novamente mais tarde.",
-          },
-          {
-            status: 429,
-          }
-        );
-      }
-
-      /*
-       * Outros erros da API.
-       */
       return NextResponse.json(
         {
           status: "error",
+
           message:
-            "Não foi possível gerar sua imagem no momento.",
+            response.status === 429
+              ? "Não foi possível gerar a imagem no momento."
+              : "Não foi possível processar sua imagem.",
+
+          details: {
+            http: response.status,
+            code:
+              klingData?.code ??
+              klingData?.data?.code ??
+              null,
+            requestId:
+              klingData?.request_id ??
+              klingData?.data?.request_id ??
+              null,
+          },
         },
         {
-          status:
-            response.status >= 400 &&
-            response.status < 600
-              ? response.status
-              : 500,
+          status: response.status,
         }
       );
     }
 
     /*
-     * Tentamos localizar o task_id.
+     * Localiza o task_id nos formatos possíveis.
      */
-    const successData =
-      klingData as {
-        data?: {
-          task_id?: string;
-          task_status?: string;
-          task_result?: unknown;
-        };
-
-        task_id?: string;
-
-        task_status?: string;
-
-        task_result?: unknown;
-      };
-
     const taskId =
-      successData?.data?.task_id ||
-      successData?.task_id ||
+      klingData?.data?.task_id ||
+      klingData?.task_id ||
+      klingData?.data?.taskId ||
+      klingData?.taskId ||
       null;
 
     /*
-     * Retorno de sucesso.
+     * Localiza possíveis URLs de imagem retornadas
+     * imediatamente pela API.
      */
-    return NextResponse.json(
-      {
-        status: "success",
+    const imageUrl =
+      klingData?.data?.image_url ||
+      klingData?.data?.imageUrl ||
+      klingData?.image_url ||
+      klingData?.imageUrl ||
+      null;
 
-        message:
-          "Solicitação de imagem enviada com sucesso.",
+    return NextResponse.json({
+      status: "success",
 
-        taskId,
+      message:
+        "Solicitação de imagem enviada com sucesso.",
 
-        data: klingData,
-      },
-      {
-        status: 200,
-      }
-    );
+      taskId,
+
+      imageUrl,
+
+      data: klingData,
+    });
   } catch (error) {
-    /*
-     * Erro inesperado do servidor.
-     */
     console.error(
-      "Image-to-Image route error:",
+      "CIEL IA STUDIO - Image-to-Image error:",
       error
     );
 
     return NextResponse.json(
       {
         status: "error",
+
         message:
-          "Não foi possível processar sua solicitação de imagem.",
+          "Não foi possível conectar ao serviço de geração de imagens.",
       },
       {
         status: 500,
