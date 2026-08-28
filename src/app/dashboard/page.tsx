@@ -49,7 +49,7 @@ export default function DashboardPage() {
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
-          background: "#07111f",
+          background: "#06101e",
           color: "#ffffff",
           fontFamily: "Arial, sans-serif",
         }}
@@ -58,6 +58,8 @@ export default function DashboardPage() {
       </main>
     );
   }
+
+  const isDark = theme === "dark";
 
   const cards = [
     {
@@ -121,48 +123,48 @@ export default function DashboardPage() {
 
         .dashboard-page {
           min-height: 100vh;
-          color: ${theme === "dark" ? "#ffffff" : "#101827"};
 
-          background:
-            ${
-              theme === "dark"
-                ? `
-                  radial-gradient(
-                    circle at 75% 20%,
-                    rgba(20, 119, 190, 0.42),
-                    transparent 38%
-                  ),
-                  radial-gradient(
-                    circle at 15% 65%,
-                    rgba(15, 76, 125, 0.32),
-                    transparent 40%
-                  ),
-                  linear-gradient(
-                    135deg,
-                    #06101e 0%,
-                    #081a30 48%,
-                    #0b3556 100%
-                  )
-                `
-                : `
-                  radial-gradient(
-                    circle at 80% 10%,
-                    rgba(91, 190, 255, 0.28),
-                    transparent 35%
-                  ),
-                  radial-gradient(
-                    circle at 10% 70%,
-                    rgba(80, 150, 220, 0.18),
-                    transparent 40%
-                  ),
-                  linear-gradient(
-                    135deg,
-                    #eef8ff 0%,
-                    #e6f3fc 48%,
-                    #d8edf9 100%
-                  )
-                `
-            };
+          color: ${isDark ? "#ffffff" : "#101827"};
+
+          background: ${
+            isDark
+              ? `
+                radial-gradient(
+                  circle at 75% 20%,
+                  rgba(20, 119, 190, 0.42),
+                  transparent 38%
+                ),
+                radial-gradient(
+                  circle at 15% 65%,
+                  rgba(15, 76, 125, 0.32),
+                  transparent 40%
+                ),
+                linear-gradient(
+                  135deg,
+                  #06101e 0%,
+                  #081a30 48%,
+                  #0b3556 100%
+                )
+              `
+              : `
+                radial-gradient(
+                  circle at 80% 10%,
+                  rgba(91, 190, 255, 0.28),
+                  transparent 35%
+                ),
+                radial-gradient(
+                  circle at 10% 70%,
+                  rgba(80, 150, 220, 0.18),
+                  transparent 40%
+                ),
+                linear-gradient(
+                  135deg,
+                  #eef8ff 0%,
+                  #e6f3fc 48%,
+                  #d8edf9 100%
+                )
+              `
+          };
 
           overflow-x: hidden;
 
@@ -170,6 +172,10 @@ export default function DashboardPage() {
             background 0.35s ease,
             color 0.35s ease;
         }
+
+        /* =========================
+           TOPO
+        ========================= */
 
         .topbar {
           width: 100%;
@@ -183,13 +189,13 @@ export default function DashboardPage() {
           padding: 0 42px;
 
           background: ${
-            theme === "dark"
+            isDark
               ? "rgba(4, 12, 24, 0.88)"
               : "rgba(255, 255, 255, 0.88)"
           };
 
           border-bottom: 1px solid ${
-            theme === "dark"
+            isDark
               ? "rgba(100, 180, 255, 0.18)"
               : "rgba(40, 110, 160, 0.18)"
           };
@@ -226,11 +232,7 @@ export default function DashboardPage() {
 
         .nav a,
         .nav button {
-          color: ${
-            theme === "dark"
-              ? "#e8eef7"
-              : "#172333"
-          };
+          color: ${isDark ? "#e8eef7" : "#172333"};
 
           background: transparent;
           border: none;
@@ -255,6 +257,10 @@ export default function DashboardPage() {
             0 0 12px rgba(75, 199, 255, 0.6);
         }
 
+        /* =========================
+           BOTÃO DO TEMA
+        ========================= */
+
         .theme-button {
           width: 38px;
           height: 38px;
@@ -266,13 +272,13 @@ export default function DashboardPage() {
           border-radius: 50%;
 
           border: 1px solid ${
-            theme === "dark"
+            isDark
               ? "rgba(104, 207, 255, 0.45)"
               : "rgba(30, 130, 190, 0.35)"
           } !important;
 
           background: ${
-            theme === "dark"
+            isDark
               ? "rgba(20, 100, 150, 0.18)"
               : "rgba(255, 255, 255, 0.7)"
           } !important;
@@ -280,7 +286,7 @@ export default function DashboardPage() {
           font-size: 19px !important;
 
           box-shadow: ${
-            theme === "dark"
+            isDark
               ? "0 0 12px rgba(70, 199, 255, 0.22)"
               : "0 0 12px rgba(70, 160, 220, 0.18)"
           };
@@ -294,6 +300,10 @@ export default function DashboardPage() {
         .theme-button:hover {
           transform: scale(1.08);
         }
+
+        /* =========================
+           HERO
+        ========================= */
 
         .hero {
           text-align: center;
@@ -317,16 +327,16 @@ export default function DashboardPage() {
         .hero p {
           margin: 20px auto 0;
 
-          color: ${
-            theme === "dark"
-              ? "#b9c5d4"
-              : "#536579"
-          };
+          color: ${isDark ? "#b9c5d4" : "#536579"};
 
           font-size: clamp(17px, 2vw, 22px);
 
           max-width: 650px;
         }
+
+        /* =========================
+           CARDS
+        ========================= */
 
         .cards-container {
           width: min(
@@ -346,16 +356,6 @@ export default function DashboardPage() {
           padding-bottom: 76px;
         }
 
-        /*
-         * =========================================================
-         * CARDS
-         * =========================================================
-         *
-         * Aqui está a correção principal:
-         * o fundo, texto, borda e brilho agora acompanham
-         * corretamente o tema escolhido.
-         */
-
         .card {
           min-width: 0;
           min-height: 260px;
@@ -374,14 +374,10 @@ export default function DashboardPage() {
 
           text-decoration: none;
 
-          color: ${
-            theme === "dark"
-              ? "#ffffff"
-              : "#142132"
-          };
+          color: ${isDark ? "#ffffff" : "#142132"};
 
           background: ${
-            theme === "dark"
+            isDark
               ? `
                 linear-gradient(
                   145deg,
@@ -399,26 +395,26 @@ export default function DashboardPage() {
           };
 
           border: 2px solid ${
-            theme === "dark"
+            isDark
               ? "#58c9ff"
               : "#3bb8ed"
           };
 
           box-shadow:
             0 0 8px ${
-              theme === "dark"
+              isDark
                 ? "rgba(70, 199, 255, 0.9)"
                 : "rgba(70, 180, 235, 0.45)"
             },
 
             0 0 22px ${
-              theme === "dark"
+              isDark
                 ? "rgba(43, 167, 255, 0.48)"
                 : "rgba(43, 167, 255, 0.2)"
             },
 
             inset 0 0 22px ${
-              theme === "dark"
+              isDark
                 ? "rgba(56, 174, 255, 0.08)"
                 : "rgba(56, 174, 255, 0.04)"
             };
@@ -435,7 +431,7 @@ export default function DashboardPage() {
           transform: translateY(-5px);
 
           background: ${
-            theme === "dark"
+            isDark
               ? `
                 linear-gradient(
                   145deg,
@@ -454,19 +450,19 @@ export default function DashboardPage() {
 
           box-shadow:
             0 0 12px ${
-              theme === "dark"
+              isDark
                 ? "rgba(85, 211, 255, 1)"
                 : "rgba(55, 180, 235, 0.65)"
             },
 
             0 0 32px ${
-              theme === "dark"
+              isDark
                 ? "rgba(43, 167, 255, 0.7)"
                 : "rgba(43, 167, 255, 0.3)"
             },
 
             inset 0 0 25px ${
-              theme === "dark"
+              isDark
                 ? "rgba(56, 174, 255, 0.12)"
                 : "rgba(56, 174, 255, 0.06)"
             };
@@ -479,7 +475,6 @@ export default function DashboardPage() {
         .card-icon {
           font-size: 50px;
           line-height: 1;
-
           margin-bottom: 18px;
         }
 
@@ -493,11 +488,7 @@ export default function DashboardPage() {
         }
 
         .card-description {
-          color: ${
-            theme === "dark"
-              ? "#c0cad6"
-              : "#58697a"
-          };
+          color: ${isDark ? "#c0cad6" : "#58697a"};
 
           font-size: 15px;
 
@@ -518,16 +509,20 @@ export default function DashboardPage() {
           font-weight: 700;
         }
 
+        /* =========================
+           FOOTER
+        ========================= */
+
         .footer {
           border-top: 1px solid ${
-            theme === "dark"
+            isDark
               ? "rgba(100, 180, 255, 0.18)"
               : "rgba(40, 110, 160, 0.18)"
           };
 
           background:
             ${
-              theme === "dark"
+              isDark
                 ? `
                   linear-gradient(
                     180deg,
@@ -569,11 +564,7 @@ export default function DashboardPage() {
         .footer-brand p {
           margin: 0;
 
-          color: ${
-            theme === "dark"
-              ? "#9eacbd"
-              : "#5d7082"
-          };
+          color: ${isDark ? "#9eacbd" : "#5d7082"};
 
           font-size: 15px;
         }
@@ -600,11 +591,7 @@ export default function DashboardPage() {
 
           margin-bottom: 12px;
 
-          color: ${
-            theme === "dark"
-              ? "#aebaca"
-              : "#536577"
-          };
+          color: ${isDark ? "#aebaca" : "#536577"};
 
           text-decoration: none;
 
@@ -624,21 +611,21 @@ export default function DashboardPage() {
           padding-top: 22px;
 
           border-top: 1px solid ${
-            theme === "dark"
+            isDark
               ? "rgba(100, 180, 255, 0.16)"
               : "rgba(40, 110, 160, 0.16)"
           };
 
           text-align: center;
 
-          color: ${
-            theme === "dark"
-              ? "#8997a9"
-              : "#65788a"
-          };
+          color: ${isDark ? "#8997a9" : "#65788a"};
 
           font-size: 13px;
         }
+
+        /* =========================
+           TABLET
+        ========================= */
 
         @media (max-width: 900px) {
           .topbar {
@@ -661,6 +648,10 @@ export default function DashboardPage() {
             gap: 24px;
           }
         }
+
+        /* =========================
+           CELULAR
+        ========================= */
 
         @media (max-width: 650px) {
           .topbar {
@@ -815,19 +806,17 @@ export default function DashboardPage() {
               className="theme-button"
               onClick={toggleTheme}
               title={
-                theme === "dark"
+                isDark
                   ? "Mudar para tema claro"
                   : "Mudar para tema escuro"
               }
               aria-label={
-                theme === "dark"
+                isDark
                   ? "Mudar para tema claro"
                   : "Mudar para tema escuro"
               }
             >
-              {theme === "dark"
-                ? "☀️"
-                : "🌙"}
+              {isDark ? "☀️" : "🌙"}
             </button>
 
             <button onClick={handleLogout}>
