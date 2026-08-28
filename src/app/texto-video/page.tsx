@@ -18,14 +18,67 @@ export default function TextoVideoPage() {
 
     setLoading(true);
 
-    // Futuramente conectaremos aqui a API de geração de vídeos.
-    await new Promise((resolve) => setTimeout(resolve, 1200));
+    try {
+      const response = await fetch("/api/kling", {
+        method: "POST",
 
-    setLoading(false);
+        headers: {
+          "Content-Type": "application/json",
+        },
 
-    alert(
-      "A estrutura de geração está pronta. Agora vamos conectar a API de vídeo."
-    );
+        body: JSON.stringify({
+          prompt: prompt.trim(),
+
+          aspect_ratio: aspectRatio,
+
+          duration:
+            duration === "10 segundos"
+              ? "10"
+              : "5",
+
+          mode: "std",
+
+          model_name: "kling-v3",
+        }),
+      });
+
+      const data = await response.json();
+
+      console.log("Resposta da Kling:", data);
+
+      if (!response.ok || data.status !== "success") {
+        const klingResponse =
+          data?.klingResponse;
+
+        const message =
+          klingResponse?.message ||
+          data?.message ||
+          "Não foi possível enviar o vídeo para a Kling.";
+
+        alert(
+          `Erro na geração:\n\n${message}`
+        );
+
+        return;
+      }
+
+      alert(
+        `Vídeo enviado para a Kling com sucesso!\n\nTask ID: ${
+          data.taskId || "não informado"
+        }`
+      );
+    } catch (error) {
+      console.error(
+        "Erro ao chamar /api/kling:",
+        error
+      );
+
+      alert(
+        "Erro de conexão com a rota da Kling."
+      );
+    } finally {
+      setLoading(false);
+    }
   }
 
   return (
@@ -805,13 +858,15 @@ export default function TextoVideoPage() {
 
 
               <button
-                className="generate"
+                className={`generate ${
+                  loading ? "loading" : ""
+                }`}
                 onClick={handleGenerate}
                 disabled={loading}
               >
 
                 {loading
-                  ? "🎥 Preparando..."
+                  ? "🎥 Enviando para a Kling..."
                   : "🎥 Gerar Vídeo"}
 
               </button>
@@ -843,7 +898,7 @@ export default function TextoVideoPage() {
 
                   <h3>
                     {loading
-                      ? "Preparando seu vídeo..."
+                      ? "Enviando seu vídeo para a Kling..."
                       : "Seu vídeo aparecerá aqui"}
                   </h3>
 
