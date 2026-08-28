@@ -8,10 +8,7 @@ export default function TextoVideoPage() {
   const [aspectRatio, setAspectRatio] = useState("9:16");
   const [duration, setDuration] = useState("5 segundos");
   const [style, setStyle] = useState("Realista");
-
   const [loading, setLoading] = useState(false);
-  const [result, setResult] = useState<any>(null);
-  const [errorData, setErrorData] = useState<any>(null);
 
   async function handleGenerate() {
     if (!prompt.trim()) {
@@ -20,60 +17,15 @@ export default function TextoVideoPage() {
     }
 
     setLoading(true);
-    setResult(null);
-    setErrorData(null);
 
-    try {
-      const durationValue =
-        duration === "10 segundos" ? "10" : "5";
+    // Futuramente conectaremos aqui a API de geração de vídeos.
+    await new Promise((resolve) => setTimeout(resolve, 1200));
 
-      const finalPrompt =
-        `${prompt.trim()}. ` +
-        `Estilo visual: ${style}. ` +
-        `Vídeo extremamente detalhado, cinematográfico e realista.`;
+    setLoading(false);
 
-      const response = await fetch("/api/kling", {
-        method: "POST",
-
-        headers: {
-          "Content-Type": "application/json",
-        },
-
-        body: JSON.stringify({
-          prompt: finalPrompt,
-          aspect_ratio: aspectRatio,
-          duration: durationValue,
-          mode: "std",
-        }),
-      });
-
-      const data = await response.json();
-
-      if (!response.ok || data?.status !== "success") {
-        setErrorData(data);
-
-        throw new Error(
-          data?.message ||
-            "A Kling recusou a solicitação de vídeo."
-        );
-      }
-
-      setResult(data);
-    } catch (error) {
-      console.error("Erro ao gerar vídeo:", error);
-
-      if (!errorData) {
-        setErrorData({
-          status: "error",
-          message:
-            error instanceof Error
-              ? error.message
-              : "Erro ao conectar com a API da Kling.",
-        });
-      }
-    } finally {
-      setLoading(false);
-    }
+    alert(
+      "A estrutura de geração está pronta. Agora vamos conectar a API de vídeo."
+    );
   }
 
   return (
@@ -173,8 +125,7 @@ export default function TextoVideoPage() {
         }
 
         .content {
-          width:
-            min(1180px, calc(100% - 40px));
+          width: min(1180px, calc(100% - 40px));
 
           margin: 0 auto;
 
@@ -344,8 +295,7 @@ export default function TextoVideoPage() {
         .credits {
           margin-top: 20px;
 
-          padding:
-            13px 15px;
+          padding: 13px 15px;
 
           border-radius: 12px;
 
@@ -396,8 +346,7 @@ export default function TextoVideoPage() {
         }
 
         .generate:hover {
-          transform:
-            translateY(-2px);
+          transform: translateY(-2px);
 
           box-shadow:
             0 0 14px rgba(85, 211, 255, 1),
@@ -405,8 +354,7 @@ export default function TextoVideoPage() {
         }
 
         .generate:active {
-          transform:
-            scale(0.98);
+          transform: scale(0.98);
         }
 
         .generate:disabled {
@@ -442,8 +390,6 @@ export default function TextoVideoPage() {
             rgba(2, 12, 24, 0.55);
 
           overflow: hidden;
-
-          padding: 25px;
         }
 
         .preview-icon {
@@ -462,7 +408,7 @@ export default function TextoVideoPage() {
           margin:
             10px auto 0;
 
-          max-width: 430px;
+          max-width: 350px;
 
           color: #8798aa;
 
@@ -485,104 +431,9 @@ export default function TextoVideoPage() {
           }
         }
 
-        .task-box {
-          margin-top: 22px;
-
-          padding: 16px;
-
-          border-radius: 12px;
-
-          background:
-            rgba(20, 150, 90, 0.12);
-
-          border:
-            1px solid rgba(80, 220, 150, 0.35);
-
-          text-align: left;
-
-          overflow-wrap: anywhere;
-        }
-
-        .task-title {
-          color: #72f0b1;
-
-          font-weight: 700;
-
-          margin-bottom: 8px;
-        }
-
-        .task-id {
-          color: #c8d7e5;
-
-          font-size: 13px;
-
-          line-height: 1.5;
-        }
-
-        .error-box {
-          margin-top: 22px;
-
-          padding: 18px;
-
-          border-radius: 12px;
-
-          background:
-            rgba(180, 40, 40, 0.15);
-
-          border:
-            1px solid rgba(255, 100, 100, 0.35);
-
-          color: #ffb0b0;
-
-          text-align: left;
-
-          line-height: 1.6;
-
-          overflow-wrap: anywhere;
-        }
-
-        .error-title {
-          color: #ff8080;
-
-          font-size: 17px;
-
-          font-weight: 800;
-
-          margin-bottom: 14px;
-        }
-
-        .error-line {
-          margin-bottom: 7px;
-        }
-
-        .error-label {
-          color: #fff;
-
-          font-weight: 700;
-        }
-
-        .error-json {
-          margin-top: 14px;
-
-          padding: 12px;
-
-          max-height: 260px;
-
-          overflow: auto;
-
-          border-radius: 8px;
-
-          background:
-            rgba(0, 0, 0, 0.35);
-
-          color: #d7e8f5;
-
-          font-family: monospace;
-
-          font-size: 11px;
-
-          white-space: pre-wrap;
-        }
+        /* =========================
+           RODAPÉ
+        ========================= */
 
         .footer {
           border-top:
@@ -677,6 +528,10 @@ export default function TextoVideoPage() {
           font-size: 13px;
         }
 
+        /* =========================
+           TABLET
+        ========================= */
+
         @media (max-width: 850px) {
           .topbar {
             padding:
@@ -691,6 +546,10 @@ export default function TextoVideoPage() {
             min-height: 380px;
           }
         }
+
+        /* =========================
+           CELULAR
+        ========================= */
 
         @media (max-width: 650px) {
           .topbar {
@@ -775,6 +634,8 @@ export default function TextoVideoPage() {
 
       <main className="page">
 
+        {/* CABEÇALHO */}
+
         <header className="topbar">
 
           <div className="brand">
@@ -799,6 +660,8 @@ export default function TextoVideoPage() {
         </header>
 
 
+        {/* CONTEÚDO */}
+
         <section className="content">
 
           <div className="title-area">
@@ -816,6 +679,8 @@ export default function TextoVideoPage() {
 
 
           <div className="workspace">
+
+            {/* PAINEL DE CRIAÇÃO */}
 
             <section className="panel">
 
@@ -890,10 +755,6 @@ export default function TextoVideoPage() {
                       10 segundos
                     </option>
 
-                    <option value="15 segundos">
-                      15 segundos
-                    </option>
-
                   </select>
 
                 </div>
@@ -936,31 +797,29 @@ export default function TextoVideoPage() {
 
 
               <div className="credits">
-
                 💎 Seus créditos:{" "}
                 <strong>
                   30
                 </strong>
-
               </div>
 
 
               <button
-                className={`generate ${
-                  loading ? "loading" : ""
-                }`}
+                className="generate"
                 onClick={handleGenerate}
                 disabled={loading}
               >
 
                 {loading
-                  ? "🎥 Enviando para a Kling..."
+                  ? "🎥 Preparando..."
                   : "🎥 Gerar Vídeo"}
 
               </button>
 
             </section>
 
+
+            {/* RESULTADO */}
 
             <section className="panel">
 
@@ -977,132 +836,22 @@ export default function TextoVideoPage() {
                 <div>
 
                   <div className="preview-icon">
-
                     {loading
                       ? "🎥"
-                      : result
-                      ? "✅"
-                      : errorData
-                      ? "⚠️"
                       : "🎬"}
-
                   </div>
 
-
                   <h3>
-
                     {loading
-                      ? "Enviando seu vídeo para a Kling..."
-                      : result
-                      ? "Tarefa enviada com sucesso!"
-                      : errorData
-                      ? "A Kling recusou a solicitação"
+                      ? "Preparando seu vídeo..."
                       : "Seu vídeo aparecerá aqui"}
-
                   </h3>
 
-
                   <p>
-
-                    {loading
-                      ? "Aguarde enquanto a Kling recebe seu pedido."
-                      : result
-                      ? "A Kling recebeu a solicitação de geração."
-                      : errorData
-                      ? "Confira abaixo os detalhes retornados pela API."
-                      : "Escreva um prompt ao lado e clique em “Gerar Vídeo” para começar."}
-
+                    Escreva um prompt ao lado e
+                    clique em “Gerar Vídeo” para
+                    começar.
                   </p>
-
-
-                  {result?.taskId && (
-
-                    <div className="task-box">
-
-                      <div className="task-title">
-                        ✅ Task ID recebido
-                      </div>
-
-                      <div className="task-id">
-                        {result.taskId}
-                      </div>
-
-                    </div>
-
-                  )}
-
-
-                  {errorData && (
-
-                    <div className="error-box">
-
-                      <div className="error-title">
-                        ⚠️ Detalhes do erro
-                      </div>
-
-
-                      <div className="error-line">
-
-                        <span className="error-label">
-                          HTTP:
-                        </span>{" "}
-
-                        {errorData.httpStatus ??
-                          "N/A"}
-
-                      </div>
-
-
-                      <div className="error-line">
-
-                        <span className="error-label">
-                          Código Kling:
-                        </span>{" "}
-
-                        {errorData.klingCode ??
-                          "N/A"}
-
-                      </div>
-
-
-                      <div className="error-line">
-
-                        <span className="error-label">
-                          Mensagem Kling:
-                        </span>{" "}
-
-                        {errorData.klingMessage ??
-                          "N/A"}
-
-                      </div>
-
-
-                      <div className="error-line">
-
-                        <span className="error-label">
-                          Request ID:
-                        </span>{" "}
-
-                        {errorData.requestId ??
-                          "N/A"}
-
-                      </div>
-
-
-                      <div className="error-json">
-
-                        {JSON.stringify(
-                          errorData.klingResponse ??
-                            errorData,
-                          null,
-                          2
-                        )}
-
-                      </div>
-
-                    </div>
-
-                  )}
 
                 </div>
 
@@ -1114,6 +863,8 @@ export default function TextoVideoPage() {
 
         </section>
 
+
+        {/* RODAPÉ */}
 
         <footer className="footer">
 
@@ -1133,6 +884,8 @@ export default function TextoVideoPage() {
 
 
             <div className="footer-columns">
+
+              {/* PRODUTO */}
 
               <div className="footer-column">
 
@@ -1167,6 +920,8 @@ export default function TextoVideoPage() {
               </div>
 
 
+              {/* SUPORTE */}
+
               <div className="footer-column">
 
                 <h3>
@@ -1187,6 +942,8 @@ export default function TextoVideoPage() {
 
               </div>
 
+
+              {/* LEGAL */}
 
               <div className="footer-column">
 
