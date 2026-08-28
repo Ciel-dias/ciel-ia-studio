@@ -15,7 +15,9 @@ export default function ImagemImagemPage() {
   const [preview2, setPreview2] = useState("");
 
   const [loading, setLoading] = useState(false);
-  const [resultImage, setResultImage] = useState("");
+  const [resultMessage, setResultMessage] = useState("");
+  const [taskId, setTaskId] = useState("");
+  const [errorMessage, setErrorMessage] = useState("");
 
   function handleImageChange(
     event: React.ChangeEvent<HTMLInputElement>,
@@ -34,12 +36,14 @@ export default function ImagemImagemPage() {
       setImage2(file);
       setPreview2(preview);
     }
+
+    setErrorMessage("");
+    setResultMessage("");
+    setTaskId("");
   }
 
-  async function fileToDataUrl(file: File | null) {
-    if (!file) return null;
-
-    return new Promise<string>((resolve, reject) => {
+  async function fileToDataURL(file: File): Promise<string> {
+    return new Promise((resolve, reject) => {
       const reader = new FileReader();
 
       reader.onload = () => {
@@ -54,7 +58,7 @@ export default function ImagemImagemPage() {
 
       reader.onerror = () => {
         reject(
-          new Error("Erro ao ler a imagem.")
+          new Error("Não foi possível ler a imagem.")
         );
       };
 
@@ -64,33 +68,39 @@ export default function ImagemImagemPage() {
 
   async function handleGenerate() {
     if (!image1 && !image2) {
-      alert(
+      setErrorMessage(
         "Selecione pelo menos uma imagem de referência."
       );
       return;
     }
 
     if (!prompt.trim()) {
-      alert(
+      setErrorMessage(
         "Descreva o que deseja criar na imagem."
       );
       return;
     }
 
     setLoading(true);
-    setResultImage("");
+    setErrorMessage("");
+    setResultMessage("");
+    setTaskId("");
 
     try {
-      const imageData1 = await fileToDataUrl(image1);
-      const imageData2 = await fileToDataUrl(image2);
+      /*
+       * Converte as imagens para Data URL.
+       */
+      const image1Data = image1
+        ? await fileToDataURL(image1)
+        : "";
 
-      if (!imageData1) {
-        alert(
-          "Não foi possível preparar a imagem de referência."
-        );
-        return;
-      }
+      const image2Data = image2
+        ? await fileToDataURL(image2)
+        : "";
 
+      /*
+       * Envia para nossa API.
+       */
       const response = await fetch(
         "/api/kling-image-to-image",
         {
@@ -101,100 +111,56 @@ export default function ImagemImagemPage() {
           },
 
           body: JSON.stringify({
-            image: imageData1,
-
-            ...(imageData2
-              ? {
-                  image2: imageData2,
-                }
-              : {}),
-
             prompt: prompt.trim(),
+
+            image: image1Data,
+
+            image2: image2Data || undefined,
 
             aspect_ratio: aspectRatio,
 
             style,
-
-            model_name: "kling-image",
           }),
         }
       );
 
       const data = await response.json();
 
-      console.log(
-        "Resposta Imagem → Imagem:",
-        data
-      );
-
-      if (
-        !response.ok ||
-        data?.status === "error"
-      ) {
-        console.error(
-          "Erro Imagem → Imagem:",
-          data
+      /*
+       * Trata erro retornado pela nossa API.
+       */
+      if (!response.ok || data?.status === "error") {
+        setErrorMessage(
+          data?.message ||
+            "Não foi possível gerar sua imagem no momento."
         );
-
-        if (
-          data?.klingStatus === 429 ||
-          data?.klingCode === 1102
-        ) {
-          alert(
-            "No momento não foi possível gerar a imagem. Tente novamente mais tarde."
-          );
-        } else {
-          alert(
-            data?.message ||
-              "Não foi possível gerar a imagem."
-          );
-        }
 
         return;
       }
 
       /*
-       * Algumas respostas podem trazer
-       * a URL da imagem imediatamente.
+       * Solicitação aceita.
        */
-      const responseData = data?.data;
-
-      const imageUrl =
-        responseData?.image_url ||
-        responseData?.url ||
-        responseData?.images?.[0]?.url ||
-        data?.image_url ||
-        data?.url ||
-        data?.images?.[0]?.url ||
+      const returnedTaskId =
+        data?.taskId ||
+        data?.data?.task_id ||
         "";
 
-      if (imageUrl) {
-        setResultImage(imageUrl);
+      if (returnedTaskId) {
+        setTaskId(returnedTaskId);
       }
 
-      /*
-       * A Kling normalmente trabalha com tarefa.
-       * Guardamos o taskId para a próxima etapa
-       * de consulta do resultado.
-       */
-      if (data?.taskId) {
-        console.log(
-          "Task ID da Kling:",
-          data.taskId
-        );
-      }
-
-      alert(
-        "Sua solicitação foi enviada com sucesso! ✨"
+      setResultMessage(
+        "Sua solicitação foi enviada com sucesso. A imagem está sendo processada."
       );
     } catch (error) {
       console.error(
-        "Erro ao conectar Imagem → Imagem:",
+        "Erro ao conectar com Image-to-Image:",
         error
       );
 
-      alert(
-        "Não foi possível conectar ao serviço de geração. Tente novamente."
+      setErrorMessage(
+        "Não foi possível se conectar ao servidor. Tente novamente."
       );
     } finally {
       setLoading(false);
@@ -253,8 +219,7 @@ export default function ImagemImagemPage() {
           align-items: center;
           justify-content: space-between;
           background: rgba(4, 12, 24, 0.9);
-          border-bottom: 1px solid
-            rgba(100, 180, 255, 0.18);
+          border-bottom: 1px solid rgba(100, 180, 255, 0.18);
           backdrop-filter: blur(12px);
         }
 
@@ -285,16 +250,11 @@ export default function ImagemImagemPage() {
 
         .back:hover {
           color: #6ed7ff;
-          text-shadow:
-            0 0 12px
-            rgba(75, 199, 255, 0.8);
+          text-shadow: 0 0 12px rgba(75, 199, 255, 0.8);
         }
 
         .content {
-          width: min(
-            1180px,
-            calc(100% - 40px)
-          );
+          width: min(1180px, calc(100% - 40px));
           margin: 0 auto;
           padding: 55px 0 70px;
         }
@@ -306,11 +266,7 @@ export default function ImagemImagemPage() {
 
         .title-area h1 {
           margin: 0;
-          font-size: clamp(
-            32px,
-            5vw,
-            52px
-          );
+          font-size: clamp(32px, 5vw, 52px);
           text-transform: uppercase;
         }
 
@@ -324,8 +280,7 @@ export default function ImagemImagemPage() {
 
         .workspace {
           display: grid;
-          grid-template-columns:
-            0.9fr 1.1fr;
+          grid-template-columns: 0.9fr 1.1fr;
           gap: 28px;
           align-items: stretch;
         }
@@ -341,12 +296,9 @@ export default function ImagemImagemPage() {
             );
           border: 2px solid #58c9ff;
           box-shadow:
-            0 0 8px
-              rgba(70, 199, 255, 0.8),
-            0 0 22px
-              rgba(43, 167, 255, 0.35),
-            inset 0 0 22px
-              rgba(56, 174, 255, 0.07);
+            0 0 8px rgba(70, 199, 255, 0.8),
+            0 0 22px rgba(43, 167, 255, 0.35),
+            inset 0 0 22px rgba(56, 174, 255, 0.07);
         }
 
         .panel h2 {
@@ -368,8 +320,7 @@ export default function ImagemImagemPage() {
 
         .images-container {
           display: grid;
-          grid-template-columns:
-            1fr 1fr;
+          grid-template-columns: 1fr 1fr;
           gap: 12px;
         }
 
@@ -377,8 +328,7 @@ export default function ImagemImagemPage() {
           position: relative;
           height: 175px;
           border-radius: 16px;
-          border: 1px dashed
-            rgba(104, 207, 255, 0.55);
+          border: 1px dashed rgba(104, 207, 255, 0.55);
           background:
             radial-gradient(
               circle,
@@ -397,9 +347,7 @@ export default function ImagemImagemPage() {
 
         .image-box:hover {
           border-color: #63d3ff;
-          box-shadow:
-            0 0 18px
-            rgba(70, 199, 255, 0.18);
+          box-shadow: 0 0 18px rgba(70, 199, 255, 0.18);
         }
 
         .image-box.has-image {
@@ -426,12 +374,7 @@ export default function ImagemImagemPage() {
           left: 10px;
           padding: 4px 8px;
           border-radius: 8px;
-          background: rgba(
-            3,
-            13,
-            25,
-            0.82
-          );
+          background: rgba(3, 13, 25, 0.82);
           color: #bfeaff;
           font-size: 11px;
           font-weight: 700;
@@ -447,20 +390,17 @@ export default function ImagemImagemPage() {
           align-items: center;
           justify-content: center;
           color: #04101b;
-          background:
-            linear-gradient(
-              135deg,
-              #5ed2ff,
-              #75e0ff
-            );
+          background: linear-gradient(
+            135deg,
+            #5ed2ff,
+            #75e0ff
+          );
           font-size: 32px;
           font-weight: 400;
           line-height: 1;
           box-shadow:
-            0 0 10px
-              rgba(70, 199, 255, 0.7),
-            0 0 22px
-              rgba(43, 167, 255, 0.3);
+            0 0 10px rgba(70, 199, 255, 0.7),
+            0 0 22px rgba(43, 167, 255, 0.3);
         }
 
         .image-box-title {
@@ -482,10 +422,8 @@ export default function ImagemImagemPage() {
           margin-top: 10px;
           padding: 7px 12px;
           border-radius: 9px;
-          background:
-            rgba(94, 210, 255, 0.16);
-          border: 1px solid
-            rgba(94, 210, 255, 0.4);
+          background: rgba(94, 210, 255, 0.16);
+          border: 1px solid rgba(94, 210, 255, 0.4);
           color: #bfeaff;
           font-size: 11px;
           font-weight: 700;
@@ -494,8 +432,7 @@ export default function ImagemImagemPage() {
         }
 
         .upload-button:hover {
-          background:
-            rgba(94, 210, 255, 0.28);
+          background: rgba(94, 210, 255, 0.28);
           border-color: #63d3ff;
         }
 
@@ -508,8 +445,7 @@ export default function ImagemImagemPage() {
           border: none;
           border-radius: 9px;
           color: #04101b;
-          background:
-            rgba(117, 224, 255, 0.95);
+          background: rgba(117, 224, 255, 0.95);
           font-size: 11px;
           font-weight: 800;
           cursor: pointer;
@@ -524,19 +460,14 @@ export default function ImagemImagemPage() {
           min-height: 150px;
           resize: vertical;
           padding: 16px;
-          border: 1px solid
-            rgba(94, 203, 255, 0.45);
+          border: 1px solid rgba(94, 203, 255, 0.45);
           border-radius: 14px;
           outline: none;
-          background:
-            rgba(3, 13, 25, 0.8);
+          background: rgba(3, 13, 25, 0.8);
           color: #fff;
           font-size: 15px;
           line-height: 1.5;
-          font-family:
-            Arial,
-            Helvetica,
-            sans-serif;
+          font-family: Arial, Helvetica, sans-serif;
         }
 
         .prompt::placeholder {
@@ -545,15 +476,12 @@ export default function ImagemImagemPage() {
 
         .prompt:focus {
           border-color: #63d3ff;
-          box-shadow:
-            0 0 15px
-            rgba(70, 199, 255, 0.25);
+          box-shadow: 0 0 15px rgba(70, 199, 255, 0.25);
         }
 
         .options {
           display: grid;
-          grid-template-columns:
-            1fr 1fr;
+          grid-template-columns: 1fr 1fr;
           gap: 12px;
         }
 
@@ -561,8 +489,7 @@ export default function ImagemImagemPage() {
           width: 100%;
           padding: 13px;
           border-radius: 12px;
-          border: 1px solid
-            rgba(94, 203, 255, 0.35);
+          border: 1px solid rgba(94, 203, 255, 0.35);
           outline: none;
           background: #0a192b;
           color: #fff;
@@ -572,19 +499,15 @@ export default function ImagemImagemPage() {
 
         select:focus {
           border-color: #63d3ff;
-          box-shadow:
-            0 0 12px
-            rgba(70, 199, 255, 0.2);
+          box-shadow: 0 0 12px rgba(70, 199, 255, 0.2);
         }
 
         .credits {
           margin-top: 20px;
           padding: 13px 15px;
           border-radius: 12px;
-          background:
-            rgba(29, 112, 157, 0.16);
-          border: 1px solid
-            rgba(94, 203, 255, 0.25);
+          background: rgba(29, 112, 157, 0.16);
+          border: 1px solid rgba(94, 203, 255, 0.25);
           color: #bfeaff;
           font-size: 14px;
         }
@@ -597,19 +520,16 @@ export default function ImagemImagemPage() {
           border-radius: 14px;
           cursor: pointer;
           color: #04101b;
-          background:
-            linear-gradient(
-              90deg,
-              #5ed2ff,
-              #75e0ff
-            );
+          background: linear-gradient(
+            90deg,
+            #5ed2ff,
+            #75e0ff
+          );
           font-size: 16px;
           font-weight: 800;
           box-shadow:
-            0 0 10px
-              rgba(70, 199, 255, 0.7),
-            0 0 24px
-              rgba(43, 167, 255, 0.35);
+            0 0 10px rgba(70, 199, 255, 0.7),
+            0 0 24px rgba(43, 167, 255, 0.35);
           transition:
             transform 0.2s,
             box-shadow 0.2s;
@@ -618,10 +538,8 @@ export default function ImagemImagemPage() {
         .generate:hover {
           transform: translateY(-2px);
           box-shadow:
-            0 0 14px
-              rgba(85, 211, 255, 1),
-            0 0 32px
-              rgba(43, 167, 255, 0.55);
+            0 0 14px rgba(85, 211, 255, 1),
+            0 0 32px rgba(43, 167, 255, 0.55);
         }
 
         .generate:active {
@@ -641,8 +559,7 @@ export default function ImagemImagemPage() {
           justify-content: center;
           text-align: center;
           border-radius: 16px;
-          border: 1px dashed
-            rgba(104, 207, 255, 0.35);
+          border: 1px dashed rgba(104, 207, 255, 0.35);
           background:
             radial-gradient(
               circle,
@@ -651,15 +568,6 @@ export default function ImagemImagemPage() {
             ),
             rgba(2, 12, 24, 0.55);
           overflow: hidden;
-        }
-
-        .result-image {
-          width: 100%;
-          height: 100%;
-          max-height: 560px;
-          object-fit: contain;
-          border-radius: 14px;
-          display: block;
         }
 
         .preview-icon {
@@ -674,8 +582,44 @@ export default function ImagemImagemPage() {
 
         .preview p {
           margin: 10px auto 0;
-          max-width: 350px;
+          max-width: 390px;
           color: #8798aa;
+          line-height: 1.5;
+        }
+
+        .success-message {
+          margin: 18px auto 0;
+          max-width: 430px;
+          padding: 13px 15px;
+          border-radius: 12px;
+          background: rgba(35, 170, 115, 0.12);
+          border: 1px solid rgba(65, 220, 160, 0.3);
+          color: #8ff0c6;
+          font-size: 13px;
+          line-height: 1.5;
+        }
+
+        .task-id {
+          margin: 10px auto 0;
+          max-width: 430px;
+          padding: 10px 12px;
+          border-radius: 10px;
+          background: rgba(94, 203, 255, 0.08);
+          border: 1px solid rgba(94, 203, 255, 0.2);
+          color: #9fdfff;
+          font-size: 11px;
+          word-break: break-all;
+        }
+
+        .error-message {
+          margin: 18px auto 0;
+          max-width: 430px;
+          padding: 13px 15px;
+          border-radius: 12px;
+          background: rgba(220, 70, 70, 0.12);
+          border: 1px solid rgba(255, 100, 100, 0.3);
+          color: #ffb0b0;
+          font-size: 13px;
           line-height: 1.5;
         }
 
@@ -695,8 +639,7 @@ export default function ImagemImagemPage() {
         }
 
         .footer {
-          border-top: 1px solid
-            rgba(100, 180, 255, 0.18);
+          border-top: 1px solid rgba(100, 180, 255, 0.18);
           background:
             linear-gradient(
               180deg,
@@ -728,8 +671,7 @@ export default function ImagemImagemPage() {
 
         .footer-columns {
           display: grid;
-          grid-template-columns:
-            repeat(3, 1fr);
+          grid-template-columns: repeat(3, 1fr);
           gap: 50px;
         }
 
@@ -755,8 +697,7 @@ export default function ImagemImagemPage() {
         .footer-bottom {
           margin-top: 36px;
           padding-top: 22px;
-          border-top: 1px solid
-            rgba(100, 180, 255, 0.16);
+          border-top: 1px solid rgba(100, 180, 255, 0.16);
           text-align: center;
           color: #8997a9;
           font-size: 13px;
@@ -792,10 +733,7 @@ export default function ImagemImagemPage() {
           }
 
           .content {
-            width: min(
-              430px,
-              calc(100% - 28px)
-            );
+            width: min(430px, calc(100% - 28px));
             padding-top: 38px;
           }
 
@@ -809,8 +747,7 @@ export default function ImagemImagemPage() {
           }
 
           .images-container {
-            grid-template-columns:
-              1fr 1fr;
+            grid-template-columns: 1fr 1fr;
             gap: 9px;
           }
 
@@ -878,11 +815,10 @@ export default function ImagemImagemPage() {
       `}</style>
 
       <main className="page">
+
         <header className="topbar">
           <div className="brand">
-            <span className="brand-icon">
-              ✨
-            </span>
+            <span className="brand-icon">✨</span>
 
             <span className="brand-name">
               CIEL IA STUDIO
@@ -898,28 +834,30 @@ export default function ImagemImagemPage() {
         </header>
 
         <section className="content">
+
           <div className="title-area">
-            <h1>
-              Imagem → Imagem
-            </h1>
+            <h1>Imagem → Imagem</h1>
 
             <p>
-              Transforme suas imagens com
-              inteligência artificial.
+              Transforme suas imagens com inteligência
+              artificial.
             </p>
           </div>
 
           <div className="workspace">
+
             <section className="panel">
-              <h2>
-                🖼️ Transformar imagem
-              </h2>
+
+              <h2>🖼️ Transformar imagem</h2>
 
               <label className="label images-label">
                 Imagens de referência
               </label>
 
               <div className="images-container">
+
+                {/* IMAGEM 1 */}
+
                 <div
                   className={`image-box ${
                     preview1
@@ -957,6 +895,7 @@ export default function ImagemImagemPage() {
                     </>
                   ) : (
                     <div className="image-box-content">
+
                       <div className="plus">
                         +
                       </div>
@@ -966,8 +905,7 @@ export default function ImagemImagemPage() {
                       </p>
 
                       <p className="image-box-text">
-                        Pessoa, objeto ou
-                        cenário
+                        Pessoa, objeto ou cenário
                       </p>
 
                       <label className="upload-button">
@@ -985,9 +923,12 @@ export default function ImagemImagemPage() {
                           }
                         />
                       </label>
+
                     </div>
                   )}
                 </div>
+
+                {/* IMAGEM 2 */}
 
                 <div
                   className={`image-box ${
@@ -1026,6 +967,7 @@ export default function ImagemImagemPage() {
                     </>
                   ) : (
                     <div className="image-box-content">
+
                       <div className="plus">
                         +
                       </div>
@@ -1053,9 +995,11 @@ export default function ImagemImagemPage() {
                           }
                         />
                       </label>
+
                     </div>
                   )}
                 </div>
+
               </div>
 
               <label className="label">
@@ -1072,6 +1016,7 @@ export default function ImagemImagemPage() {
               />
 
               <div className="options">
+
                 <div>
                   <label className="label">
                     Proporção
@@ -1133,6 +1078,7 @@ export default function ImagemImagemPage() {
                     </option>
                   </select>
                 </div>
+
               </div>
 
               <div className="credits">
@@ -1149,12 +1095,14 @@ export default function ImagemImagemPage() {
                   ? "✨ Enviando..."
                   : "✨ Gerar Imagem"}
               </button>
+
             </section>
 
+            {/* RESULTADO */}
+
             <section className="panel">
-              <h2>
-                🖼️ Resultado
-              </h2>
+
+              <h2>🖼️ Resultado</h2>
 
               <div
                 className={`preview ${
@@ -1163,56 +1111,93 @@ export default function ImagemImagemPage() {
                     : ""
                 }`}
               >
-                {resultImage ? (
-                  <img
-                    src={resultImage}
-                    alt="Imagem gerada"
-                    className="result-image"
-                  />
-                ) : (
-                  <div>
-                    <div className="preview-icon">
-                      {loading
-                        ? "✨"
-                        : "🖼️"}
-                    </div>
 
-                    <h3>
-                      {loading
-                        ? "Enviando sua transformação..."
-                        : "Sua nova imagem aparecerá aqui"}
-                    </h3>
+                <div>
 
-                    <p>
-                      Envie uma ou duas
-                      imagens, descreva a
-                      transformação e clique
-                      em “Gerar Imagem” para
-                      começar.
-                    </p>
+                  <div className="preview-icon">
+                    {loading
+                      ? "✨"
+                      : resultMessage
+                      ? "✅"
+                      : errorMessage
+                      ? "⚠️"
+                      : "🖼️"}
                   </div>
-                )}
+
+                  <h3>
+                    {loading
+                      ? "Enviando sua solicitação..."
+                      : resultMessage
+                      ? "Solicitação enviada!"
+                      : errorMessage
+                      ? "Não foi possível gerar"
+                      : "Sua nova imagem aparecerá aqui"}
+                  </h3>
+
+                  {!loading &&
+                    !resultMessage &&
+                    !errorMessage && (
+                      <p>
+                        Envie uma ou duas imagens,
+                        descreva a transformação e
+                        clique em “Gerar Imagem” para
+                        começar.
+                      </p>
+                    )}
+
+                  {resultMessage && (
+                    <div className="success-message">
+                      {resultMessage}
+                    </div>
+                  )}
+
+                  {taskId && (
+                    <div className="task-id">
+                      <strong>ID da tarefa:</strong>
+                      <br />
+                      {taskId}
+                    </div>
+                  )}
+
+                  {errorMessage && (
+                    <div className="error-message">
+                      {errorMessage}
+                    </div>
+                  )}
+
+                </div>
+
               </div>
+
             </section>
+
           </div>
+
         </section>
 
         <footer className="footer">
+
           <div className="footer-inner">
+
             <div className="footer-brand">
+
               <h2>
                 CIEL IA STUDIO
               </h2>
 
               <p>
-                Crie. Transforme. Inove com
-                IA.
+                Crie. Transforme. Inove com IA.
               </p>
+
             </div>
 
             <div className="footer-columns">
+
               <div className="footer-column">
-                <h3>Produto</h3>
+
+                <h3>
+                  Produto
+                </h3>
 
                 <Link href="/criar-prompts">
                   Criar Prompts
@@ -1237,10 +1222,14 @@ export default function ImagemImagemPage() {
                 <Link href="/projetos">
                   Meus Projetos
                 </Link>
+
               </div>
 
               <div className="footer-column">
-                <h3>Suporte</h3>
+
+                <h3>
+                  Suporte
+                </h3>
 
                 <Link href="/ajuda">
                   Central de Ajuda
@@ -1253,10 +1242,14 @@ export default function ImagemImagemPage() {
                 <Link href="/sobre">
                   Sobre o CIEL IA STUDIO
                 </Link>
+
               </div>
 
               <div className="footer-column">
-                <h3>Legal</h3>
+
+                <h3>
+                  Legal
+                </h3>
 
                 <Link href="/termos">
                   Termos de Uso
@@ -1269,15 +1262,19 @@ export default function ImagemImagemPage() {
                 <Link href="/reembolso">
                   Política de Reembolso
                 </Link>
+
               </div>
+
             </div>
 
             <div className="footer-bottom">
-              © 2026 CIEL IA STUDIO. Todos os
-              direitos reservados.
+              © 2026 CIEL IA STUDIO. Todos os direitos reservados.
             </div>
+
           </div>
+
         </footer>
+
       </main>
     </>
   );
