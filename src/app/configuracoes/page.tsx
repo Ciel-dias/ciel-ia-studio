@@ -52,8 +52,14 @@ minHeight: "100vh",
 display: "flex",
 alignItems: "center",
 justifyContent: "center",
-background: theme === "dark" ? "#07111f" : "#eef8ff",
-color: theme === "dark" ? "#ffffff" : "#101827",
+background:
+theme === "dark"
+? "#07111f"
+: "#eef8ff",
+color:
+theme === "dark"
+? "#ffffff"
+: "#101827",
 fontFamily: "Arial, Helvetica, sans-serif",
 }}
 >
@@ -62,7 +68,7 @@ Carregando...
 );
 }
 
-const isDark = theme === "dark";
+const dark = theme === "dark";
 
 return (
 <>
@@ -81,22 +87,28 @@ box-sizing: border-box;
       font-family: Arial, Helvetica, sans-serif;
     }
 
+    a {
+      -webkit-tap-highlight-color: transparent;
+    }
+
     .settings-page {
       min-height: 100vh;
-      padding: 32px 20px 60px;
-      color: ${isDark ? "#ffffff" : "#101827"};
+      padding: 40px 20px 60px;
+
+      color: ${dark ? "#ffffff" : "#101827"};
+
       background:
         ${
-          isDark
+          dark
             ? `
           radial-gradient(
             circle at 80% 10%,
-            rgba(20, 119, 190, 0.38),
-            transparent 35%
+            rgba(20, 119, 190, 0.35),
+            transparent 38%
           ),
           radial-gradient(
             circle at 10% 70%,
-            rgba(15, 76, 125, 0.28),
+            rgba(15, 76, 125, 0.25),
             transparent 40%
           ),
           linear-gradient(
@@ -125,6 +137,7 @@ box-sizing: border-box;
           )
         `
         };
+
       transition:
         background 0.35s ease,
         color 0.35s ease;
@@ -135,156 +148,220 @@ box-sizing: border-box;
       margin: 0 auto;
     }
 
-    .back-link {
-      display: inline-block;
-      margin-bottom: 28px;
-      color: ${isDark ? "#aebaca" : "#536577"};
+    .back {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 30px;
+
+      color: ${dark ? "#aebaca" : "#536577"};
+
       text-decoration: none;
       font-size: 14px;
+
       transition: color 0.2s ease;
     }
 
-    .back-link:hover {
+    .back:hover {
       color: #159ddd;
     }
 
-    .page-title {
-      font-size: 32px;
-      font-weight: 700;
-      margin: 0 0 8px;
+    .header {
+      margin-bottom: 30px;
     }
 
-    .page-description {
-      color: ${isDark ? "#aebaca" : "#536577"};
-      margin: 0 0 32px;
-      line-height: 1.5;
+    .header h1 {
+      margin: 0 0 8px;
+      font-size: 34px;
+      font-weight: 700;
+    }
+
+    .header p {
+      margin: 0;
+
+      color: ${dark ? "#aebaca" : "#536579"};
+
+      font-size: 16px;
     }
 
     .section {
-      background: ${
-        isDark
-          ? "linear-gradient(145deg, rgba(21, 30, 44, 0.96), rgba(12, 21, 34, 0.96))"
-          : "linear-gradient(145deg, rgba(255, 255, 255, 0.96), rgba(225, 241, 251, 0.96))"
-      };
-      border: 1px solid ${
-        isDark
-          ? "rgba(88, 201, 255, 0.22)"
-          : "rgba(59, 184, 237, 0.35)"
-      };
-      border-radius: 20px;
-      padding: 24px;
       margin-bottom: 20px;
-      box-shadow: 0 0 20px rgba(43, 167, 255, 0.08);
+      padding: 26px;
+
+      border-radius: 20px;
+
+      background:
+        ${
+          dark
+            ? `
+          linear-gradient(
+            145deg,
+            rgba(35, 47, 65, 0.94),
+            rgba(14, 25, 40, 0.96)
+          )
+        `
+            : `
+          linear-gradient(
+            145deg,
+            rgba(255, 255, 255, 0.96),
+            rgba(225, 241, 251, 0.96)
+          )
+        `
+        };
+
+      border: 1px solid
+        ${dark
+          ? "rgba(88, 201, 255, 0.35)"
+          : "rgba(59, 184, 237, 0.35)"};
+
+      box-shadow:
+        0 0 15px
+          ${dark
+            ? "rgba(43, 167, 255, 0.16)"
+            : "rgba(43, 167, 255, 0.10)"};
+
       transition:
         background 0.35s ease,
-        border-color 0.35s ease,
-        color 0.35s ease;
+        border-color 0.35s ease;
     }
 
-    .section-title {
-      font-size: 20px;
+    .section h2 {
       margin: 0 0 20px;
+
+      font-size: 20px;
+      font-weight: 700;
     }
 
-    .info-item {
+    .info {
       margin-bottom: 18px;
     }
 
-    .info-item:last-child {
+    .info:last-child {
       margin-bottom: 0;
     }
 
-    .info-label {
-      color: ${isDark ? "#8f9eaf" : "#617487"};
-      font-size: 13px;
+    .label {
       margin: 0 0 6px;
+
+      color: ${dark ? "#8f9eaf" : "#637587"};
+
+      font-size: 13px;
     }
 
-    .info-value {
-      font-size: 16px;
+    .value {
       margin: 0;
-      word-break: break-word;
-    }
 
-    .appearance-description {
-      color: ${isDark ? "#aebaca" : "#536577"};
-      font-size: 14px;
-      line-height: 1.5;
-      margin: -8px 0 20px;
+      color: ${dark ? "#ffffff" : "#142132"};
+
+      font-size: 16px;
+
+      word-break: break-word;
     }
 
     .theme-options {
       display: grid;
-      grid-template-columns: repeat(2, 1fr);
+      grid-template-columns: 1fr 1fr;
       gap: 14px;
     }
 
     .theme-option {
-      min-height: 82px;
+      min-height: 90px;
+
+      padding: 18px;
+
       border-radius: 14px;
-      border: 2px solid ${
-        isDark
-          ? "rgba(104, 207, 255, 0.22)"
-          : "rgba(30, 130, 190, 0.2)"
-      };
-      background: ${
-        isDark
-          ? "rgba(7, 17, 31, 0.72)"
-          : "rgba(255, 255, 255, 0.75)"
-      };
-      color: ${isDark ? "#ffffff" : "#142132"};
+
+      border: 2px solid
+        ${dark
+          ? "rgba(100, 180, 255, 0.20)"
+          : "rgba(40, 110, 160, 0.20)"};
+
+      background:
+        ${dark
+          ? "rgba(8, 20, 34, 0.75)"
+          : "rgba(255, 255, 255, 0.65)"};
+
+      color: ${dark ? "#ffffff" : "#142132"};
+
       cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 10px;
-      font-size: 16px;
-      font-weight: 600;
+
+      text-align: left;
+
       transition:
         border-color 0.2s ease,
         background 0.2s ease,
-        transform 0.2s ease,
-        box-shadow 0.2s ease;
+        transform 0.2s ease;
     }
 
     .theme-option:hover {
       transform: translateY(-2px);
-      border-color: #3bb8ed;
+      border-color: #159ddd;
     }
 
     .theme-option.active {
-      border-color: #58c9ff;
+      border-color: #159ddd;
+
       box-shadow:
-        0 0 10px rgba(70, 199, 255, 0.45),
-        0 0 24px rgba(43, 167, 255, 0.2);
+        0 0 15px
+          ${dark
+            ? "rgba(21, 157, 221, 0.35)"
+            : "rgba(21, 157, 221, 0.20)"};
     }
 
     .theme-icon {
       font-size: 25px;
+      margin-bottom: 8px;
+    }
+
+    .theme-title {
+      display: block;
+      font-size: 15px;
+      font-weight: 700;
+    }
+
+    .theme-description {
+      display: block;
+
+      margin-top: 4px;
+
+      color: ${dark ? "#9eacbd" : "#607285"};
+
+      font-size: 12px;
     }
 
     .security-text {
-      color: ${isDark ? "#aebaca" : "#536577"};
+      margin: 0;
+
+      color: ${dark ? "#aebaca" : "#5d7082"};
+
       font-size: 14px;
       line-height: 1.5;
-      margin: 0;
     }
 
     .logout-button {
       width: 100%;
+
       padding: 14px;
+
       border-radius: 12px;
-      border: 1px solid ${
-        isDark ? "rgba(255, 255, 255, 0.16)" : "rgba(30, 60, 90, 0.2)"
-      };
-      background: ${
-        isDark
-          ? "rgba(10, 18, 30, 0.6)"
-          : "rgba(255, 255, 255, 0.72)"
-      };
-      color: ${isDark ? "#ffffff" : "#172333"};
+
+      border: 1px solid
+        ${dark
+          ? "rgba(100, 180, 255, 0.25)"
+          : "rgba(40, 110, 160, 0.25)"};
+
+      background:
+        ${dark
+          ? "rgba(5, 16, 30, 0.65)"
+          : "rgba(255, 255, 255, 0.65)"};
+
+      color: ${dark ? "#ffffff" : "#142132"};
+
+      font-size: 15px;
       font-weight: 600;
+
       cursor: pointer;
+
       transition:
         background 0.2s ease,
         border-color 0.2s ease,
@@ -292,21 +369,41 @@ box-sizing: border-box;
     }
 
     .logout-button:hover {
+      color: #159ddd;
       border-color: #159ddd;
+    }
+
+    .dashboard-button {
+      display: block;
+
+      margin-top: 20px;
+
+      text-align: center;
+
+      color: ${dark ? "#aebaca" : "#536577"};
+
+      text-decoration: none;
+
+      font-size: 14px;
+
+      transition: color 0.2s ease;
+    }
+
+    .dashboard-button:hover {
       color: #159ddd;
     }
 
     @media (max-width: 600px) {
       .settings-page {
-        padding: 24px 16px 50px;
+        padding: 28px 16px 45px;
       }
 
-      .page-title {
-        font-size: 28px;
+      .header h1 {
+        font-size: 30px;
       }
 
       .section {
-        padding: 20px;
+        padding: 21px;
       }
 
       .theme-options {
@@ -318,71 +415,42 @@ box-sizing: border-box;
   <main className="settings-page">
     <div className="settings-container">
 
-      <Link href="/dashboard" className="back-link">
+      <Link href="/dashboard" className="back">
         ← Voltar para o dashboard
       </Link>
 
-      <h1 className="page-title">
-        Configurações
-      </h1>
+      <header className="header">
+        <h1>Configurações</h1>
 
-      <p className="page-description">
-        Gerencie sua conta e personalize sua experiência no CIEL IA STUDIO.
-      </p>
+        <p>
+          Gerencie sua conta e personalize o CIEL IA STUDIO.
+        </p>
+      </header>
 
       <section className="section">
-        <h2 className="section-title">
-          Sua conta
-        </h2>
+        <h2>Sua conta</h2>
 
-        <div className="info-item">
-          <p className="info-label">
-            Nome
-          </p>
+        <div className="info">
+          <p className="label">Nome</p>
 
-          <p className="info-value">
+          <p className="value">
             {nome || "Não informado"}
           </p>
         </div>
 
-        <div className="info-item">
-          <p className="info-label">
-            E-mail
-          </p>
+        <div className="info">
+          <p className="label">E-mail</p>
 
-          <p className="info-value">
+          <p className="value">
             {email}
           </p>
         </div>
       </section>
 
       <section className="section">
-        <h2 className="section-title">
-          Aparência
-        </h2>
-
-        <p className="appearance-description">
-          Escolha como o CIEL IA STUDIO será exibido.
-          Sua preferência é salva automaticamente.
-        </p>
+        <h2>Aparência</h2>
 
         <div className="theme-options">
-
-          <button
-            type="button"
-            className={`theme-option ${
-              theme === "light" ? "active" : ""
-            }`}
-            onClick={() => setTheme("light")}
-          >
-            <span className="theme-icon">
-              ☀️
-            </span>
-
-            <span>
-              Claro
-            </span>
-          </button>
 
           <button
             type="button"
@@ -391,12 +459,32 @@ box-sizing: border-box;
             }`}
             onClick={() => setTheme("dark")}
           >
-            <span className="theme-icon">
-              🌙
+            <div className="theme-icon">🌙</div>
+
+            <span className="theme-title">
+              Tema escuro
             </span>
 
-            <span>
-              Escuro
+            <span className="theme-description">
+              Visual futurista escuro
+            </span>
+          </button>
+
+          <button
+            type="button"
+            className={`theme-option ${
+              theme === "light" ? "active" : ""
+            }`}
+            onClick={() => setTheme("light")}
+          >
+            <div className="theme-icon">☀️</div>
+
+            <span className="theme-title">
+              Tema claro
+            </span>
+
+            <span className="theme-description">
+              Visual claro e moderno
             </span>
           </button>
 
@@ -404,22 +492,28 @@ box-sizing: border-box;
       </section>
 
       <section className="section">
-        <h2 className="section-title">
-          Segurança
-        </h2>
+        <h2>Segurança</h2>
 
         <p className="security-text">
-          Em breve você poderá alterar sua senha e gerenciar outras
-          opções de segurança.
+          Em breve você poderá alterar sua senha e
+          gerenciar outras opções de segurança.
         </p>
       </section>
 
       <button
-        onClick={handleLogout}
+        type="button"
         className="logout-button"
+        onClick={handleLogout}
       >
         Sair da conta
       </button>
+
+      <Link
+        href="/dashboard"
+        className="dashboard-button"
+      >
+        Voltar para o dashboard
+      </Link>
 
     </div>
   </main>
