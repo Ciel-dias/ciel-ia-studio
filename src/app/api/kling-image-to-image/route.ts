@@ -9,42 +9,22 @@ const KLING_API_URL =
   "https://api-singapore.klingai.com";
 
 /**
- * =========================================================
- * CIEL IA STUDIO
- * Card 4 — Imagem → Imagem
+ * Cria o JWT exigido pela API da Kling.
  *
- * Autenticação Kling:
+ * As credenciais ficam exclusivamente no servidor:
  * KLING_ACCESS_KEY
  * KLING_SECRET_KEY
- *
- * JWT:
- * HS256
- * =========================================================
  */
+function createKlingToken(): string {
+  const accessKey = process.env.KLING_ACCESS_KEY;
+  const secretKey = process.env.KLING_SECRET_KEY;
 
-/**
- * Base64URL
- */
-function base64Url(input: Buffer | string): string {
-  const buffer =
-    typeof input === "string"
-      ? Buffer.from(input)
-      : input;
+  if (!accessKey || !secretKey) {
+    throw new Error(
+      "Kling Access Key ou Secret Key não configuradas no servidor."
+    );
+  }
 
-  return buffer
-    .toString("base64")
-    .replace(/=/g, "")
-    .replace(/\+/g, "-")
-    .replace(/\//g, "_");
-}
-
-/**
- * Gera JWT para autenticação da Kling.
- */
-function createKlingJWT(
-  accessKey: string,
-  secretKey: string
-): string {
   const now = Math.floor(Date.now() / 1000);
 
   const header = {
@@ -58,31 +38,41 @@ function createKlingJWT(
     nbf: now - 5,
   };
 
-  const encodedHeader =
-    base64Url(JSON.stringify(header));
+  function base64Url(value: string) {
+    return Buffer.from(value)
+      .toString("base64")
+      .replace(/=/g, "")
+      .replace(/\+/g, "-")
+      .replace(/\//g, "_");
+  }
 
-  const encodedPayload =
-    base64Url(JSON.stringify(payload));
+  const encodedHeader = base64Url(
+    JSON.stringify(header)
+  );
+
+  const encodedPayload = base64Url(
+    JSON.stringify(payload)
+  );
 
   const unsignedToken =
     `${encodedHeader}.${encodedPayload}`;
 
   const signature = crypto
-    .createHmac(
-      "sha256",
-      secretKey
-    )
+    .createHmac("sha256", secretKey)
     .update(unsignedToken)
-    .digest();
+    .digest("base64")
+    .replace(/=/g, "")
+    .replace(/\+/g, "-")
+    .replace(/\//g, "_");
 
-  return `${unsignedToken}.${base64Url(signature)}`;
+  return `${unsignedToken}.${signature}`;
 }
 
 /**
- * =========================================================
  * GET
- * Teste da rota
- * =========================================================
+ *
+ * Verifica somente se as credenciais existem.
+ * Nunca retorna a Access Key ou Secret Key.
  */
 export async function GET() {
   const accessKey =
@@ -95,7 +85,7 @@ export async function GET() {
     status: "ok",
 
     routeVersion:
-      "image-to-image-v4",
+      "image-to-image-access-secret-v1",
 
     runtime: "nodejs",
 
@@ -119,31 +109,23 @@ export async function GET() {
 
     endpoint:
       `${KLING_API_URL}/v1/images/generations`,
-
-    authentication:
-      "JWT HS256",
-
-    generationTest:
-      false,
   });
 }
 
 /**
- * =========================================================
  * POST
- * Imagem → Imagem
- * =========================================================
+ *
+ * Recebe:
+ * image
+ * image2 opcional
+ * prompt
+ * aspect_ratio
+ * style
  */
 export async function POST(
   request: Request
 ) {
   try {
-    /**
-     * -----------------------------------------------------
-     * 1. Recupera credenciais
-     * -----------------------------------------------------
-     */
-
     const accessKey =
       process.env.KLING_ACCESS_KEY;
 
@@ -151,10 +133,6 @@ export async function POST(
       process.env.KLING_SECRET_KEY;
 
     if (!accessKey || !secretKey) {
-      console.error(
-        "CIEL IA STUDIO: KLING_ACCESS_KEY ou KLING_SECRET_KEY não configuradas."
-      );
-
       return NextResponse.json(
         {
           status: "error",
@@ -168,12 +146,6 @@ export async function POST(
       );
     }
 
-    /**
-     * -----------------------------------------------------
-     * 2. Lê JSON enviado pelo frontend
-     * -----------------------------------------------------
-     */
-
     let body: any;
 
     try {
@@ -182,21 +154,14 @@ export async function POST(
       return NextResponse.json(
         {
           status: "error",
-
           message:
-            "Os dados enviados são inválidos.",
+            "Dados da solicitação inválidos.",
         },
         {
           status: 400,
         }
       );
     }
-
-    /**
-     * -----------------------------------------------------
-     * 3. Dados principais
-     * -----------------------------------------------------
-     */
 
     const prompt =
       typeof body?.prompt === "string"
@@ -217,7 +182,6 @@ export async function POST(
       return NextResponse.json(
         {
           status: "error",
-
           message:
             "Descreva o que deseja criar.",
         },
@@ -231,7 +195,6 @@ export async function POST(
       return NextResponse.json(
         {
           status: "error",
-
           message:
             "Envie pelo menos uma imagem de referência.",
         },
@@ -240,12 +203,6 @@ export async function POST(
         }
       );
     }
-
-    /**
-     * -----------------------------------------------------
-     * 4. Opções
-     * -----------------------------------------------------
-     */
 
     const aspectRatio =
       ["1:1", "16:9", "9:16"].includes(
@@ -260,106 +217,64 @@ export async function POST(
         ? body.style.trim()
         : "Realista";
 
-    const negativePrompt =
-      typeof body?.negative_prompt === "string"
-        ? body.negative_prompt.trim()
-        : "";
-
-    /**
-     * -----------------------------------------------------
-     * 5. Prompt final
-     * -----------------------------------------------------
-     */
-
     const finalPrompt =
-      `${prompt}\n\n` +
-      `Estilo visual: ${style}.`;
+      `${prompt}\n\nEstilo visual: ${style}.`;
 
     /**
-     * -----------------------------------------------------
-     * 6. Gera JWT
-     * -----------------------------------------------------
+     * Gera o token JWT no servidor.
      */
+    let token: string;
 
-    const token = createKlingJWT(
-      accessKey,
-      secretKey
-    );
+    try {
+      token = createKlingToken();
+    } catch (error) {
+      console.error(
+        "Erro ao criar token Kling:",
+        error
+      );
+
+      return NextResponse.json(
+        {
+          status: "error",
+          message:
+            "Não foi possível autenticar com o serviço de imagens.",
+        },
+        {
+          status: 500,
+        }
+      );
+    }
 
     /**
-     * -----------------------------------------------------
-     * 7. Corpo da requisição Kling
-     * -----------------------------------------------------
-     *
-     * A imagem principal é enviada como referência.
+     * Corpo da solicitação.
      */
-
     const klingBody: Record<
       string,
       unknown
     > = {
       model_name:
         body?.model_name ||
-        "kling-v1",
+        "kling-image",
 
-      prompt:
-        finalPrompt,
+      prompt: finalPrompt,
 
-      negative_prompt:
-        negativePrompt,
-
-      image:
-        image,
+      image,
 
       aspect_ratio:
         aspectRatio,
-
-      n: 1,
     };
 
-    /**
-     * -----------------------------------------------------
-     * 8. Segunda imagem
-     * -----------------------------------------------------
-     *
-     * Não enviamos image2 diretamente como parâmetro
-     * desconhecido para a API.
-     *
-     * A primeira imagem é a referência principal.
-     */
-
     if (image2) {
-      console.log(
-        "CIEL IA STUDIO: segunda imagem recebida."
-      );
+      klingBody.image2 = image2;
     }
 
-    /**
-     * -----------------------------------------------------
-     * 9. Log seguro
-     * -----------------------------------------------------
-     */
-
     console.log(
-      "CIEL IA STUDIO: iniciando geração Image → Image"
-    );
-
-    console.log(
-      "Kling endpoint:",
-      `${KLING_API_URL}/v1/images/generations`
-    );
-
-    console.log(
-      "Aspect ratio:",
-      aspectRatio
+      "CIEL IA STUDIO - Enviando solicitação para Kling"
     );
 
     /**
-     * -----------------------------------------------------
-     * 10. Chamada Kling
-     * -----------------------------------------------------
+     * Chamada autenticada.
      */
-
     const response = await fetch(
       `${KLING_API_URL}/v1/images/generations`,
       {
@@ -377,20 +292,12 @@ export async function POST(
         },
 
         body:
-          JSON.stringify(
-            klingBody
-          ),
+          JSON.stringify(klingBody),
 
         cache:
           "no-store",
       }
     );
-
-    /**
-     * -----------------------------------------------------
-     * 11. Lê resposta
-     * -----------------------------------------------------
-     */
 
     const responseText =
       await response.text();
@@ -399,9 +306,7 @@ export async function POST(
 
     try {
       klingData =
-        JSON.parse(
-          responseText
-        );
+        JSON.parse(responseText);
     } catch {
       klingData = {
         rawResponse:
@@ -415,127 +320,43 @@ export async function POST(
     );
 
     /**
-     * -----------------------------------------------------
-     * 12. Erro Kling
-     * -----------------------------------------------------
+     * Kling recusou a solicitação.
      */
-
     if (!response.ok) {
       console.error(
         "CIEL IA STUDIO - Kling error:",
         klingData
       );
 
-      const klingCode =
-        klingData?.code ??
-        klingData?.data?.code ??
-        null;
-
-      const klingMessage =
-        klingData?.message ??
-        klingData?.data?.message ??
-        null;
-
-      const requestId =
-        klingData?.request_id ??
-        klingData?.data?.request_id ??
-        null;
-
-      /**
-       * Erro de autenticação
-       */
-      if (
-        response.status === 401 ||
-        response.status === 403
-      ) {
-        return NextResponse.json(
-          {
-            status:
-              "error",
-
-            message:
-              "A autenticação da Kling foi recusada. Verifique KLING_ACCESS_KEY e KLING_SECRET_KEY.",
-
-            klingStatus:
-              response.status,
-
-            klingCode,
-
-            klingMessage,
-
-            requestId,
-          },
-          {
-            status:
-              response.status,
-          }
-        );
-      }
-
-      /**
-       * Limite/crédito
-       */
-      if (
-        response.status === 402 ||
-        response.status === 429
-      ) {
-        return NextResponse.json(
-          {
-            status:
-              "error",
-
-            message:
-              "A Kling recusou a geração. Pode haver limite, crédito ou excesso de solicitações.",
-
-            klingStatus:
-              response.status,
-
-            klingCode,
-
-            klingMessage,
-
-            requestId,
-          },
-          {
-            status:
-              response.status,
-          }
-        );
-      }
-
-      /**
-       * Outros erros
-       */
       return NextResponse.json(
         {
-          status:
-            "error",
+          status: "error",
 
           message:
-            "A Kling não aceitou a solicitação de imagem.",
+            "A Kling recusou a solicitação de geração.",
 
           klingStatus:
             response.status,
 
-          klingCode,
+          klingCode:
+            klingData?.code ??
+            klingData?.data?.code ??
+            null,
 
-          klingMessage,
-
-          requestId,
+          requestId:
+            klingData?.request_id ??
+            klingData?.data?.request_id ??
+            null,
         },
         {
-          status:
-            response.status,
+          status: response.status,
         }
       );
     }
 
     /**
-     * -----------------------------------------------------
-     * 13. Localiza task_id
-     * -----------------------------------------------------
+     * Localiza o task_id.
      */
-
     const taskId =
       klingData?.data?.task_id ||
       klingData?.task_id ||
@@ -544,11 +365,9 @@ export async function POST(
       null;
 
     /**
-     * -----------------------------------------------------
-     * 14. Localiza URL de imagem
-     * -----------------------------------------------------
+     * Algumas respostas podem trazer
+     * uma URL imediatamente.
      */
-
     const imageUrl =
       klingData?.data?.image_url ||
       klingData?.data?.imageUrl ||
@@ -556,27 +375,11 @@ export async function POST(
       klingData?.imageUrl ||
       null;
 
-    /**
-     * -----------------------------------------------------
-     * 15. Sucesso
-     * -----------------------------------------------------
-     */
-
-    console.log(
-      "CIEL IA STUDIO: Kling aceitou a solicitação."
-    );
-
-    console.log(
-      "Task ID:",
-      taskId
-    );
-
     return NextResponse.json({
-      status:
-        "success",
+      status: "success",
 
       message:
-        "Solicitação de imagem enviada com sucesso.",
+        "Solicitação enviada com sucesso.",
 
       taskId,
 
@@ -586,28 +389,20 @@ export async function POST(
         klingData,
     });
   } catch (error) {
-    /**
-     * -----------------------------------------------------
-     * Erro inesperado
-     * -----------------------------------------------------
-     */
-
     console.error(
-      "CIEL IA STUDIO - Image-to-Image exception:",
+      "CIEL IA STUDIO - Image-to-Image error:",
       error
     );
 
     return NextResponse.json(
       {
-        status:
-          "error",
+        status: "error",
 
         message:
           "Não foi possível conectar ao serviço de geração de imagens.",
       },
       {
-        status:
-          500,
+        status: 500,
       }
     );
   }
