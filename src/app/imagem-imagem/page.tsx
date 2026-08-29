@@ -15,10 +15,24 @@ export default function ImagemImagemPage() {
   const [preview2, setPreview2] = useState("");
 
   const [loading, setLoading] = useState(false);
-  const [resultMessage, setResultMessage] = useState("");
-  const [taskId, setTaskId] = useState("");
-  const [resultImageUrl, setResultImageUrl] = useState("");
-  const [errorMessage, setErrorMessage] = useState("");
+
+  const [resultMessage, setResultMessage] =
+    useState("");
+
+  const [taskId, setTaskId] =
+    useState("");
+
+  const [resultImageUrl, setResultImageUrl] =
+    useState("");
+
+  const [errorMessage, setErrorMessage] =
+    useState("");
+
+  /**
+   * =====================================================
+   * SELEÇÃO DAS IMAGENS
+   * =====================================================
+   */
 
   function handleImageChange(
     event: React.ChangeEvent<HTMLInputElement>,
@@ -28,114 +42,546 @@ export default function ImagemImagemPage() {
 
     if (!file) return;
 
+    /**
+     * Verifica se realmente é uma imagem.
+     */
     if (!file.type.startsWith("image/")) {
-      setErrorMessage("Selecione um arquivo de imagem válido.");
+      setErrorMessage(
+        "Selecione um arquivo de imagem válido."
+      );
+
       return;
     }
 
-    const preview = URL.createObjectURL(file);
+    /**
+     * Limite inicial de segurança.
+     *
+     * Fotos gigantes serão comprimidas pelo
+     * processador abaixo, mas não precisamos
+     * aceitar arquivos absurdamente grandes.
+     */
+    if (file.size > 30 * 1024 * 1024) {
+      setErrorMessage(
+        "Essa imagem é muito grande. Escolha uma imagem de até 30 MB."
+      );
+
+      return;
+    }
+
+    const preview =
+      URL.createObjectURL(file);
 
     if (number === 1) {
+      /**
+       * Libera o preview anterior.
+       */
+      if (preview1) {
+        URL.revokeObjectURL(preview1);
+      }
+
       setImage1(file);
       setPreview1(preview);
     } else {
+      if (preview2) {
+        URL.revokeObjectURL(preview2);
+      }
+
       setImage2(file);
       setPreview2(preview);
     }
 
+    /**
+     * Limpa resultados anteriores.
+     */
     setErrorMessage("");
     setResultMessage("");
     setTaskId("");
     setResultImageUrl("");
   }
 
-  async function fileToDataURL(file: File): Promise<string> {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
+  /**
+   * =====================================================
+   * PREPARAR IMAGEM
+   *
+   * Redimensiona e comprime a imagem antes de enviar.
+   *
+   * Isso evita o erro HTTP 413 Payload Too Large.
+   * =====================================================
+   */
 
-      reader.onload = () => {
-        if (typeof reader.result === "string") {
-          resolve(reader.result);
-        } else {
-          reject(
-            new Error("Não foi possível preparar a imagem.")
+  async function prepareImage(
+    file: File
+  ): Promise<string> {
+    return new Promise(
+      (resolve, reject) => {
+        const objectUrl =
+          URL.createObjectURL(file);
+
+        const img =
+          new Image();
+
+        img.onload = () => {
+          try {
+            URL.revokeObjectURL(
+              objectUrl
+            );
+
+            /**
+             * Dimensão máxima.
+             *
+             * 1600px é suficiente para referência
+             * visual e reduz bastante o tamanho
+             * das fotos de celulares.
+             */
+            const MAX_SIZE = 1600;
+
+            let width = img.naturalWidth;
+            let height = img.naturalHeight;
+
+            if (!width || !height) {
+              reject(
+                new Error(
+                  "Não foi possível identificar as dimensões da imagem."
+                )
+              );
+
+              return;
+            }
+
+            /**
+             * A Kling exige pelo menos 300px.
+             *
+             * Não reduziremos imagens pequenas.
+             */
+            if (
+              width > MAX_SIZE ||
+              height > MAX_SIZE
+            ) {
+              const scale =
+                Math.min(
+                  MAX_SIZE / width,
+                  MAX_SIZE / height
+                );
+
+              width =
+                Math.max(
+                  300,
+                  Math.round(
+                    width * scale
+                  )
+                );
+
+              height =
+                Math.max(
+                  300,
+                  Math.round(
+                    height * scale
+                  )
+                );
+            }
+
+            /**
+             * Cria canvas.
+             */
+            const canvas =
+              document.createElement(
+                "canvas"
+              );
+
+            canvas.width =
+              width;
+
+            canvas.height =
+              height;
+
+            const context =
+              canvas.getContext(
+                "2d"
+              );
+
+            if (!context) {
+              reject(
+                new Error(
+                  "Não foi possível preparar a imagem no navegador."
+                )
+              );
+
+              return;
+            }
+
+            /**
+             * Fundo branco para evitar problemas
+             * com transparência ao converter PNG
+             * para JPEG.
+             */
+            context.fillStyle =
+              "#ffffff";
+
+            context.fillRect(
+              0,
+              0,
+              width,
+              height
+            );
+
+            /**
+             * Melhora a qualidade do redimensionamento.
+             */
+            context.imageSmoothingEnabled =
+              true;
+
+            context.imageSmoothingQuality =
+              "high";
+
+            context.drawImage(
+              img,
+              0,
+              0,
+              width,
+              height
+            );
+
+            /**
+             * Começamos com qualidade 0.82.
+             */
+            let quality = 0.82;
+
+            let dataUrl =
+              canvas.toDataURL(
+                "image/jpeg",
+                quality
+              );
+
+            /**
+             * A API aceita até 10 MB de imagem.
+             *
+             * Mas o navegador precisa enviar isso
+             * dentro de um JSON, então usamos um
+             * limite muito menor para evitar HTTP 413
+             * no servidor.
+             *
+             * Aproximadamente 2.7 MB de Base64.
+             */
+            const MAX_BASE64_LENGTH =
+              2_700_000;
+
+            /**
+             * Se ficar grande, diminuímos a qualidade.
+             */
+            while (
+              dataUrl.length >
+                MAX_BASE64_LENGTH &&
+              quality > 0.45
+            ) {
+              quality -= 0.08;
+
+              dataUrl =
+                canvas.toDataURL(
+                  "image/jpeg",
+                  quality
+                );
+            }
+
+            /**
+             * Se ainda estiver grande,
+             * reduzimos também as dimensões.
+             */
+            if (
+              dataUrl.length >
+              MAX_BASE64_LENGTH
+            ) {
+              let currentWidth =
+                width;
+
+              let currentHeight =
+                height;
+
+              while (
+                dataUrl.length >
+                  MAX_BASE64_LENGTH &&
+                currentWidth > 700 &&
+                currentHeight > 700
+              ) {
+                currentWidth =
+                  Math.max(
+                    700,
+                    Math.round(
+                      currentWidth *
+                        0.85
+                    )
+                  );
+
+                currentHeight =
+                  Math.max(
+                    700,
+                    Math.round(
+                      currentHeight *
+                        0.85
+                    )
+                  );
+
+                canvas.width =
+                  currentWidth;
+
+                canvas.height =
+                  currentHeight;
+
+                context.fillStyle =
+                  "#ffffff";
+
+                context.fillRect(
+                  0,
+                  0,
+                  currentWidth,
+                  currentHeight
+                );
+
+                context.drawImage(
+                  img,
+                  0,
+                  0,
+                  currentWidth,
+                  currentHeight
+                );
+
+                dataUrl =
+                  canvas.toDataURL(
+                    "image/jpeg",
+                    0.72
+                  );
+              }
+            }
+
+            /**
+             * Segurança final.
+             */
+            if (
+              dataUrl.length >
+              MAX_BASE64_LENGTH
+            ) {
+              reject(
+                new Error(
+                  "Não foi possível reduzir a imagem o suficiente. Escolha uma foto menor."
+                )
+              );
+
+              return;
+            }
+
+            /**
+             * IMPORTANTE:
+             *
+             * A Kling espera o Base64 puro.
+             *
+             * Removemos:
+             *
+             * data:image/jpeg;base64,
+             */
+            const base64 =
+              dataUrl.replace(
+                /^data:image\/jpeg;base64,/,
+                ""
+              );
+
+            resolve(base64);
+          } catch (error) {
+            URL.revokeObjectURL(
+              objectUrl
+            );
+
+            reject(
+              error instanceof Error
+                ? error
+                : new Error(
+                    "Erro ao preparar a imagem."
+                  )
+            );
+          }
+        };
+
+        img.onerror = () => {
+          URL.revokeObjectURL(
+            objectUrl
           );
-        }
-      };
 
-      reader.onerror = () => {
-        reject(
-          new Error("Não foi possível ler a imagem.")
-        );
-      };
+          reject(
+            new Error(
+              "Não foi possível carregar a imagem selecionada."
+            )
+          );
+        };
 
-      reader.readAsDataURL(file);
-    });
+        img.src =
+          objectUrl;
+      }
+    );
   }
 
+  /**
+   * =====================================================
+   * GERAR IMAGEM
+   * =====================================================
+   */
+
   async function handleGenerate() {
+    /**
+     * Primeira imagem obrigatória.
+     */
     if (!image1) {
       setErrorMessage(
         "Selecione pelo menos uma imagem de referência."
       );
+
       return;
     }
 
+    /**
+     * Prompt obrigatório.
+     */
     if (!prompt.trim()) {
       setErrorMessage(
         "Descreva o que deseja criar na imagem."
       );
+
       return;
     }
 
     setLoading(true);
+
     setErrorMessage("");
+
     setResultMessage("");
+
     setTaskId("");
+
     setResultImageUrl("");
 
     try {
-      const image1Data = await fileToDataURL(image1);
+      /**
+       * =================================================
+       * PREPARA IMAGEM 1
+       * =================================================
+       */
 
-      const image2Data = image2
-        ? await fileToDataURL(image2)
-        : "";
+      const image1Base64 =
+        await prepareImage(
+          image1
+        );
 
-      const response = await fetch(
-        "/api/kling-image-to-image",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            prompt: prompt.trim(),
-            image: image1Data,
-            image2: image2Data || undefined,
-            aspect_ratio: aspectRatio,
-            style,
-          }),
-        }
-      );
+      /**
+       * =================================================
+       * PREPARA IMAGEM 2
+       *
+       * Mantemos a preparação para a próxima
+       * versão da integração.
+       *
+       * O endpoint kling-v1-5 atual utiliza
+       * uma imagem de referência principal.
+       * =================================================
+       */
 
-      const responseText = await response.text();
+      let image2Base64 =
+        "";
 
-      let data: any;
+      if (image2) {
+        image2Base64 =
+          await prepareImage(
+            image2
+          );
+      }
+
+      /**
+       * =================================================
+       * ENVIA PARA NOSSA API
+       * =================================================
+       */
+
+      const response =
+        await fetch(
+          "/api/kling-image-to-image",
+          {
+            method: "POST",
+
+            headers: {
+              "Content-Type":
+                "application/json",
+            },
+
+            body: JSON.stringify({
+              prompt:
+                prompt.trim(),
+
+              /**
+               * Base64 puro.
+               */
+              image:
+                image1Base64,
+
+              /**
+               * Mantemos image2 no frontend.
+               *
+               * A rota atual poderá ignorá-la
+               * enquanto usamos kling-v1-5.
+               */
+              image2:
+                image2Base64 ||
+                undefined,
+
+              aspect_ratio:
+                aspectRatio,
+
+              style,
+            }),
+          }
+        );
+
+      /**
+       * =================================================
+       * LER RESPOSTA
+       * =================================================
+       */
+
+      const responseText =
+        await response.text();
+
+      let data: any = null;
 
       try {
-        data = JSON.parse(responseText);
+        data =
+          JSON.parse(
+            responseText
+          );
       } catch {
         data = null;
       }
 
-      if (!response.ok || data?.status === "error") {
+      /**
+       * =================================================
+       * ERRO HTTP
+       * =================================================
+       */
+
+      if (
+        !response.ok ||
+        data?.status === "error"
+      ) {
         const message =
           data?.message ||
+          data?.klingMessage ||
           `O servidor retornou o erro ${response.status}.`;
 
-        setErrorMessage(message);
+        setErrorMessage(
+          message
+        );
+
         return;
       }
+
+      /**
+       * =================================================
+       * TASK ID
+       * =================================================
+       */
 
       const returnedTaskId =
         data?.taskId ||
@@ -143,19 +589,39 @@ export default function ImagemImagemPage() {
         data?.data?.taskId ||
         "";
 
+      /**
+       * =================================================
+       * URL DA IMAGEM
+       * =================================================
+       */
+
       const returnedImageUrl =
         data?.imageUrl ||
         data?.data?.image_url ||
         data?.data?.imageUrl ||
         "";
 
-      if (returnedTaskId) {
-        setTaskId(returnedTaskId);
+      if (
+        returnedTaskId
+      ) {
+        setTaskId(
+          returnedTaskId
+        );
       }
 
-      if (returnedImageUrl) {
-        setResultImageUrl(returnedImageUrl);
+      if (
+        returnedImageUrl
+      ) {
+        setResultImageUrl(
+          returnedImageUrl
+        );
       }
+
+      /**
+       * =================================================
+       * SUCESSO
+       * =================================================
+       */
 
       setResultMessage(
         returnedTaskId
@@ -169,12 +635,20 @@ export default function ImagemImagemPage() {
       );
 
       setErrorMessage(
-        "Não foi possível se conectar ao servidor. Tente novamente."
+        error instanceof Error
+          ? error.message
+          : "Não foi possível preparar ou enviar a imagem."
       );
     } finally {
       setLoading(false);
     }
   }
+
+  /**
+   * =====================================================
+   * INTERFACE
+   * =====================================================
+   */
 
   return (
     <>
@@ -201,6 +675,7 @@ export default function ImagemImagemPage() {
         .page {
           min-height: 100vh;
           color: #fff;
+
           background:
             radial-gradient(
               circle at 80% 15%,
@@ -218,17 +693,25 @@ export default function ImagemImagemPage() {
               #081a30 48%,
               #0b3556 100%
             );
+
           overflow-x: hidden;
         }
 
         .topbar {
           min-height: 74px;
           padding: 0 42px;
+
           display: flex;
           align-items: center;
           justify-content: space-between;
-          background: rgba(4, 12, 24, 0.9);
-          border-bottom: 1px solid rgba(100, 180, 255, 0.18);
+
+          background:
+            rgba(4, 12, 24, 0.9);
+
+          border-bottom:
+            1px solid
+            rgba(100, 180, 255, 0.18);
+
           backdrop-filter: blur(12px);
         }
 
@@ -257,13 +740,23 @@ export default function ImagemImagemPage() {
 
         .back:hover {
           color: #6ed7ff;
-          text-shadow: 0 0 12px rgba(75, 199, 255, 0.8);
+
+          text-shadow:
+            0 0 12px
+            rgba(75, 199, 255, 0.8);
         }
 
         .content {
-          width: min(1180px, calc(100% - 40px));
+          width:
+            min(
+              1180px,
+              calc(100% - 40px)
+            );
+
           margin: 0 auto;
-          padding: 55px 0 70px;
+
+          padding:
+            55px 0 70px;
         }
 
         .title-area {
@@ -273,51 +766,82 @@ export default function ImagemImagemPage() {
 
         .title-area h1 {
           margin: 0;
-          font-size: clamp(32px, 5vw, 52px);
+
+          font-size:
+            clamp(
+              32px,
+              5vw,
+              52px
+            );
+
           text-transform: uppercase;
         }
 
         .title-area p {
-          margin: 14px auto 0;
+          margin:
+            14px auto 0;
+
           max-width: 650px;
+
           color: #b7c5d5;
+
           font-size: 17px;
+
           line-height: 1.5;
         }
 
         .workspace {
           display: grid;
-          grid-template-columns: 0.9fr 1.1fr;
+
+          grid-template-columns:
+            0.9fr 1.1fr;
+
           gap: 28px;
+
           align-items: stretch;
         }
 
         .panel {
           border-radius: 22px;
+
           padding: 28px;
+
           background:
             linear-gradient(
               145deg,
               rgba(35, 47, 65, 0.95),
               rgba(14, 25, 40, 0.97)
             );
-          border: 2px solid #58c9ff;
+
+          border:
+            2px solid #58c9ff;
+
           box-shadow:
-            0 0 8px rgba(70, 199, 255, 0.8),
-            0 0 22px rgba(43, 167, 255, 0.35),
-            inset 0 0 22px rgba(56, 174, 255, 0.07);
+            0 0 8px
+              rgba(70, 199, 255, 0.8),
+            0 0 22px
+              rgba(43, 167, 255, 0.35),
+            inset 0 0 22px
+              rgba(56, 174, 255, 0.07);
         }
 
         .panel h2 {
-          margin: 0 0 22px;
+          margin:
+            0 0 22px;
+
           font-size: 21px;
         }
 
         .label {
           display: block;
-          margin: 20px 0 9px;
+
+          margin:
+            20px 0 9px;
+
           color: #c7d3df;
+
           font-size: 14px;
+
           font-weight: 700;
         }
 
@@ -327,15 +851,24 @@ export default function ImagemImagemPage() {
 
         .images-container {
           display: grid;
-          grid-template-columns: 1fr 1fr;
+
+          grid-template-columns:
+            1fr 1fr;
+
           gap: 12px;
         }
 
         .image-box {
           position: relative;
+
           height: 175px;
+
           border-radius: 16px;
-          border: 1px dashed rgba(104, 207, 255, 0.55);
+
+          border:
+            1px dashed
+            rgba(104, 207, 255, 0.55);
+
           background:
             radial-gradient(
               circle,
@@ -343,9 +876,12 @@ export default function ImagemImagemPage() {
               transparent 60%
             ),
             rgba(3, 13, 25, 0.72);
+
           display: flex;
+
           align-items: center;
           justify-content: center;
+
           overflow: hidden;
         }
 
@@ -356,8 +892,11 @@ export default function ImagemImagemPage() {
         .image-preview {
           width: 100%;
           height: 100%;
+
           object-fit: contain;
+
           display: block;
+
           background: #020c18;
         }
 
@@ -368,46 +907,73 @@ export default function ImagemImagemPage() {
 
         .image-box-number {
           position: absolute;
+
           top: 9px;
           left: 10px;
-          padding: 4px 8px;
+
+          padding:
+            4px 8px;
+
           border-radius: 8px;
-          background: rgba(3, 13, 25, 0.82);
+
+          background:
+            rgba(3, 13, 25, 0.82);
+
           color: #bfeaff;
+
           font-size: 11px;
+
           font-weight: 700;
+
           z-index: 2;
         }
 
         .plus {
           width: 54px;
           height: 54px;
-          margin: 0 auto 10px;
+
+          margin:
+            0 auto 10px;
+
           border-radius: 50%;
+
           display: flex;
+
           align-items: center;
           justify-content: center;
+
           color: #04101b;
-          background: linear-gradient(
-            135deg,
-            #5ed2ff,
-            #75e0ff
-          );
+
+          background:
+            linear-gradient(
+              135deg,
+              #5ed2ff,
+              #75e0ff
+            );
+
           font-size: 32px;
+
           box-shadow:
-            0 0 10px rgba(70, 199, 255, 0.7),
-            0 0 22px rgba(43, 167, 255, 0.3);
+            0 0 10px
+              rgba(70, 199, 255, 0.7),
+            0 0 22px
+              rgba(43, 167, 255, 0.3);
         }
 
         .image-box-title {
           margin: 0;
+
           font-size: 13px;
+
           font-weight: 700;
         }
 
         .image-box-text {
-          margin: 5px 0 0;
+          margin:
+            5px 0 0;
+
           color: #7f92a5;
+
           font-size: 11px;
         }
 
@@ -419,25 +985,46 @@ export default function ImagemImagemPage() {
 
         .upload-button {
           display: inline-block;
+
           margin-top: 10px;
-          padding: 7px 12px;
+
+          padding:
+            7px 12px;
+
           border-radius: 9px;
-          background: rgba(94, 210, 255, 0.16);
-          border: 1px solid rgba(94, 210, 255, 0.4);
+
+          background:
+            rgba(94, 210, 255, 0.16);
+
+          border:
+            1px solid
+            rgba(94, 210, 255, 0.4);
+
           color: #bfeaff;
+
           font-size: 11px;
         }
 
         .change-image {
           position: absolute;
+
           bottom: 9px;
           right: 9px;
+
           z-index: 2;
-          padding: 7px 10px;
+
+          padding:
+            7px 10px;
+
           border: none;
+
           border-radius: 9px;
+
           color: #04101b;
-          background: rgba(117, 224, 255, 0.95);
+
+          background:
+            rgba(117, 224, 255, 0.95);
+
           font-size: 11px;
         }
 
@@ -447,17 +1034,34 @@ export default function ImagemImagemPage() {
 
         .prompt {
           width: 100%;
+
           min-height: 150px;
+
           resize: vertical;
+
           padding: 16px;
-          border: 1px solid rgba(94, 203, 255, 0.45);
+
+          border:
+            1px solid
+            rgba(94, 203, 255, 0.45);
+
           border-radius: 14px;
+
           outline: none;
-          background: rgba(3, 13, 25, 0.8);
+
+          background:
+            rgba(3, 13, 25, 0.8);
+
           color: #fff;
+
           font-size: 15px;
+
           line-height: 1.5;
-          font-family: Arial, Helvetica, sans-serif;
+
+          font-family:
+            Arial,
+            Helvetica,
+            sans-serif;
         }
 
         .prompt::placeholder {
@@ -466,54 +1070,92 @@ export default function ImagemImagemPage() {
 
         .prompt:focus {
           border-color: #63d3ff;
-          box-shadow: 0 0 15px rgba(70, 199, 255, 0.25);
+
+          box-shadow:
+            0 0 15px
+            rgba(70, 199, 255, 0.25);
         }
 
         .options {
           display: grid;
-          grid-template-columns: 1fr 1fr;
+
+          grid-template-columns:
+            1fr 1fr;
+
           gap: 12px;
         }
 
         select {
           width: 100%;
+
           padding: 13px;
+
           border-radius: 12px;
-          border: 1px solid rgba(94, 203, 255, 0.35);
+
+          border:
+            1px solid
+            rgba(94, 203, 255, 0.35);
+
           outline: none;
+
           background: #0a192b;
+
           color: #fff;
+
           font-size: 14px;
         }
 
         .credits {
           margin-top: 20px;
-          padding: 13px 15px;
+
+          padding:
+            13px 15px;
+
           border-radius: 12px;
-          background: rgba(29, 112, 157, 0.16);
-          border: 1px solid rgba(94, 203, 255, 0.25);
+
+          background:
+            rgba(29, 112, 157, 0.16);
+
+          border:
+            1px solid
+            rgba(94, 203, 255, 0.25);
+
           color: #bfeaff;
+
           font-size: 14px;
         }
 
         .generate {
           width: 100%;
+
           margin-top: 22px;
+
           padding: 16px;
+
           border: none;
+
           border-radius: 14px;
+
           cursor: pointer;
+
           color: #04101b;
-          background: linear-gradient(
-            90deg,
-            #5ed2ff,
-            #75e0ff
-          );
+
+          background:
+            linear-gradient(
+              90deg,
+              #5ed2ff,
+              #75e0ff
+            );
+
           font-size: 16px;
+
           font-weight: 800;
+
           box-shadow:
-            0 0 10px rgba(70, 199, 255, 0.7),
-            0 0 24px rgba(43, 167, 255, 0.35);
+            0 0 10px
+              rgba(70, 199, 255, 0.7),
+            0 0 24px
+              rgba(43, 167, 255, 0.35);
         }
 
         .generate:disabled {
@@ -523,12 +1165,20 @@ export default function ImagemImagemPage() {
 
         .preview {
           min-height: 500px;
+
           display: flex;
+
           align-items: center;
           justify-content: center;
+
           text-align: center;
+
           border-radius: 16px;
-          border: 1px dashed rgba(104, 207, 255, 0.35);
+
+          border:
+            1px dashed
+            rgba(104, 207, 255, 0.35);
+
           background:
             radial-gradient(
               circle,
@@ -536,66 +1186,101 @@ export default function ImagemImagemPage() {
               transparent 55%
             ),
             rgba(2, 12, 24, 0.55);
+
           overflow: hidden;
+
           padding: 20px;
         }
 
         .preview-image {
           width: 100%;
+
           max-height: 470px;
+
           object-fit: contain;
+
           border-radius: 14px;
         }
 
         .preview-icon {
           font-size: 62px;
+
           margin-bottom: 18px;
         }
 
         .preview h3 {
           margin: 0;
+
           font-size: 20px;
         }
 
         .preview p {
-          margin: 10px auto 0;
+          margin:
+            10px auto 0;
+
           max-width: 390px;
+
           color: #8798aa;
+
           line-height: 1.5;
         }
 
         .success-message,
         .error-message,
         .task-id {
-          margin: 18px auto 0;
+          margin:
+            18px auto 0;
+
           max-width: 430px;
-          padding: 13px 15px;
+
+          padding:
+            13px 15px;
+
           border-radius: 12px;
+
           font-size: 13px;
+
           line-height: 1.5;
         }
 
         .success-message {
-          background: rgba(35, 170, 115, 0.12);
-          border: 1px solid rgba(65, 220, 160, 0.3);
+          background:
+            rgba(35, 170, 115, 0.12);
+
+          border:
+            1px solid
+            rgba(65, 220, 160, 0.3);
+
           color: #8ff0c6;
         }
 
         .error-message {
-          background: rgba(220, 70, 70, 0.12);
-          border: 1px solid rgba(255, 100, 100, 0.3);
+          background:
+            rgba(220, 70, 70, 0.12);
+
+          border:
+            1px solid
+            rgba(255, 100, 100, 0.3);
+
           color: #ffb0b0;
         }
 
         .task-id {
-          background: rgba(94, 203, 255, 0.08);
-          border: 1px solid rgba(94, 203, 255, 0.2);
+          background:
+            rgba(94, 203, 255, 0.08);
+
+          border:
+            1px solid
+            rgba(94, 203, 255, 0.2);
+
           color: #9fdfff;
+
           word-break: break-all;
         }
 
         .loading {
-          animation: pulse 1.1s infinite;
+          animation:
+            pulse 1.1s infinite;
         }
 
         @keyframes pulse {
@@ -610,18 +1295,25 @@ export default function ImagemImagemPage() {
         }
 
         .footer {
-          border-top: 1px solid rgba(100, 180, 255, 0.18);
+          border-top:
+            1px solid
+            rgba(100, 180, 255, 0.18);
+
           background:
             linear-gradient(
               180deg,
               rgba(4, 15, 29, 0.96),
               rgba(3, 11, 22, 1)
             );
-          padding: 52px 42px 24px;
+
+          padding:
+            52px 42px 24px;
         }
 
         .footer-inner {
-          width: min(1180px, 100%);
+          width:
+            min(1180px, 100%);
+
           margin: 0 auto;
         }
 
@@ -630,33 +1322,47 @@ export default function ImagemImagemPage() {
         }
 
         .footer-brand h2 {
-          margin: 0 0 8px;
+          margin:
+            0 0 8px;
+
           font-size: 24px;
         }
 
         .footer-brand p {
           margin: 0;
+
           color: #9eacbd;
+
           font-size: 15px;
         }
 
         .footer-columns {
           display: grid;
-          grid-template-columns: repeat(3, 1fr);
+
+          grid-template-columns:
+            repeat(3, 1fr);
+
           gap: 50px;
         }
 
         .footer-column h3 {
-          margin: 0 0 18px;
+          margin:
+            0 0 18px;
+
           font-size: 16px;
         }
 
         .footer-column a {
           display: block;
+
           width: fit-content;
+
           margin-bottom: 12px;
+
           color: #aebaca;
+
           text-decoration: none;
+
           font-size: 14px;
         }
 
@@ -666,10 +1372,17 @@ export default function ImagemImagemPage() {
 
         .footer-bottom {
           margin-top: 36px;
+
           padding-top: 22px;
-          border-top: 1px solid rgba(100, 180, 255, 0.16);
+
+          border-top:
+            1px solid
+            rgba(100, 180, 255, 0.16);
+
           text-align: center;
+
           color: #8997a9;
+
           font-size: 13px;
         }
 
@@ -690,6 +1403,7 @@ export default function ImagemImagemPage() {
         @media (max-width: 650px) {
           .topbar {
             min-height: 68px;
+
             padding: 0 16px;
           }
 
@@ -698,12 +1412,18 @@ export default function ImagemImagemPage() {
           }
 
           .content {
-            width: min(430px, calc(100% - 28px));
+            width:
+              min(
+                430px,
+                calc(100% - 28px)
+              );
+
             padding-top: 38px;
           }
 
           .panel {
             padding: 21px;
+
             border-radius: 18px;
           }
 
@@ -724,11 +1444,13 @@ export default function ImagemImagemPage() {
           }
 
           .footer {
-            padding: 42px 24px 22px;
+            padding:
+              42px 24px 22px;
           }
 
           .footer-columns {
             grid-template-columns: 1fr;
+
             gap: 30px;
           }
         }
@@ -736,12 +1458,16 @@ export default function ImagemImagemPage() {
         @media (max-width: 430px) {
           .topbar {
             flex-wrap: wrap;
+
             justify-content: center;
-            padding: 14px 10px;
+
+            padding:
+              14px 10px;
           }
 
           .brand {
             width: 100%;
+
             justify-content: center;
           }
 
@@ -764,18 +1490,26 @@ export default function ImagemImagemPage() {
           .plus {
             width: 48px;
             height: 48px;
+
             font-size: 29px;
           }
         }
       `}</style>
 
       <main className="page">
+
         <header className="topbar">
+
           <div className="brand">
-            <span className="brand-icon">✨</span>
+
+            <span className="brand-icon">
+              ✨
+            </span>
+
             <span className="brand-name">
               CIEL IA STUDIO
             </span>
+
           </div>
 
           <Link
@@ -784,38 +1518,61 @@ export default function ImagemImagemPage() {
           >
             ← Voltar ao Dashboard
           </Link>
+
         </header>
 
+
         <section className="content">
+
           <div className="title-area">
-            <h1>Imagem → Imagem</h1>
+
+            <h1>
+              Imagem → Imagem
+            </h1>
 
             <p>
-              Transforme suas imagens com inteligência
-              artificial.
+              Transforme suas imagens com
+              inteligência artificial.
             </p>
+
           </div>
 
+
           <div className="workspace">
+
             <section className="panel">
-              <h2>🖼️ Transformar imagem</h2>
+
+              <h2>
+                🖼️ Transformar imagem
+              </h2>
+
 
               <label className="label images-label">
                 Imagens de referência
               </label>
 
+
               <div className="images-container">
+
+                {/* IMAGEM 1 */}
+
                 <div
                   className={`image-box ${
-                    preview1 ? "has-image" : ""
+                    preview1
+                      ? "has-image"
+                      : ""
                   }`}
                 >
+
                   <span className="image-box-number">
                     IMAGEM 1
                   </span>
 
+
                   {preview1 ? (
+
                     <>
+
                       <img
                         src={preview1}
                         alt="Imagem de referência 1"
@@ -823,20 +1580,32 @@ export default function ImagemImagemPage() {
                       />
 
                       <label className="change-image">
+
                         Trocar
+
                         <input
                           type="file"
-                          accept="image/*"
+                          accept="image/jpeg,image/png,image/webp"
                           className="hidden-input"
                           onChange={(e) =>
-                            handleImageChange(e, 1)
+                            handleImageChange(
+                              e,
+                              1
+                            )
                           }
                         />
+
                       </label>
+
                     </>
+
                   ) : (
+
                     <div className="image-box-content">
-                      <div className="plus">+</div>
+
+                      <div className="plus">
+                        +
+                      </div>
 
                       <p className="image-box-title">
                         Adicionar foto
@@ -847,31 +1616,49 @@ export default function ImagemImagemPage() {
                       </p>
 
                       <label className="upload-button">
+
                         Selecionar
+
                         <input
                           type="file"
-                          accept="image/*"
+                          accept="image/jpeg,image/png,image/webp"
                           className="hidden-input"
                           onChange={(e) =>
-                            handleImageChange(e, 1)
+                            handleImageChange(
+                              e,
+                              1
+                            )
                           }
                         />
+
                       </label>
+
                     </div>
+
                   )}
+
                 </div>
+
+
+                {/* IMAGEM 2 */}
 
                 <div
                   className={`image-box ${
-                    preview2 ? "has-image" : ""
+                    preview2
+                      ? "has-image"
+                      : ""
                   }`}
                 >
+
                   <span className="image-box-number">
                     IMAGEM 2
                   </span>
 
+
                   {preview2 ? (
+
                     <>
+
                       <img
                         src={preview2}
                         alt="Imagem de referência 2"
@@ -879,20 +1666,32 @@ export default function ImagemImagemPage() {
                       />
 
                       <label className="change-image">
+
                         Trocar
+
                         <input
                           type="file"
-                          accept="image/*"
+                          accept="image/jpeg,image/png,image/webp"
                           className="hidden-input"
                           onChange={(e) =>
-                            handleImageChange(e, 2)
+                            handleImageChange(
+                              e,
+                              2
+                            )
                           }
                         />
+
                       </label>
+
                     </>
+
                   ) : (
+
                     <div className="image-box-content">
-                      <div className="plus">+</div>
+
+                      <div className="plus">
+                        +
+                      </div>
 
                       <p className="image-box-title">
                         Adicionar foto
@@ -903,36 +1702,53 @@ export default function ImagemImagemPage() {
                       </p>
 
                       <label className="upload-button">
+
                         Selecionar
+
                         <input
                           type="file"
-                          accept="image/*"
+                          accept="image/jpeg,image/png,image/webp"
                           className="hidden-input"
                           onChange={(e) =>
-                            handleImageChange(e, 2)
+                            handleImageChange(
+                              e,
+                              2
+                            )
                           }
                         />
+
                       </label>
+
                     </div>
+
                   )}
+
                 </div>
+
               </div>
+
 
               <label className="label">
                 O que deseja criar?
               </label>
 
+
               <textarea
                 className="prompt"
                 value={prompt}
                 onChange={(e) =>
-                  setPrompt(e.target.value)
+                  setPrompt(
+                    e.target.value
+                  )
                 }
                 placeholder="Exemplo: Coloque o carro da segunda imagem no cenário da primeira imagem, mantendo o realismo e a iluminação natural..."
               />
 
+
               <div className="options">
+
                 <div>
+
                   <label className="label">
                     Proporção
                   </label>
@@ -940,9 +1756,12 @@ export default function ImagemImagemPage() {
                   <select
                     value={aspectRatio}
                     onChange={(e) =>
-                      setAspectRatio(e.target.value)
+                      setAspectRatio(
+                        e.target.value
+                      )
                     }
                   >
+
                     <option value="1:1">
                       1:1 — Quadrada
                     </option>
@@ -954,10 +1773,14 @@ export default function ImagemImagemPage() {
                     <option value="16:9">
                       16:9 — Paisagem
                     </option>
+
                   </select>
+
                 </div>
 
+
                 <div>
+
                   <label className="label">
                     Estilo
                   </label>
@@ -965,9 +1788,12 @@ export default function ImagemImagemPage() {
                   <select
                     value={style}
                     onChange={(e) =>
-                      setStyle(e.target.value)
+                      setStyle(
+                        e.target.value
+                      )
                     }
                   >
+
                     <option value="Realista">
                       Realista
                     </option>
@@ -987,44 +1813,75 @@ export default function ImagemImagemPage() {
                     <option value="3D">
                       3D
                     </option>
+
                   </select>
+
                 </div>
+
               </div>
 
+
               <div className="credits">
+
                 💎 Seus créditos:{" "}
-                <strong>30</strong>
+
+                <strong>
+                  30
+                </strong>
+
               </div>
+
 
               <button
                 className="generate"
-                onClick={handleGenerate}
+                onClick={
+                  handleGenerate
+                }
                 disabled={loading}
               >
+
                 {loading
-                  ? "✨ Enviando..."
+                  ? "✨ Preparando imagem..."
                   : "✨ Gerar Imagem"}
+
               </button>
+
             </section>
 
+
             <section className="panel">
-              <h2>🖼️ Resultado</h2>
+
+              <h2>
+                🖼️ Resultado
+              </h2>
+
 
               <div
                 className={`preview ${
-                  loading ? "loading" : ""
+                  loading
+                    ? "loading"
+                    : ""
                 }`}
               >
+
                 <div>
+
                   {resultImageUrl ? (
+
                     <img
-                      src={resultImageUrl}
+                      src={
+                        resultImageUrl
+                      }
                       alt="Imagem gerada"
                       className="preview-image"
                     />
+
                   ) : (
+
                     <>
+
                       <div className="preview-icon">
+
                         {loading
                           ? "✨"
                           : resultMessage
@@ -1032,71 +1889,111 @@ export default function ImagemImagemPage() {
                           : errorMessage
                           ? "⚠️"
                           : "🖼️"}
+
                       </div>
 
+
                       <h3>
+
                         {loading
-                          ? "Enviando sua solicitação..."
+                          ? "Preparando sua solicitação..."
                           : resultMessage
                           ? "Solicitação enviada!"
                           : errorMessage
                           ? "Não foi possível gerar"
                           : "Sua nova imagem aparecerá aqui"}
+
                       </h3>
+
 
                       {!loading &&
                         !resultMessage &&
                         !errorMessage && (
+
                           <p>
-                            Envie uma ou duas imagens,
-                            descreva a transformação e
-                            clique em “Gerar Imagem” para
+                            Envie uma ou duas
+                            imagens, descreva a
+                            transformação e clique
+                            em “Gerar Imagem” para
                             começar.
                           </p>
+
                         )}
+
                     </>
+
                   )}
 
+
                   {resultMessage && (
+
                     <div className="success-message">
                       {resultMessage}
                     </div>
+
                   )}
 
+
                   {taskId && (
+
                     <div className="task-id">
+
                       <strong>
                         ID da tarefa:
                       </strong>
+
                       <br />
+
                       {taskId}
+
                     </div>
+
                   )}
 
+
                   {errorMessage && (
+
                     <div className="error-message">
                       {errorMessage}
                     </div>
+
                   )}
+
                 </div>
+
               </div>
+
             </section>
+
           </div>
+
         </section>
 
+
         <footer className="footer">
+
           <div className="footer-inner">
+
             <div className="footer-brand">
-              <h2>CIEL IA STUDIO</h2>
+
+              <h2>
+                CIEL IA STUDIO
+              </h2>
 
               <p>
                 Crie. Transforme. Inove com IA.
               </p>
+
             </div>
 
+
             <div className="footer-columns">
+
               <div className="footer-column">
-                <h3>Produto</h3>
+
+                <h3>
+                  Produto
+                </h3>
 
                 <Link href="/criar-prompts">
                   Criar Prompts
@@ -1121,10 +2018,15 @@ export default function ImagemImagemPage() {
                 <Link href="/projetos">
                   Meus Projetos
                 </Link>
+
               </div>
 
+
               <div className="footer-column">
-                <h3>Suporte</h3>
+
+                <h3>
+                  Suporte
+                </h3>
 
                 <Link href="/ajuda">
                   Central de Ajuda
@@ -1137,10 +2039,15 @@ export default function ImagemImagemPage() {
                 <Link href="/sobre">
                   Sobre o CIEL IA STUDIO
                 </Link>
+
               </div>
 
+
               <div className="footer-column">
-                <h3>Legal</h3>
+
+                <h3>
+                  Legal
+                </h3>
 
                 <Link href="/termos">
                   Termos de Uso
@@ -1153,14 +2060,23 @@ export default function ImagemImagemPage() {
                 <Link href="/reembolso">
                   Política de Reembolso
                 </Link>
+
               </div>
+
             </div>
 
+
             <div className="footer-bottom">
-              © 2026 CIEL IA STUDIO. Todos os direitos reservados.
+
+              © 2026 CIEL IA STUDIO.
+              Todos os direitos reservados.
+
             </div>
+
           </div>
+
         </footer>
+
       </main>
     </>
   );
