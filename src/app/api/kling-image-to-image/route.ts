@@ -9,18 +9,28 @@ const KLING_API_URL =
 
 /**
  * GET
+ *
  * Verifica se a autenticação da Kling está configurada.
+ *
+ * Usa a mesma variável que já funciona
+ * na rota /api/kling-image:
+ *
+ * KLING_API_KEY
  */
 export async function GET() {
   const apiKey = process.env.KLING_API_KEY;
 
   return NextResponse.json({
     status: "ok",
-    routeVersion: "image-to-image-api-key-v1",
+
+    routeVersion: "image-to-image-api-key-v2",
+
     runtime: "nodejs",
 
     klingConfigured: Boolean(apiKey),
+
     apiKeyExists: Boolean(apiKey),
+
     apiKeyLength: apiKey?.length ?? 0,
 
     apiUrl: KLING_API_URL,
@@ -37,35 +47,54 @@ export async function GET() {
  *
  * Imagem → Imagem
  *
- * Autenticação:
- * KLING_API_KEY
+ * Recebe do frontend:
  *
- * A mesma autenticação utilizada
- * pela rota /api/kling-image.
+ * {
+ *   prompt: string,
+ *   image: string,
+ *   image2?: string,
+ *   aspect_ratio?: string,
+ *   style?: string
+ * }
+ *
+ * A autenticação utiliza:
+ *
+ * KLING_API_KEY
  */
 export async function POST(request: Request) {
   try {
+    /**
+     * =====================================================
+     * 1. AUTENTICAÇÃO
+     * =====================================================
+     */
+
     const apiKey = process.env.KLING_API_KEY;
 
-    /**
-     * Verificação da chave.
-     */
     if (!apiKey) {
       return NextResponse.json(
         {
           status: "error",
+
           stage: "configuration",
 
           message:
             "KLING_API_KEY não configurada na Vercel.",
+
+          klingConfigured: false,
         },
-        { status: 500 }
+        {
+          status: 500,
+        }
       );
     }
 
     /**
-     * Lê o JSON enviado pelo frontend.
+     * =====================================================
+     * 2. LER JSON
+     * =====================================================
      */
+
     let body: any;
 
     try {
@@ -74,18 +103,24 @@ export async function POST(request: Request) {
       return NextResponse.json(
         {
           status: "error",
+
           stage: "request",
 
           message:
             "O corpo da requisição não contém JSON válido.",
         },
-        { status: 400 }
+        {
+          status: 400,
+        }
       );
     }
 
     /**
-     * Prompt.
+     * =====================================================
+     * 3. PROMPT
+     * =====================================================
      */
+
     const prompt =
       typeof body?.prompt === "string"
         ? body.prompt.trim()
@@ -95,21 +130,24 @@ export async function POST(request: Request) {
       return NextResponse.json(
         {
           status: "error",
+
           stage: "validation",
 
           message:
             "O campo 'prompt' é obrigatório.",
         },
-        { status: 400 }
+        {
+          status: 400,
+        }
       );
     }
 
     /**
-     * Primeira imagem.
-     *
-     * Pode ser uma URL ou Base64,
-     * dependendo do que o frontend enviar.
+     * =====================================================
+     * 4. PRIMEIRA IMAGEM
+     * =====================================================
      */
+
     const image =
       typeof body?.image === "string"
         ? body.image.trim()
@@ -119,39 +157,70 @@ export async function POST(request: Request) {
       return NextResponse.json(
         {
           status: "error",
+
           stage: "validation",
 
           message:
             "Envie pelo menos uma imagem de referência.",
         },
-        { status: 400 }
+        {
+          status: 400,
+        }
       );
     }
 
     /**
-     * Segunda imagem é opcional.
+     * =====================================================
+     * 5. SEGUNDA IMAGEM
+     * =====================================================
+     *
+     * Opcional.
      */
+
     const image2 =
       typeof body?.image2 === "string"
         ? body.image2.trim()
         : "";
 
     /**
-     * Proporção.
+     * =====================================================
+     * 6. PROPORÇÃO
+     * =====================================================
      */
+
+    const allowedAspectRatios = [
+      "1:1",
+      "16:9",
+      "9:16",
+    ];
+
     const aspectRatio =
-      ["1:1", "16:9", "9:16"].includes(
+      allowedAspectRatios.includes(
         body?.aspect_ratio
       )
         ? body.aspect_ratio
         : "1:1";
 
     /**
-     * Modelo.
-     *
-     * Mantemos o mesmo padrão da rota
-     * Texto → Imagem que já está sendo usada.
+     * =====================================================
+     * 7. ESTILO
+     * =====================================================
      */
+
+    const style =
+      typeof body?.style === "string"
+        ? body.style.trim()
+        : "";
+
+    /**
+     * =====================================================
+     * 8. MODELO
+     * =====================================================
+     *
+     * Mantemos o mesmo modelo utilizado
+     * pela rota de Texto → Imagem.
+     */
+
     const modelName =
       typeof body?.model_name === "string" &&
       body.model_name.trim()
@@ -159,27 +228,29 @@ export async function POST(request: Request) {
         : "kling-v1-5";
 
     /**
-     * Estilo opcional.
+     * =====================================================
+     * 9. PROMPT FINAL
+     * =====================================================
      */
-    const style =
-      typeof body?.style === "string" &&
-      body.style.trim()
-        ? body.style.trim()
-        : "";
 
-    /**
-     * Prompt final.
-     */
     const finalPrompt = style
-      ? `${prompt} Estilo visual: ${style}.`
+      ? `${prompt}. Estilo visual: ${style}.`
       : prompt;
 
     /**
-     * Corpo enviado para a Kling.
+     * =====================================================
+     * 10. PREPARAR PAYLOAD
+     * =====================================================
      *
-     * A autenticação continua exatamente
-     * igual à rota que já funciona.
+     * A imagem recebida pelo frontend pode ser:
+     *
+     * data:image/jpeg;base64,...
+     *
+     * ou
+     *
+     * uma URL.
      */
+
     const klingBody: Record<string, unknown> = {
       model_name: modelName,
 
@@ -193,30 +264,79 @@ export async function POST(request: Request) {
     };
 
     /**
-     * Segunda imagem opcional.
+     * Adiciona a segunda imagem somente
+     * quando realmente foi enviada.
      */
     if (image2) {
       klingBody.image2 = image2;
     }
 
+    /**
+     * =====================================================
+     * 11. LOG SEGURO
+     * =====================================================
+     *
+     * Nunca colocamos Base64 completo no log.
+     */
+
     console.log(
-      "CIEL IA STUDIO - Imagem → Imagem"
+      "=============================================="
     );
 
     console.log(
-      "Kling Image-to-Image Request:",
-      JSON.stringify({
-        ...klingBody,
-        image: "[IMAGE]",
-        ...(image2
-          ? { image2: "[IMAGE2]" }
-          : {}),
-      })
+      "CIEL IA STUDIO - KLING IMAGE TO IMAGE"
+    );
+
+    console.log(
+      "Endpoint:",
+      `${KLING_API_URL}/v1/images/generations`
+    );
+
+    console.log(
+      "Model:",
+      modelName
+    );
+
+    console.log(
+      "Aspect Ratio:",
+      aspectRatio
+    );
+
+    console.log(
+      "Image 1:",
+      image ? "RECEIVED" : "NOT_RECEIVED"
+    );
+
+    console.log(
+      "Image 1 length:",
+      image.length
+    );
+
+    console.log(
+      "Image 2:",
+      image2 ? "RECEIVED" : "NOT_RECEIVED"
+    );
+
+    console.log(
+      "Image 2 length:",
+      image2.length
+    );
+
+    console.log(
+      "Prompt length:",
+      finalPrompt.length
+    );
+
+    console.log(
+      "=============================================="
     );
 
     /**
-     * Chamada para a Kling.
+     * =====================================================
+     * 12. CHAMADA PARA KLING
+     * =====================================================
      */
+
     const response = await fetch(
       `${KLING_API_URL}/v1/images/generations`,
       {
@@ -225,52 +345,64 @@ export async function POST(request: Request) {
         headers: {
           Accept: "application/json",
 
-          /**
-           * MESMA AUTENTICAÇÃO
-           * DO TEXTO → IMAGEM.
-           */
-          Authorization: `Bearer ${apiKey}`,
+          Authorization:
+            `Bearer ${apiKey}`,
 
-          "Content-Type": "application/json",
+          "Content-Type":
+            "application/json",
         },
 
-        body: JSON.stringify(klingBody),
+        body: JSON.stringify(
+          klingBody
+        ),
 
         cache: "no-store",
       }
     );
 
     /**
-     * Lê a resposta como texto primeiro.
+     * =====================================================
+     * 13. LER RESPOSTA
+     * =====================================================
      */
-    const text = await response.text();
+
+    const responseText =
+      await response.text();
 
     let data: any;
 
     try {
-      data = JSON.parse(text);
+      data =
+        responseText
+          ? JSON.parse(responseText)
+          : {};
     } catch {
       data = {
-        rawResponse: text,
+        rawResponse:
+          responseText,
       };
     }
 
+    /**
+     * Logs da resposta.
+     */
+
     console.log(
-      "Kling Image-to-Image HTTP:",
+      "Kling HTTP Status:",
       response.status
     );
 
     console.log(
-      "Kling Image-to-Image Response:",
+      "Kling Response:",
       JSON.stringify(data)
     );
 
     /**
-     * ERRO DA KLING
-     *
-     * Retornamos os detalhes para conseguirmos
-     * identificar exatamente o que a API recusou.
+     * =====================================================
+     * 14. ERRO DA KLING
+     * =====================================================
      */
+
     if (!response.ok) {
       return NextResponse.json(
         {
@@ -279,11 +411,14 @@ export async function POST(request: Request) {
           stage: "kling",
 
           message:
+            data?.message ||
             "A Kling recusou a solicitação de imagem.",
 
-          httpStatus: response.status,
+          httpStatus:
+            response.status,
 
-          httpStatusText: response.statusText,
+          httpStatusText:
+            response.statusText,
 
           klingCode:
             data?.code ??
@@ -300,31 +435,39 @@ export async function POST(request: Request) {
             data?.data?.request_id ??
             null,
 
-          klingResponse: data,
+          klingResponse:
+            data,
 
           requestSent: {
             endpoint:
               `${KLING_API_URL}/v1/images/generations`,
 
-            model_name: modelName,
+            model_name:
+              modelName,
 
-            aspect_ratio: aspectRatio,
+            aspect_ratio:
+              aspectRatio,
 
-            promptReceived: true,
+            promptReceived:
+              true,
 
-            promptLength: finalPrompt.length,
+            promptLength:
+              finalPrompt.length,
 
-            imageReceived: true,
+            imageReceived:
+              true,
 
-            image2Received: Boolean(image2),
+            image2Received:
+              Boolean(image2),
 
             n: 1,
           },
         },
         {
           /**
-           * Mantemos HTTP 200 para que o frontend
-           * consiga mostrar os detalhes retornados.
+           * Mantemos 200 para o frontend
+           * conseguir mostrar os detalhes
+           * devolvidos pela Kling.
            */
           status: 200,
         }
@@ -332,24 +475,67 @@ export async function POST(request: Request) {
     }
 
     /**
-     * SUCESSO
+     * =====================================================
+     * 15. EXTRAIR TASK ID
+     * =====================================================
      */
+
     const taskId =
-      data?.data?.task_id ||
-      data?.task_id ||
-      data?.data?.taskId ||
-      data?.taskId ||
-      null;
+      data?.data?.task_id ??
+      data?.task_id ??
+      data?.data?.taskId ??
+      data?.taskId ??
+      "";
 
     /**
-     * Possíveis URLs retornadas.
+     * =====================================================
+     * 16. EXTRAIR URL DA IMAGEM
+     * =====================================================
+     *
+     * A Kling pode retornar a URL diretamente
+     * ou dentro de image_list.
      */
-    const imageUrl =
-      data?.data?.image_url ||
-      data?.data?.imageUrl ||
-      data?.image_url ||
-      data?.imageUrl ||
-      null;
+
+    let imageUrl =
+      data?.data?.image_url ??
+      data?.data?.imageUrl ??
+      data?.image_url ??
+      data?.imageUrl ??
+      "";
+
+    /**
+     * Algumas respostas da Kling podem
+     * utilizar image_list.
+     */
+
+    if (
+      !imageUrl &&
+      Array.isArray(
+        data?.data?.image_list
+      )
+    ) {
+      imageUrl =
+        data.data.image_list?.[0]
+          ?.url ??
+        "";
+    }
+
+    /**
+     * =====================================================
+     * 17. STATUS DA TAREFA
+     * =====================================================
+     */
+
+    const taskStatus =
+      data?.data?.task_status ??
+      data?.task_status ??
+      "";
+
+    /**
+     * =====================================================
+     * 18. SUCESSO
+     * =====================================================
+     */
 
     return NextResponse.json({
       status: "success",
@@ -378,35 +564,45 @@ export async function POST(request: Request) {
         data?.data?.request_id ??
         null,
 
-      taskStatus:
-        data?.data?.task_status ??
-        data?.task_status ??
-        null,
+      taskStatus,
 
-      klingResponse: data,
+      klingResponse:
+        data,
 
       requestSent: {
         endpoint:
           `${KLING_API_URL}/v1/images/generations`,
 
-        model_name: modelName,
+        model_name:
+          modelName,
 
-        aspect_ratio: aspectRatio,
+        aspect_ratio:
+          aspectRatio,
 
-        promptReceived: true,
+        promptReceived:
+          true,
 
-        promptLength: finalPrompt.length,
+        promptLength:
+          finalPrompt.length,
 
-        imageReceived: true,
+        imageReceived:
+          true,
 
-        image2Received: Boolean(image2),
+        image2Received:
+          Boolean(image2),
 
         n: 1,
       },
     });
   } catch (error) {
+    /**
+     * =====================================================
+     * ERRO INTERNO
+     * =====================================================
+     */
+
     console.error(
-      "CIEL IA STUDIO - Image-to-Image API error:",
+      "CIEL IA STUDIO - Kling Image-to-Image error:",
       error
     );
 
