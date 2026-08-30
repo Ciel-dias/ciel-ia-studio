@@ -1,4 +1,3 @@
-
 import OpenAI from "openai";
 import { NextResponse } from "next/server";
 
@@ -14,7 +13,10 @@ export async function POST(request: Request) {
 
     if (!prompt || typeof prompt !== "string") {
       return NextResponse.json(
-        { error: "O prompt é obrigatório." },
+        {
+          success: false,
+          error: "O prompt é obrigatório.",
+        },
         { status: 400 }
       );
     }
@@ -24,9 +26,21 @@ export async function POST(request: Request) {
       input: prompt,
     });
 
+    const result = response.output_text?.trim();
+
+    if (!result) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: "A OpenAI não retornou um resultado.",
+        },
+        { status: 500 }
+      );
+    }
+
     return NextResponse.json({
       success: true,
-      response: response.output_text,
+      result,
     });
   } catch (error) {
     console.error("Erro na API da OpenAI:", error);
@@ -34,7 +48,8 @@ export async function POST(request: Request) {
     return NextResponse.json(
       {
         success: false,
-        error: "Não foi possível processar a solicitação com a OpenAI.",
+        error:
+          "Não foi possível processar a solicitação com a OpenAI.",
       },
       { status: 500 }
     );
