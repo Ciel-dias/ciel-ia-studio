@@ -16,12 +16,19 @@ export default function ImagemImagemPage() {
 
   const [loading, setLoading] = useState(false);
 
-  const [resultMessage, setResultMessage] = useState("");
-  const [taskId, setTaskId] = useState("");
-  const [resultImageUrl, setResultImageUrl] = useState("");
-  const [errorMessage, setErrorMessage] = useState("");
+  const [resultMessage, setResultMessage] =
+    useState("");
 
-  /**
+  const [taskId, setTaskId] =
+    useState("");
+
+  const [resultImageUrl, setResultImageUrl] =
+    useState("");
+
+  const [errorMessage, setErrorMessage] =
+    useState("");
+
+  /*
    * =====================================================
    * SELEÇÃO DAS IMAGENS
    * =====================================================
@@ -49,7 +56,8 @@ export default function ImagemImagemPage() {
       return;
     }
 
-    const preview = URL.createObjectURL(file);
+    const preview =
+      URL.createObjectURL(file);
 
     if (number === 1) {
       if (preview1) {
@@ -71,315 +79,271 @@ export default function ImagemImagemPage() {
     setResultMessage("");
     setTaskId("");
     setResultImageUrl("");
-
-    /**
-     * Permite selecionar novamente a mesma imagem.
-     */
-    event.target.value = "";
   }
 
-  /**
+  /*
    * =====================================================
    * PREPARAR IMAGEM
-   *
-   * CORREÇÃO:
-   *
-   * Usa FileReader diretamente no File selecionado.
-   * Não depende de URL.createObjectURL() para carregar
-   * a imagem durante a preparação.
-   *
-   * Isso evita o erro:
-   *
-   * "Não foi possível carregar a imagem selecionada."
    * =====================================================
    */
 
   async function prepareImage(
     file: File
   ): Promise<string> {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
+    return new Promise(
+      (resolve, reject) => {
+        const objectUrl =
+          URL.createObjectURL(file);
 
-      reader.onload = () => {
-        try {
-          const source =
-            typeof reader.result === "string"
-              ? reader.result
-              : "";
+        const img =
+          new Image();
 
-          if (!source) {
-            reject(
-              new Error(
-                "Não foi possível ler a imagem selecionada."
-              )
+        img.onload = () => {
+          try {
+            URL.revokeObjectURL(
+              objectUrl
             );
-            return;
-          }
 
-          const img = new Image();
+            const MAX_SIZE = 1600;
 
-          img.onload = () => {
-            try {
-              const MAX_SIZE = 1600;
+            let width =
+              img.naturalWidth;
 
-              let width = img.naturalWidth;
-              let height = img.naturalHeight;
+            let height =
+              img.naturalHeight;
 
-              if (!width || !height) {
-                reject(
-                  new Error(
-                    "Não foi possível identificar as dimensões da imagem."
-                  )
-                );
-                return;
-              }
+            if (!width || !height) {
+              reject(
+                new Error(
+                  "Não foi possível identificar as dimensões da imagem."
+                )
+              );
 
-              if (
-                width > MAX_SIZE ||
-                height > MAX_SIZE
-              ) {
-                const scale = Math.min(
+              return;
+            }
+
+            if (
+              width > MAX_SIZE ||
+              height > MAX_SIZE
+            ) {
+              const scale =
+                Math.min(
                   MAX_SIZE / width,
                   MAX_SIZE / height
                 );
 
-                width = Math.max(
+              width =
+                Math.max(
                   300,
-                  Math.round(width * scale)
-                );
-
-                height = Math.max(
-                  300,
-                  Math.round(height * scale)
-                );
-              }
-
-              const canvas =
-                document.createElement("canvas");
-
-              canvas.width = width;
-              canvas.height = height;
-
-              const context =
-                canvas.getContext("2d");
-
-              if (!context) {
-                reject(
-                  new Error(
-                    "Não foi possível preparar a imagem no navegador."
+                  Math.round(
+                    width * scale
                   )
                 );
-                return;
-              }
 
-              /**
-               * Fundo branco para imagens transparentes.
-               */
-              context.fillStyle = "#ffffff";
+              height =
+                Math.max(
+                  300,
+                  Math.round(
+                    height * scale
+                  )
+                );
+            }
 
-              context.fillRect(
-                0,
-                0,
-                width,
-                height
+            const canvas =
+              document.createElement(
+                "canvas"
               );
 
-              context.imageSmoothingEnabled = true;
-              context.imageSmoothingQuality = "high";
+            canvas.width =
+              width;
 
-              context.drawImage(
-                img,
-                0,
-                0,
-                width,
-                height
+            canvas.height =
+              height;
+
+            const context =
+              canvas.getContext(
+                "2d"
               );
 
-              let quality = 0.82;
+            if (!context) {
+              reject(
+                new Error(
+                  "Não foi possível preparar a imagem no navegador."
+                )
+              );
 
-              let dataUrl =
+              return;
+            }
+
+            context.fillStyle =
+              "#ffffff";
+
+            context.fillRect(
+              0,
+              0,
+              width,
+              height
+            );
+
+            context.imageSmoothingEnabled =
+              true;
+
+            context.imageSmoothingQuality =
+              "high";
+
+            context.drawImage(
+              img,
+              0,
+              0,
+              width,
+              height
+            );
+
+            let quality = 0.82;
+
+            let dataUrl =
+              canvas.toDataURL(
+                "image/jpeg",
+                quality
+              );
+
+            const MAX_BASE64_LENGTH =
+              2_700_000;
+
+            while (
+              dataUrl.length >
+                MAX_BASE64_LENGTH &&
+              quality > 0.45
+            ) {
+              quality -= 0.08;
+
+              dataUrl =
                 canvas.toDataURL(
                   "image/jpeg",
                   quality
                 );
+            }
 
-              /**
-               * Mantemos o payload pequeno para
-               * evitar HTTP 413.
-               */
-              const MAX_BASE64_LENGTH = 2_700_000;
+            if (
+              dataUrl.length >
+              MAX_BASE64_LENGTH
+            ) {
+              let currentWidth =
+                width;
+
+              let currentHeight =
+                height;
 
               while (
                 dataUrl.length >
                   MAX_BASE64_LENGTH &&
-                quality > 0.45
+                currentWidth > 700 &&
+                currentHeight > 700
               ) {
-                quality -= 0.08;
+                currentWidth =
+                  Math.max(
+                    700,
+                    Math.round(
+                      currentWidth *
+                        0.85
+                    )
+                  );
+
+                currentHeight =
+                  Math.max(
+                    700,
+                    Math.round(
+                      currentHeight *
+                        0.85
+                    )
+                  );
+
+                canvas.width =
+                  currentWidth;
+
+                canvas.height =
+                  currentHeight;
+
+                context.fillStyle =
+                  "#ffffff";
+
+                context.fillRect(
+                  0,
+                  0,
+                  currentWidth,
+                  currentHeight
+                );
+
+                context.drawImage(
+                  img,
+                  0,
+                  0,
+                  currentWidth,
+                  currentHeight
+                );
 
                 dataUrl =
                   canvas.toDataURL(
                     "image/jpeg",
-                    quality
+                    0.72
                   );
               }
+            }
 
-              /**
-               * Caso ainda esteja grande,
-               * reduzimos as dimensões.
-               */
-              if (
-                dataUrl.length >
-                MAX_BASE64_LENGTH
-              ) {
-                let currentWidth = width;
-                let currentHeight = height;
-
-                while (
-                  dataUrl.length >
-                    MAX_BASE64_LENGTH &&
-                  currentWidth > 700 &&
-                  currentHeight > 700
-                ) {
-                  currentWidth = Math.max(
-                    700,
-                    Math.round(
-                      currentWidth * 0.85
-                    )
-                  );
-
-                  currentHeight = Math.max(
-                    700,
-                    Math.round(
-                      currentHeight * 0.85
-                    )
-                  );
-
-                  canvas.width = currentWidth;
-                  canvas.height = currentHeight;
-
-                  context.fillStyle = "#ffffff";
-
-                  context.fillRect(
-                    0,
-                    0,
-                    currentWidth,
-                    currentHeight
-                  );
-
-                  context.drawImage(
-                    img,
-                    0,
-                    0,
-                    currentWidth,
-                    currentHeight
-                  );
-
-                  dataUrl =
-                    canvas.toDataURL(
-                      "image/jpeg",
-                      0.72
-                    );
-                }
-              }
-
-              if (
-                dataUrl.length >
-                MAX_BASE64_LENGTH
-              ) {
-                reject(
-                  new Error(
-                    "Não foi possível reduzir a imagem o suficiente. Escolha uma foto menor."
-                  )
-                );
-                return;
-              }
-
-              /**
-               * Remove o cabeçalho:
-               *
-               * data:image/jpeg;base64,
-               *
-               * deixando somente o Base64.
-               */
-              const commaIndex =
-                dataUrl.indexOf(",");
-
-              if (commaIndex === -1) {
-                reject(
-                  new Error(
-                    "Não foi possível converter a imagem para Base64."
-                  )
-                );
-                return;
-              }
-
-              const base64 =
-                dataUrl.substring(
-                  commaIndex + 1
-                );
-
-              if (!base64) {
-                reject(
-                  new Error(
-                    "A imagem convertida ficou vazia."
-                  )
-                );
-                return;
-              }
-
-              resolve(base64);
-            } catch {
+            if (
+              dataUrl.length >
+              MAX_BASE64_LENGTH
+            ) {
               reject(
                 new Error(
-                  "Erro ao preparar a imagem."
+                  "Não foi possível reduzir a imagem o suficiente. Escolha uma foto menor."
                 )
               );
+
+              return;
             }
-          };
 
-          img.onerror = () => {
-            reject(
-              new Error(
-                "Não foi possível carregar a imagem selecionada."
-              )
+            const base64 =
+              dataUrl.replace(
+                /^data:image\/jpeg;base64,/,
+                ""
+              );
+
+            resolve(base64);
+          } catch (error) {
+            URL.revokeObjectURL(
+              objectUrl
             );
-          };
 
-          /**
-           * Usa o Data URL diretamente.
-           * Não usa blob URL aqui.
-           */
-          img.src = source;
-        } catch {
+            reject(
+              error instanceof Error
+                ? error
+                : new Error(
+                    "Erro ao preparar a imagem."
+                  )
+            );
+          }
+        };
+
+        img.onerror = () => {
+          URL.revokeObjectURL(
+            objectUrl
+          );
+
           reject(
             new Error(
-              "Erro ao processar a imagem selecionada."
+              "Não foi possível carregar a imagem selecionada."
             )
           );
-        }
-      };
+        };
 
-      reader.onerror = () => {
-        reject(
-          new Error(
-            "Não foi possível ler o arquivo de imagem."
-          )
-        );
-      };
-
-      reader.onabort = () => {
-        reject(
-          new Error(
-            "A leitura da imagem foi interrompida."
-          )
-        );
-      };
-
-      reader.readAsDataURL(file);
-    });
+        img.src =
+          objectUrl;
+      }
+    );
   }
 
-  /**
+  /*
    * =====================================================
    * GERAR IMAGEM
    * =====================================================
@@ -390,6 +354,7 @@ export default function ImagemImagemPage() {
       setErrorMessage(
         "Selecione pelo menos uma imagem de referência."
       );
+
       return;
     }
 
@@ -397,6 +362,7 @@ export default function ImagemImagemPage() {
       setErrorMessage(
         "Descreva o que deseja criar na imagem."
       );
+
       return;
     }
 
@@ -407,30 +373,30 @@ export default function ImagemImagemPage() {
     setResultImageUrl("");
 
     try {
-      /**
-       * Prepara a primeira imagem.
+      /*
+       * IMAGEM 1
        */
-      const image1Base64 =
-        await prepareImage(image1);
 
-      /**
-       * Prepara a segunda imagem somente se existir.
+      const image1Base64 =
+        await prepareImage(
+          image1
+        );
+
+      /*
+       * IMAGEM 2
        */
+
       let image2Base64 = "";
 
       if (image2) {
         image2Base64 =
-          await prepareImage(image2);
+          await prepareImage(
+            image2
+          );
       }
 
-      /**
-       * =================================================
-       * CHAMADA PARA A ROTA EXISTENTE
-       *
-       * /api/kling-image-to-image
-       *
-       * A rota usa KLING_API_KEY.
-       * =================================================
+      /*
+       * ENVIO PARA A ROTA EXISTENTE
        */
 
       const response =
@@ -470,19 +436,15 @@ export default function ImagemImagemPage() {
 
       try {
         data =
-          responseText
-            ? JSON.parse(
-                responseText
-              )
-            : null;
+          JSON.parse(
+            responseText
+          );
       } catch {
         data = null;
       }
 
-      /**
-       * =================================================
+      /*
        * ERRO
-       * =================================================
        */
 
       if (
@@ -494,15 +456,15 @@ export default function ImagemImagemPage() {
           data?.klingMessage ||
           `O servidor retornou o erro ${response.status}.`;
 
-        setErrorMessage(message);
+        setErrorMessage(
+          message
+        );
 
         return;
       }
 
-      /**
-       * =================================================
+      /*
        * TASK ID
-       * =================================================
        */
 
       const returnedTaskId =
@@ -511,10 +473,8 @@ export default function ImagemImagemPage() {
         data?.data?.taskId ||
         "";
 
-      /**
-       * =================================================
+      /*
        * URL DA IMAGEM
-       * =================================================
        */
 
       const returnedImageUrl =
@@ -523,13 +483,17 @@ export default function ImagemImagemPage() {
         data?.data?.imageUrl ||
         "";
 
-      if (returnedTaskId) {
+      if (
+        returnedTaskId
+      ) {
         setTaskId(
           returnedTaskId
         );
       }
 
-      if (returnedImageUrl) {
+      if (
+        returnedImageUrl
+      ) {
         setResultImageUrl(
           returnedImageUrl
         );
@@ -559,6 +523,7 @@ export default function ImagemImagemPage() {
   return (
     <>
       <style jsx global>{`
+
         * {
           box-sizing: border-box;
         }
@@ -571,15 +536,26 @@ export default function ImagemImagemPage() {
         }
 
         body {
-          font-family: Arial, Helvetica, sans-serif;
+          font-family:
+            Arial,
+            Helvetica,
+            sans-serif;
         }
 
         a {
-          -webkit-tap-highlight-color: transparent;
+          -webkit-tap-highlight-color:
+            transparent;
         }
+
+        /*
+         * =================================================
+         * PÁGINA
+         * =================================================
+         */
 
         .page {
           min-height: 100vh;
+
           color: #fff;
 
           background:
@@ -603,27 +579,81 @@ export default function ImagemImagemPage() {
           overflow-x: hidden;
         }
 
+        /*
+         * =================================================
+         * CABEÇALHO
+         * =================================================
+         */
+
         .topbar {
           min-height: 74px;
-          padding: 0 42px;
+
+          padding:
+            0 42px;
 
           display: flex;
+
           align-items: center;
-          justify-content: space-between;
+
+          justify-content:
+            space-between;
 
           background:
-            rgba(4, 12, 24, 0.9);
+            rgba(
+              4,
+              12,
+              24,
+              0.9
+            );
 
           border-bottom:
             1px solid
-            rgba(100, 180, 255, 0.18);
+            rgba(
+              100,
+              180,
+              255,
+              0.18
+            );
 
-          backdrop-filter: blur(12px);
+          backdrop-filter:
+            blur(12px);
+        }
+
+        .back {
+          order: 1;
+
+          color: #bfeaff;
+
+          text-decoration: none;
+
+          font-size: 14px;
+
+          font-weight: 600;
+
+          transition:
+            0.2s ease;
+        }
+
+        .back:hover {
+          color: #6ed7ff;
+
+          text-shadow:
+            0 0 12px
+            rgba(
+              75,
+              199,
+              255,
+              0.8
+            );
         }
 
         .brand {
+          order: 2;
+
           display: flex;
+
           align-items: center;
+
           gap: 10px;
         }
 
@@ -633,24 +663,29 @@ export default function ImagemImagemPage() {
 
         .brand-name {
           font-size: 20px;
+
           font-weight: 700;
-          letter-spacing: 0.4px;
-        }
 
-        .back {
+          letter-spacing:
+            0.4px;
+
           color: #bfeaff;
-          text-decoration: none;
-          font-size: 14px;
-          transition: 0.2s ease;
-        }
-
-        .back:hover {
-          color: #6ed7ff;
 
           text-shadow:
-            0 0 12px
-            rgba(75, 199, 255, 0.8);
+            0 0 10px
+            rgba(
+              75,
+              199,
+              255,
+              0.35
+            );
         }
+
+        /*
+         * =================================================
+         * CONTEÚDO
+         * =================================================
+         */
 
         .content {
           width:
@@ -659,7 +694,8 @@ export default function ImagemImagemPage() {
               calc(100% - 40px)
             );
 
-          margin: 0 auto;
+          margin:
+            0 auto;
 
           padding:
             55px 0 70px;
@@ -667,6 +703,7 @@ export default function ImagemImagemPage() {
 
         .title-area {
           text-align: center;
+
           margin-bottom: 38px;
         }
 
@@ -680,7 +717,8 @@ export default function ImagemImagemPage() {
               52px
             );
 
-          text-transform: uppercase;
+          text-transform:
+            uppercase;
         }
 
         .title-area p {
@@ -695,6 +733,12 @@ export default function ImagemImagemPage() {
 
           line-height: 1.5;
         }
+
+        /*
+         * =================================================
+         * WORKSPACE
+         * =================================================
+         */
 
         .workspace {
           display: grid;
@@ -715,20 +759,46 @@ export default function ImagemImagemPage() {
           background:
             linear-gradient(
               145deg,
-              rgba(35, 47, 65, 0.95),
-              rgba(14, 25, 40, 0.97)
+              rgba(
+                35,
+                47,
+                65,
+                0.95
+              ),
+              rgba(
+                14,
+                25,
+                40,
+                0.97
+              )
             );
 
           border:
-            2px solid #58c9ff;
+            2px solid
+            #58c9ff;
 
           box-shadow:
             0 0 8px
-              rgba(70, 199, 255, 0.8),
+              rgba(
+                70,
+                199,
+                255,
+                0.8
+              ),
             0 0 22px
-              rgba(43, 167, 255, 0.35),
+              rgba(
+                43,
+                167,
+                255,
+                0.35
+              ),
             inset 0 0 22px
-              rgba(56, 174, 255, 0.07);
+              rgba(
+                56,
+                174,
+                255,
+                0.07
+              );
         }
 
         .panel h2 {
@@ -737,6 +807,12 @@ export default function ImagemImagemPage() {
 
           font-size: 21px;
         }
+
+        /*
+         * =================================================
+         * LABELS
+         * =================================================
+         */
 
         .label {
           display: block;
@@ -754,6 +830,12 @@ export default function ImagemImagemPage() {
         .images-label {
           margin-bottom: 12px;
         }
+
+        /*
+         * =================================================
+         * IMAGENS
+         * =================================================
+         */
 
         .images-container {
           display: grid;
@@ -773,19 +855,35 @@ export default function ImagemImagemPage() {
 
           border:
             1px dashed
-            rgba(104, 207, 255, 0.55);
+            rgba(
+              104,
+              207,
+              255,
+              0.55
+            );
 
           background:
             radial-gradient(
               circle,
-              rgba(43, 167, 255, 0.08),
+              rgba(
+                43,
+                167,
+                255,
+                0.08
+              ),
               transparent 60%
             ),
-            rgba(3, 13, 25, 0.72);
+            rgba(
+              3,
+              13,
+              25,
+              0.72
+            );
 
           display: flex;
 
           align-items: center;
+
           justify-content: center;
 
           overflow: hidden;
@@ -797,17 +895,20 @@ export default function ImagemImagemPage() {
 
         .image-preview {
           width: 100%;
+
           height: 100%;
 
           object-fit: contain;
 
           display: block;
 
-          background: #020c18;
+          background:
+            #020c18;
         }
 
         .image-box-content {
           text-align: center;
+
           padding: 10px;
         }
 
@@ -815,6 +916,7 @@ export default function ImagemImagemPage() {
           position: absolute;
 
           top: 9px;
+
           left: 10px;
 
           padding:
@@ -823,7 +925,12 @@ export default function ImagemImagemPage() {
           border-radius: 8px;
 
           background:
-            rgba(3, 13, 25, 0.82);
+            rgba(
+              3,
+              13,
+              25,
+              0.82
+            );
 
           color: #bfeaff;
 
@@ -836,6 +943,7 @@ export default function ImagemImagemPage() {
 
         .plus {
           width: 54px;
+
           height: 54px;
 
           margin:
@@ -846,6 +954,7 @@ export default function ImagemImagemPage() {
           display: flex;
 
           align-items: center;
+
           justify-content: center;
 
           color: #04101b;
@@ -861,9 +970,19 @@ export default function ImagemImagemPage() {
 
           box-shadow:
             0 0 10px
-              rgba(70, 199, 255, 0.7),
+              rgba(
+                70,
+                199,
+                255,
+                0.7
+              ),
             0 0 22px
-              rgba(43, 167, 255, 0.3);
+              rgba(
+                43,
+                167,
+                255,
+                0.3
+              );
         }
 
         .image-box-title {
@@ -886,6 +1005,7 @@ export default function ImagemImagemPage() {
         .upload-button,
         .change-image {
           cursor: pointer;
+
           font-weight: 700;
         }
 
@@ -900,11 +1020,21 @@ export default function ImagemImagemPage() {
           border-radius: 9px;
 
           background:
-            rgba(94, 210, 255, 0.16);
+            rgba(
+              94,
+              210,
+              255,
+              0.16
+            );
 
           border:
             1px solid
-            rgba(94, 210, 255, 0.4);
+            rgba(
+              94,
+              210,
+              255,
+              0.4
+            );
 
           color: #bfeaff;
 
@@ -915,6 +1045,7 @@ export default function ImagemImagemPage() {
           position: absolute;
 
           bottom: 9px;
+
           right: 9px;
 
           z-index: 2;
@@ -929,7 +1060,12 @@ export default function ImagemImagemPage() {
           color: #04101b;
 
           background:
-            rgba(117, 224, 255, 0.95);
+            rgba(
+              117,
+              224,
+              255,
+              0.95
+            );
 
           font-size: 11px;
         }
@@ -937,6 +1073,12 @@ export default function ImagemImagemPage() {
         .hidden-input {
           display: none;
         }
+
+        /*
+         * =================================================
+         * PROMPT
+         * =================================================
+         */
 
         .prompt {
           width: 100%;
@@ -949,14 +1091,24 @@ export default function ImagemImagemPage() {
 
           border:
             1px solid
-            rgba(94, 203, 255, 0.45);
+            rgba(
+              94,
+              203,
+              255,
+              0.45
+            );
 
           border-radius: 14px;
 
           outline: none;
 
           background:
-            rgba(3, 13, 25, 0.8);
+            rgba(
+              3,
+              13,
+              25,
+              0.8
+            );
 
           color: #fff;
 
@@ -979,8 +1131,19 @@ export default function ImagemImagemPage() {
 
           box-shadow:
             0 0 15px
-            rgba(70, 199, 255, 0.25);
+            rgba(
+              70,
+              199,
+              255,
+              0.25
+            );
         }
+
+        /*
+         * =================================================
+         * OPÇÕES
+         * =================================================
+         */
 
         .options {
           display: grid;
@@ -1000,16 +1163,28 @@ export default function ImagemImagemPage() {
 
           border:
             1px solid
-            rgba(94, 203, 255, 0.35);
+            rgba(
+              94,
+              203,
+              255,
+              0.35
+            );
 
           outline: none;
 
-          background: #0a192b;
+          background:
+            #0a192b;
 
           color: #fff;
 
           font-size: 14px;
         }
+
+        /*
+         * =================================================
+         * CRÉDITOS
+         * =================================================
+         */
 
         .credits {
           margin-top: 20px;
@@ -1020,16 +1195,32 @@ export default function ImagemImagemPage() {
           border-radius: 12px;
 
           background:
-            rgba(29, 112, 157, 0.16);
+            rgba(
+              29,
+              112,
+              157,
+              0.16
+            );
 
           border:
             1px solid
-            rgba(94, 203, 255, 0.25);
+            rgba(
+              94,
+              203,
+              255,
+              0.25
+            );
 
           color: #bfeaff;
 
           font-size: 14px;
         }
+
+        /*
+         * =================================================
+         * BOTÃO
+         * =================================================
+         */
 
         .generate {
           width: 100%;
@@ -1059,15 +1250,32 @@ export default function ImagemImagemPage() {
 
           box-shadow:
             0 0 10px
-              rgba(70, 199, 255, 0.7),
+              rgba(
+                70,
+                199,
+                255,
+                0.7
+              ),
             0 0 24px
-              rgba(43, 167, 255, 0.35);
+              rgba(
+                43,
+                167,
+                255,
+                0.35
+              );
         }
 
         .generate:disabled {
           cursor: wait;
+
           opacity: 0.65;
         }
+
+        /*
+         * =================================================
+         * RESULTADO
+         * =================================================
+         */
 
         .preview {
           min-height: 500px;
@@ -1075,6 +1283,7 @@ export default function ImagemImagemPage() {
           display: flex;
 
           align-items: center;
+
           justify-content: center;
 
           text-align: center;
@@ -1083,15 +1292,30 @@ export default function ImagemImagemPage() {
 
           border:
             1px dashed
-            rgba(104, 207, 255, 0.35);
+            rgba(
+              104,
+              207,
+              255,
+              0.35
+            );
 
           background:
             radial-gradient(
               circle,
-              rgba(43, 167, 255, 0.08),
+              rgba(
+                43,
+                167,
+                255,
+                0.08
+              ),
               transparent 55%
             ),
-            rgba(2, 12, 24, 0.55);
+            rgba(
+              2,
+              12,
+              24,
+              0.55
+            );
 
           overflow: hidden;
 
@@ -1131,6 +1355,12 @@ export default function ImagemImagemPage() {
           line-height: 1.5;
         }
 
+        /*
+         * =================================================
+         * MENSAGENS
+         * =================================================
+         */
+
         .success-message,
         .error-message,
         .task-id {
@@ -1151,38 +1381,74 @@ export default function ImagemImagemPage() {
 
         .success-message {
           background:
-            rgba(35, 170, 115, 0.12);
+            rgba(
+              35,
+              170,
+              115,
+              0.12
+            );
 
           border:
             1px solid
-            rgba(65, 220, 160, 0.3);
+            rgba(
+              65,
+              220,
+              160,
+              0.3
+            );
 
           color: #8ff0c6;
         }
 
         .error-message {
           background:
-            rgba(220, 70, 70, 0.12);
+            rgba(
+              220,
+              70,
+              70,
+              0.12
+            );
 
           border:
             1px solid
-            rgba(255, 100, 100, 0.3);
+            rgba(
+              255,
+              100,
+              100,
+              0.3
+            );
 
           color: #ffb0b0;
         }
 
         .task-id {
           background:
-            rgba(94, 203, 255, 0.08);
+            rgba(
+              94,
+              203,
+              255,
+              0.08
+            );
 
           border:
             1px solid
-            rgba(94, 203, 255, 0.2);
+            rgba(
+              94,
+              203,
+              255,
+              0.2
+            );
 
           color: #9fdfff;
 
           word-break: break-all;
         }
+
+        /*
+         * =================================================
+         * LOADING
+         * =================================================
+         */
 
         .loading {
           animation:
@@ -1200,16 +1466,37 @@ export default function ImagemImagemPage() {
           }
         }
 
+        /*
+         * =================================================
+         * FOOTER
+         * =================================================
+         */
+
         .footer {
           border-top:
             1px solid
-            rgba(100, 180, 255, 0.18);
+            rgba(
+              100,
+              180,
+              255,
+              0.18
+            );
 
           background:
             linear-gradient(
               180deg,
-              rgba(4, 15, 29, 0.96),
-              rgba(3, 11, 22, 1)
+              rgba(
+                4,
+                15,
+                29,
+                0.96
+              ),
+              rgba(
+                3,
+                11,
+                22,
+                1
+              )
             );
 
           padding:
@@ -1218,9 +1505,13 @@ export default function ImagemImagemPage() {
 
         .footer-inner {
           width:
-            min(1180px, 100%);
+            min(
+              1180px,
+              100%
+            );
 
-          margin: 0 auto;
+          margin:
+            0 auto;
         }
 
         .footer-brand {
@@ -1246,7 +1537,10 @@ export default function ImagemImagemPage() {
           display: grid;
 
           grid-template-columns:
-            repeat(3, 1fr);
+            repeat(
+              3,
+              1fr
+            );
 
           gap: 50px;
         }
@@ -1283,7 +1577,12 @@ export default function ImagemImagemPage() {
 
           border-top:
             1px solid
-            rgba(100, 180, 255, 0.16);
+            rgba(
+              100,
+              180,
+              255,
+              0.16
+            );
 
           text-align: center;
 
@@ -1292,13 +1591,22 @@ export default function ImagemImagemPage() {
           font-size: 13px;
         }
 
+        /*
+         * =================================================
+         * TABLET
+         * =================================================
+         */
+
         @media (max-width: 850px) {
+
           .topbar {
-            padding: 0 22px;
+            padding:
+              0 22px;
           }
 
           .workspace {
-            grid-template-columns: 1fr;
+            grid-template-columns:
+              1fr;
           }
 
           .preview {
@@ -1306,15 +1614,27 @@ export default function ImagemImagemPage() {
           }
         }
 
+        /*
+         * =================================================
+         * CELULAR
+         * =================================================
+         */
+
         @media (max-width: 650px) {
+
           .topbar {
             min-height: 68px;
 
-            padding: 0 16px;
+            padding:
+              0 16px;
           }
 
           .brand-name {
             font-size: 16px;
+          }
+
+          .back {
+            font-size: 13px;
           }
 
           .content {
@@ -1334,7 +1654,8 @@ export default function ImagemImagemPage() {
           }
 
           .options {
-            grid-template-columns: 1fr;
+            grid-template-columns:
+              1fr;
           }
 
           .images-container {
@@ -1355,30 +1676,47 @@ export default function ImagemImagemPage() {
           }
 
           .footer-columns {
-            grid-template-columns: 1fr;
+            grid-template-columns:
+              1fr;
 
             gap: 30px;
           }
         }
 
-        @media (max-width: 430px) {
-          .topbar {
-            flex-wrap: wrap;
+        /*
+         * =================================================
+         * CELULARES PEQUENOS
+         * =================================================
+         */
 
-            justify-content: center;
+        @media (max-width: 430px) {
+
+          .topbar {
+            min-height: 68px;
 
             padding:
-              14px 10px;
+              12px 14px;
+
+            flex-wrap: nowrap;
           }
 
           .brand {
-            width: 100%;
+            width: auto;
 
-            justify-content: center;
+            justify-content:
+              flex-end;
+          }
+
+          .brand-name {
+            font-size: 15px;
+          }
+
+          .brand-icon {
+            font-size: 22px;
           }
 
           .back {
-            margin-top: 4px;
+            font-size: 12px;
           }
 
           .title-area h1 {
@@ -1395,16 +1733,29 @@ export default function ImagemImagemPage() {
 
           .plus {
             width: 48px;
+
             height: 48px;
 
             font-size: 29px;
           }
         }
+
       `}</style>
 
       <main className="page">
 
+        {/* =================================================
+            CABEÇALHO
+            ================================================= */}
+
         <header className="topbar">
+
+          <Link
+            href="/dashboard"
+            className="back"
+          >
+            ← Voltar ao Dashboard
+          </Link>
 
           <div className="brand">
 
@@ -1418,14 +1769,11 @@ export default function ImagemImagemPage() {
 
           </div>
 
-          <Link
-            href="/dashboard"
-            className="back"
-          >
-            ← Voltar ao Dashboard
-          </Link>
-
         </header>
+
+        {/* =================================================
+            CONTEÚDO
+            ================================================= */}
 
         <section className="content">
 
@@ -1443,6 +1791,10 @@ export default function ImagemImagemPage() {
           </div>
 
           <div className="workspace">
+
+            {/* =================================================
+                PAINEL ESQUERDO
+                ================================================= */}
 
             <section className="panel">
 
@@ -1533,7 +1885,6 @@ export default function ImagemImagemPage() {
                       </label>
 
                     </div>
-
                   )}
 
                 </div>
@@ -1615,7 +1966,6 @@ export default function ImagemImagemPage() {
                       </label>
 
                     </div>
-
                   )}
 
                 </div>
@@ -1723,7 +2073,9 @@ export default function ImagemImagemPage() {
 
               <button
                 className="generate"
-                onClick={handleGenerate}
+                onClick={
+                  handleGenerate
+                }
                 disabled={loading}
               >
 
@@ -1734,6 +2086,10 @@ export default function ImagemImagemPage() {
               </button>
 
             </section>
+
+            {/* =================================================
+                PAINEL DIREITO
+                ================================================= */}
 
             <section className="panel">
 
@@ -1754,7 +2110,9 @@ export default function ImagemImagemPage() {
                   {resultImageUrl ? (
 
                     <img
-                      src={resultImageUrl}
+                      src={
+                        resultImageUrl
+                      }
                       alt="Imagem gerada"
                       className="preview-image"
                     />
@@ -1802,7 +2160,6 @@ export default function ImagemImagemPage() {
                         )}
 
                     </>
-
                   )}
 
                   {resultMessage && (
@@ -1846,6 +2203,10 @@ export default function ImagemImagemPage() {
           </div>
 
         </section>
+
+        {/* =================================================
+            RODAPÉ
+            ================================================= */}
 
         <footer className="footer">
 
