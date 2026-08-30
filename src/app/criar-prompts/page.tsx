@@ -68,7 +68,7 @@ Transforme essa ideia em um prompt completo, cinematográfico e bem estruturado.
         body {
           margin: 0;
           padding: 0;
-          background: #07111f;
+          background: #06101e;
         }
 
         body {
@@ -107,7 +107,7 @@ Transforme essa ideia em um prompt completo, cinematográfico e bem estruturado.
         }
 
         /* =========================
-           TOPO
+           CABEÇALHO
         ========================= */
 
         .topbar {
@@ -118,13 +118,12 @@ Transforme essa ideia em um prompt completo, cinematográfico e bem estruturado.
           align-items: center;
           justify-content: space-between;
 
-          gap: 20px;
           padding: 0 42px;
 
           background: rgba(4, 12, 24, 0.92);
 
-          border-bottom:
-            1px solid rgba(100, 180, 255, 0.18);
+          border-bottom: 1px solid
+            rgba(100, 180, 255, 0.18);
 
           backdrop-filter: blur(12px);
         }
@@ -151,12 +150,8 @@ Transforme essa ideia em um prompt completo, cinematográfico e bem estruturado.
           letter-spacing: 0.5px;
         }
 
-        /* CABEÇALHO IGUAL ÀS OUTRAS PÁGINAS */
-
         .back {
           color: #7bd8ff;
-
-          background: transparent;
 
           text-decoration: none;
 
@@ -737,18 +732,32 @@ Transforme essa ideia em um prompt completo, cinematográfico e bem estruturado.
 
         @media (max-width: 430px) {
           .topbar {
+            min-height: 68px;
+
+            padding:
+              14px 10px;
+
             flex-wrap: wrap;
+
             justify-content: center;
-            padding: 14px 10px;
           }
 
           .brand {
             width: 100%;
+
             justify-content: center;
           }
 
+          .brand-name {
+            font-size: 15px;
+          }
+
+          .brand-icon {
+            font-size: 23px;
+          }
+
           .back {
-            margin-top: 2px;
+            font-size: 13px;
           }
         }
       `}</style>
@@ -782,7 +791,6 @@ Transforme essa ideia em um prompt completo, cinematográfico e bem estruturado.
 
         </header>
 
-
         {/* =========================
             CONTEÚDO
         ========================= */}
@@ -801,7 +809,6 @@ Transforme essa ideia em um prompt completo, cinematográfico e bem estruturado.
             </p>
 
           </div>
-
 
           <div className="workspace">
 
@@ -825,7 +832,6 @@ Transforme essa ideia em um prompt completo, cinematográfico e bem estruturado.
 
               </div>
 
-
               <label className="label">
                 Descreva sua ideia
               </label>
@@ -839,7 +845,6 @@ Transforme essa ideia em um prompt completo, cinematográfico e bem estruturado.
                 placeholder="Exemplo: Uma mulher caminhando em uma cidade futurista ao pôr do sol, com aparência cinematográfica..."
               />
 
-
               <button
                 className={`generate ${
                   loading ? "loading" : ""
@@ -852,12 +857,12 @@ Transforme essa ideia em um prompt completo, cinematográfico e bem estruturado.
                   : "✨ Gerar Prompt"}
               </button>
 
-
               {prompt && (
 
                 <div className="result">
 
                   <div className="result-title">
+
                     <span>
                       🚀
                     </span>
@@ -865,13 +870,12 @@ Transforme essa ideia em um prompt completo, cinematográfico e bem estruturado.
                     <span>
                       Prompt gerado
                     </span>
-                  </div>
 
+                  </div>
 
                   <div className="result-text">
                     {prompt}
                   </div>
-
 
                   <button
                     className="copy"
@@ -889,7 +893,6 @@ Transforme essa ideia em um prompt completo, cinematográfico e bem estruturado.
           </div>
 
         </section>
-
 
         {/* =========================
             RODAPÉ
@@ -910,7 +913,6 @@ Transforme essa ideia em um prompt completo, cinematográfico e bem estruturado.
               </p>
 
             </div>
-
 
             <div className="footer-columns">
 
@@ -946,7 +948,6 @@ Transforme essa ideia em um prompt completo, cinematográfico e bem estruturado.
 
               </div>
 
-
               <div className="footer-column">
 
                 <h3>
@@ -966,7 +967,6 @@ Transforme essa ideia em um prompt completo, cinematográfico e bem estruturado.
                 </a>
 
               </div>
-
 
               <div className="footer-column">
 
@@ -989,7 +989,6 @@ Transforme essa ideia em um prompt completo, cinematográfico e bem estruturado.
               </div>
 
             </div>
-
 
             <div className="footer-bottom">
               © 2026 CIEL IA STUDIO. Todos os direitos reservados.
