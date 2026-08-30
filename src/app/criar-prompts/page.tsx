@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import { useState } from "react";
 
 export default function CriarPrompts() {
@@ -59,259 +58,32 @@ Transforme essa ideia em um prompt completo, cinematográfico e bem estruturado.
   }
 
   return (
-    <main className="page">
-
-      {/* =========================
-          CABEÇALHO
-      ========================= */}
-
-      <header className="topbar">
-
-        <div className="brand">
-          <span className="brand-icon">✨</span>
-
-          <span className="brand-name">
-            CIEL IA STUDIO
-          </span>
-        </div>
-
-        <Link
-          href="/dashboard"
-          className="back"
-        >
-          ← Voltar ao Dashboard
-        </Link>
-
-      </header>
-
-
-      {/* =========================
-          CONTEÚDO
-      ========================= */}
-
-      <section className="content">
-
-        <div className="title-area">
-
-          <h1>
-            CRIAR PROMPTS
-          </h1>
-
-          <p>
-            Transforme suas ideias em prompts
-            profissionais usando inteligência artificial.
-          </p>
-
-        </div>
-
-
-        <div className="workspace">
-
-          <section className="panel">
-
-            <div className="panel-header">
-
-              <div className="panel-icon">
-                ✨
-              </div>
-
-              <h2>
-                Criador de Prompts
-              </h2>
-
-              <p className="panel-subtitle">
-                Descreva sua ideia e deixe a IA
-                transformar sua inspiração em um
-                prompt profissional.
-              </p>
-
-            </div>
-
-
-            <label className="label">
-              Descreva sua ideia
-            </label>
-
-            <textarea
-              className="prompt-input"
-              value={ideia}
-              onChange={(e) =>
-                setIdeia(e.target.value)
-              }
-              placeholder="Exemplo: Uma mulher caminhando em uma cidade futurista ao pôr do sol, com aparência cinematográfica..."
-            />
-
-
-            <button
-              className={`generate ${
-                loading ? "loading" : ""
-              }`}
-              onClick={gerarPrompt}
-              disabled={loading}
-            >
-              {loading
-                ? "🤖 Criando seu prompt..."
-                : "✨ Gerar Prompt"}
-            </button>
-
-
-            {prompt && (
-              <div className="result">
-
-                <div className="result-title">
-
-                  <span>
-                    🚀
-                  </span>
-
-                  <span>
-                    Prompt gerado
-                  </span>
-
-                </div>
-
-
-                <div className="result-text">
-                  {prompt}
-                </div>
-
-
-                <button
-                  className="copy"
-                  onClick={copiarPrompt}
-                >
-                  📋 Copiar Prompt
-                </button>
-
-              </div>
-            )}
-
-          </section>
-
-        </div>
-
-      </section>
-
-
-      {/* =========================
-          RODAPÉ
-      ========================= */}
-
-      <footer className="footer">
-
-        <div className="footer-inner">
-
-          <div className="footer-brand">
-
-            <h2>
-              CIEL IA STUDIO
-            </h2>
-
-            <p>
-              Crie. Transforme. Inove com IA.
-            </p>
-
-          </div>
-
-
-          <div className="footer-columns">
-
-            <div className="footer-column">
-
-              <h3>
-                Produto
-              </h3>
-
-              <Link href="/criar-prompts">
-                Criar Prompts
-              </Link>
-
-              <Link href="/texto-imagem">
-                Texto → Imagem
-              </Link>
-
-              <Link href="/texto-video">
-                Texto → Vídeo
-              </Link>
-
-              <Link href="/imagem-imagem">
-                Imagem → Imagem
-              </Link>
-
-              <Link href="/imagem-video">
-                Imagem → Vídeo
-              </Link>
-
-              <Link href="/projetos">
-                Meus Projetos
-              </Link>
-
-            </div>
-
-
-            <div className="footer-column">
-
-              <h3>
-                Suporte
-              </h3>
-
-              <Link href="/ajuda">
-                Central de Ajuda
-              </Link>
-
-              <Link href="/contato">
-                Contato
-              </Link>
-
-              <Link href="/sobre">
-                Sobre o CIEL IA STUDIO
-              </Link>
-
-            </div>
-
-
-            <div className="footer-column">
-
-              <h3>
-                Legal
-              </h3>
-
-              <Link href="/termos">
-                Termos de Uso
-              </Link>
-
-              <Link href="/privacidade">
-                Política de Privacidade
-              </Link>
-
-              <Link href="/reembolso">
-                Política de Reembolso
-              </Link>
-
-            </div>
-
-          </div>
-
-
-          <div className="footer-bottom">
-            © 2026 CIEL IA STUDIO. Todos os direitos reservados.
-          </div>
-
-        </div>
-
-      </footer>
-
-
-      {/* =========================
-          ESTILOS
-      ========================= */}
-
-      <style jsx>{`
+    <>
+      <style jsx global>{`
+        * {
+          box-sizing: border-box;
+        }
+
+        html,
+        body {
+          margin: 0;
+          padding: 0;
+          background: #07111f;
+        }
+
+        body {
+          font-family: Arial, Helvetica, sans-serif;
+        }
+
+        a,
+        button,
+        textarea {
+          -webkit-tap-highlight-color: transparent;
+        }
 
         .page {
           min-height: 100vh;
-
-          color: var(--ciel-text);
+          color: #ffffff;
 
           background:
             radial-gradient(
@@ -332,36 +104,6 @@ Transforme essa ideia em um prompt completo, cinematográfico e bem estruturado.
             );
 
           overflow-x: hidden;
-
-          transition:
-            background 0.35s ease,
-            color 0.35s ease;
-        }
-
-        /* =========================
-           TEMA CLARO
-        ========================= */
-
-        :global(html[data-theme="light"]) .page {
-          background:
-            radial-gradient(
-              circle at 75% 20%,
-              rgba(65, 175, 255, 0.25),
-              transparent 38%
-            ),
-            radial-gradient(
-              circle at 15% 65%,
-              rgba(80, 190, 255, 0.18),
-              transparent 40%
-            ),
-            linear-gradient(
-              135deg,
-              #eef8ff 0%,
-              #e4f4ff 48%,
-              #d8efff 100%
-            );
-
-          color: #101827;
         }
 
         /* =========================
@@ -385,17 +127,6 @@ Transforme essa ideia em um prompt completo, cinematográfico e bem estruturado.
             1px solid rgba(100, 180, 255, 0.18);
 
           backdrop-filter: blur(12px);
-
-          transition:
-            background 0.35s ease,
-            border-color 0.35s ease;
-        }
-
-        :global(html[data-theme="light"]) .topbar {
-          background: rgba(255, 255, 255, 0.88);
-
-          border-bottom:
-            1px solid rgba(0, 119, 255, 0.16);
         }
 
         .brand {
@@ -428,10 +159,6 @@ Transforme essa ideia em um prompt completo, cinematográfico e bem estruturado.
           transition:
             color 0.2s ease,
             text-shadow 0.2s ease;
-        }
-
-        :global(html[data-theme="light"]) .back {
-          color: #1b496d;
         }
 
         .back:hover {
@@ -487,12 +214,6 @@ Transforme essa ideia em um prompt completo, cinematográfico e bem estruturado.
             clamp(17px, 2vw, 21px);
 
           line-height: 1.5;
-
-          transition: color 0.35s ease;
-        }
-
-        :global(html[data-theme="light"]) .title-area p {
-          color: #536579;
         }
 
         /* =========================
@@ -529,26 +250,8 @@ Transforme essa ideia em um prompt completo, cinematográfico e bem estruturado.
             inset 0 0 22px rgba(56, 174, 255, 0.08);
 
           transition:
-            background 0.35s ease,
             box-shadow 0.22s ease,
-            border-color 0.35s ease,
             transform 0.22s ease;
-        }
-
-        :global(html[data-theme="light"]) .panel {
-          background:
-            linear-gradient(
-              145deg,
-              rgba(255, 255, 255, 0.97),
-              rgba(239, 249, 255, 0.97)
-            );
-
-          border-color: #38aef5;
-
-          box-shadow:
-            0 0 8px rgba(40, 160, 235, 0.35),
-            0 0 22px rgba(43, 167, 255, 0.20),
-            inset 0 0 22px rgba(56, 174, 255, 0.06);
         }
 
         .panel:hover {
@@ -556,13 +259,6 @@ Transforme essa ideia em um prompt completo, cinematográfico e bem estruturado.
             0 0 12px rgba(85, 211, 255, 1),
             0 0 32px rgba(43, 167, 255, 0.7),
             inset 0 0 25px rgba(56, 174, 255, 0.12);
-        }
-
-        :global(html[data-theme="light"]) .panel:hover {
-          box-shadow:
-            0 0 12px rgba(50, 174, 245, 0.5),
-            0 0 30px rgba(43, 167, 255, 0.25),
-            inset 0 0 25px rgba(56, 174, 255, 0.08);
         }
 
         .panel-header {
@@ -598,12 +294,6 @@ Transforme essa ideia em um prompt completo, cinematográfico e bem estruturado.
           font-size: 15px;
 
           line-height: 1.5;
-
-          transition: color 0.35s ease;
-        }
-
-        :global(html[data-theme="light"]) .panel-subtitle {
-          color: #536579;
         }
 
         /* =========================
@@ -621,12 +311,6 @@ Transforme essa ideia em um prompt completo, cinematográfico e bem estruturado.
           font-size: 14px;
 
           font-weight: 700;
-
-          transition: color 0.35s ease;
-        }
-
-        :global(html[data-theme="light"]) .label {
-          color: #30475d;
         }
 
         .prompt-input {
@@ -660,19 +344,8 @@ Transforme essa ideia em um prompt completo, cinematográfico e bem estruturado.
           line-height: 1.55;
 
           transition:
-            background 0.35s ease,
-            color 0.35s ease,
             border-color 0.2s ease,
             box-shadow 0.2s ease;
-        }
-
-        :global(html[data-theme="light"]) .prompt-input {
-          background: rgba(255, 255, 255, 0.95);
-
-          color: #101827;
-
-          border-color:
-            rgba(0, 140, 220, 0.35);
         }
 
         .prompt-input::placeholder {
@@ -722,8 +395,7 @@ Transforme essa ideia em um prompt completo, cinematográfico e bem estruturado.
 
           transition:
             transform 0.2s ease,
-            box-shadow 0.2s ease,
-            opacity 0.2s ease;
+            box-shadow 0.2s ease;
         }
 
         .generate:hover {
@@ -765,18 +437,6 @@ Transforme essa ideia em um prompt completo, cinematográfico e bem estruturado.
 
           box-shadow:
             inset 0 0 20px rgba(56, 174, 255, 0.05);
-
-          transition:
-            background 0.35s ease,
-            border-color 0.35s ease;
-        }
-
-        :global(html[data-theme="light"]) .result {
-          background:
-            rgba(255, 255, 255, 0.75);
-
-          border-color:
-            rgba(0, 140, 220, 0.25);
         }
 
         .result-title {
@@ -813,21 +473,6 @@ Transforme essa ideia em um prompt completo, cinematográfico e bem estruturado.
 
           border:
             1px solid rgba(94, 203, 255, 0.22);
-
-          transition:
-            background 0.35s ease,
-            color 0.35s ease,
-            border-color 0.35s ease;
-        }
-
-        :global(html[data-theme="light"]) .result-text {
-          background:
-            rgba(245, 251, 255, 0.95);
-
-          color: #243447;
-
-          border-color:
-            rgba(0, 140, 220, 0.20);
         }
 
         .copy {
@@ -855,18 +500,7 @@ Transforme essa ideia em um prompt completo, cinematográfico e bem estruturado.
 
           transition:
             background 0.2s ease,
-            box-shadow 0.2s ease,
-            color 0.35s ease;
-        }
-
-        :global(html[data-theme="light"]) .copy {
-          color: #145078;
-
-          background:
-            rgba(80, 190, 255, 0.12);
-
-          border-color:
-            rgba(0, 140, 220, 0.30);
+            box-shadow 0.2s ease;
         }
 
         .copy:hover {
@@ -894,22 +528,6 @@ Transforme essa ideia em um prompt completo, cinematográfico e bem estruturado.
 
           padding:
             52px 42px 24px;
-
-          transition:
-            background 0.35s ease,
-            border-color 0.35s ease;
-        }
-
-        :global(html[data-theme="light"]) .footer {
-          background:
-            linear-gradient(
-              180deg,
-              rgba(255, 255, 255, 0.96),
-              rgba(235, 247, 255, 1)
-            );
-
-          border-top-color:
-            rgba(0, 119, 255, 0.14);
         }
 
         .footer-inner {
@@ -935,12 +553,6 @@ Transforme essa ideia em um prompt completo, cinematográfico e bem estruturado.
           color: #9eacbd;
 
           font-size: 15px;
-
-          transition: color 0.35s ease;
-        }
-
-        :global(html[data-theme="light"]) .footer-brand p {
-          color: #536579;
         }
 
         .footer-columns {
@@ -972,12 +584,7 @@ Transforme essa ideia em um prompt completo, cinematográfico e bem estruturado.
 
           font-size: 14px;
 
-          transition:
-            color 0.2s ease;
-        }
-
-        :global(html[data-theme="light"]) .footer-column a {
-          color: #536579;
+          transition: color 0.2s ease;
         }
 
         .footer-column a:hover {
@@ -997,17 +604,6 @@ Transforme essa ideia em um prompt completo, cinematográfico e bem estruturado.
           color: #8997a9;
 
           font-size: 13px;
-
-          transition:
-            color 0.35s ease,
-            border-color 0.35s ease;
-        }
-
-        :global(html[data-theme="light"]) .footer-bottom {
-          color: #68798b;
-
-          border-top-color:
-            rgba(0, 119, 255, 0.13);
         }
 
         /* =========================
@@ -1128,9 +724,255 @@ Transforme essa ideia em um prompt completo, cinematográfico e bem estruturado.
             gap: 30px;
           }
         }
-
       `}</style>
 
-    </main>
+      <main className="page">
+
+        {/* =========================
+            CABEÇALHO
+        ========================= */}
+
+        <header className="topbar">
+
+          <div className="brand">
+
+            <span className="brand-icon">
+              ✨
+            </span>
+
+            <span className="brand-name">
+              CIEL IA STUDIO
+            </span>
+
+          </div>
+
+          <a
+            href="/dashboard"
+            className="back"
+          >
+            ← Voltar ao Dashboard
+          </a>
+
+        </header>
+
+
+        {/* =========================
+            CONTEÚDO
+        ========================= */}
+
+        <section className="content">
+
+          <div className="title-area">
+
+            <h1>
+              CRIAR PROMPTS
+            </h1>
+
+            <p>
+              Transforme suas ideias em prompts
+              profissionais usando inteligência artificial.
+            </p>
+
+          </div>
+
+
+          <div className="workspace">
+
+            <section className="panel">
+
+              <div className="panel-header">
+
+                <div className="panel-icon">
+                  ✨
+                </div>
+
+                <h2>
+                  Criador de Prompts
+                </h2>
+
+                <p className="panel-subtitle">
+                  Descreva sua ideia e deixe a IA
+                  transformar sua inspiração em um
+                  prompt profissional.
+                </p>
+
+              </div>
+
+
+              <label className="label">
+                Descreva sua ideia
+              </label>
+
+              <textarea
+                className="prompt-input"
+                value={ideia}
+                onChange={(e) =>
+                  setIdeia(e.target.value)
+                }
+                placeholder="Exemplo: Uma mulher caminhando em uma cidade futurista ao pôr do sol, com aparência cinematográfica..."
+              />
+
+
+              <button
+                className={`generate ${
+                  loading ? "loading" : ""
+                }`}
+                onClick={gerarPrompt}
+                disabled={loading}
+              >
+                {loading
+                  ? "🤖 Criando seu prompt..."
+                  : "✨ Gerar Prompt"}
+              </button>
+
+
+              {prompt && (
+
+                <div className="result">
+
+                  <div className="result-title">
+                    <span>
+                      🚀
+                    </span>
+
+                    <span>
+                      Prompt gerado
+                    </span>
+                  </div>
+
+
+                  <div className="result-text">
+                    {prompt}
+                  </div>
+
+
+                  <button
+                    className="copy"
+                    onClick={copiarPrompt}
+                  >
+                    📋 Copiar Prompt
+                  </button>
+
+                </div>
+
+              )}
+
+            </section>
+
+          </div>
+
+        </section>
+
+
+        {/* =========================
+            RODAPÉ
+        ========================= */}
+
+        <footer className="footer">
+
+          <div className="footer-inner">
+
+            <div className="footer-brand">
+
+              <h2>
+                CIEL IA STUDIO
+              </h2>
+
+              <p>
+                Crie. Transforme. Inove com IA.
+              </p>
+
+            </div>
+
+
+            <div className="footer-columns">
+
+              <div className="footer-column">
+
+                <h3>
+                  Produto
+                </h3>
+
+                <a href="/criar-prompts">
+                  Criar Prompts
+                </a>
+
+                <a href="/texto-imagem">
+                  Texto → Imagem
+                </a>
+
+                <a href="/texto-video">
+                  Texto → Vídeo
+                </a>
+
+                <a href="/imagem-imagem">
+                  Imagem → Imagem
+                </a>
+
+                <a href="/imagem-video">
+                  Imagem → Vídeo
+                </a>
+
+                <a href="/projetos">
+                  Meus Projetos
+                </a>
+
+              </div>
+
+
+              <div className="footer-column">
+
+                <h3>
+                  Suporte
+                </h3>
+
+                <a href="/ajuda">
+                  Central de Ajuda
+                </a>
+
+                <a href="/contato">
+                  Contato
+                </a>
+
+                <a href="/sobre">
+                  Sobre o CIEL IA STUDIO
+                </a>
+
+              </div>
+
+
+              <div className="footer-column">
+
+                <h3>
+                  Legal
+                </h3>
+
+                <a href="/termos">
+                  Termos de Uso
+                </a>
+
+                <a href="/privacidade">
+                  Política de Privacidade
+                </a>
+
+                <a href="/reembolso">
+                  Política de Reembolso
+                </a>
+
+              </div>
+
+            </div>
+
+
+            <div className="footer-bottom">
+              © 2026 CIEL IA STUDIO. Todos os direitos reservados.
+            </div>
+
+          </div>
+
+        </footer>
+
+      </main>
+    </>
   );
 }
