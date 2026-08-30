@@ -378,7 +378,7 @@ export default function ImagemVideoPage() {
         }
 
         /* =========================
-           TOPO
+           TOPO CORRIGIDO
         ========================= */
 
         .topbar {
@@ -386,13 +386,16 @@ export default function ImagemVideoPage() {
 
           min-height: 74px;
 
+          padding:
+            0 42px;
+
           display: flex;
 
           align-items: center;
 
-          justify-content: space-between;
+          justify-content: flex-end;
 
-          padding: 0 42px;
+          gap: 32px;
 
           background:
             rgba(
@@ -423,6 +426,8 @@ export default function ImagemVideoPage() {
           gap: 10px;
 
           white-space: nowrap;
+
+          order: 1;
         }
 
         .brand-icon {
@@ -449,6 +454,12 @@ export default function ImagemVideoPage() {
         }
 
         .back {
+          display: inline-flex;
+
+          align-items: center;
+
+          justify-content: center;
+
           color: #7bd8ff;
 
           text-decoration: none;
@@ -457,10 +468,14 @@ export default function ImagemVideoPage() {
 
           font-weight: 700;
 
+          white-space: nowrap;
+
           transition:
             color 0.2s ease,
             text-shadow 0.2s ease,
             transform 0.2s ease;
+
+          order: 2;
         }
 
         .back:hover {
@@ -1440,6 +1455,8 @@ export default function ImagemVideoPage() {
           .topbar {
             padding:
               0 22px;
+
+            gap: 22px;
           }
 
           .workspace {
@@ -1464,7 +1481,10 @@ export default function ImagemVideoPage() {
             padding:
               0 16px;
 
-            gap: 12px;
+            gap: 14px;
+
+            justify-content:
+              space-between;
           }
 
           .brand-name {
@@ -1476,7 +1496,7 @@ export default function ImagemVideoPage() {
           }
 
           .back {
-            font-size: 15px;
+            font-size: 13px;
           }
 
           .content {
@@ -1522,51 +1542,42 @@ export default function ImagemVideoPage() {
           }
         }
 
-        @media (max-width: 480px) {
-          .topbar {
-            min-height: 68px;
-
-            padding:
-              0 15px;
-          }
-
-          .brand {
-            gap: 7px;
-          }
-
-          .brand-icon {
-            font-size: 23px;
-          }
-
-          .brand-name {
-            font-size: 15px;
-          }
-
-          .back {
-            font-size: 13px;
-          }
-        }
+        /* =========================
+           CELULAR PEQUENO
+        ========================= */
 
         @media (max-width: 430px) {
           .topbar {
+            min-height: auto;
+
             flex-wrap: wrap;
 
             justify-content:
-              space-between;
+              flex-end;
 
             padding:
-              14px 15px;
+              14px 12px;
+
+            gap: 8px 14px;
           }
 
           .brand {
             width: auto;
 
             justify-content:
-              flex-start;
+              flex-end;
+          }
+
+          .brand-icon {
+            font-size: 21px;
+          }
+
+          .brand-name {
+            font-size: 14px;
           }
 
           .back {
-            margin-top: 0;
+            font-size: 12px;
           }
 
           .title-area h1 {
@@ -1644,8 +1655,6 @@ export default function ImagemVideoPage() {
                 🎬 Criar vídeo
               </h2>
 
-              {/* IMAGEM */}
-
               <label className="label">
                 Sua imagem
               </label>
@@ -1695,8 +1704,6 @@ export default function ImagemVideoPage() {
 
               </label>
 
-              {/* PROMPT */}
-
               <label className="label">
                 Descreva o vídeo que
                 você deseja criar
@@ -1712,8 +1719,6 @@ export default function ImagemVideoPage() {
                 }
                 placeholder="Exemplo: Faça a câmera se aproximar lentamente, com movimento natural, iluminação cinematográfica e vento suave..."
               />
-
-              {/* OPÇÕES */}
 
               <div className="options">
 
@@ -1781,8 +1786,6 @@ export default function ImagemVideoPage() {
 
               </div>
 
-              {/* ESTILO */}
-
               <label className="label">
                 Estilo
               </label>
@@ -1818,8 +1821,6 @@ export default function ImagemVideoPage() {
 
               </select>
 
-              {/* CRÉDITOS */}
-
               <div className="credits">
 
                 💎 Seus créditos:{" "}
@@ -1829,8 +1830,6 @@ export default function ImagemVideoPage() {
                 </strong>
 
               </div>
-
-              {/* BOTÃO */}
 
               <button
                 className="generate"
@@ -2082,8 +2081,6 @@ export default function ImagemVideoPage() {
 
             <div className="footer-columns">
 
-              {/* PRODUTO */}
-
               <div className="footer-column">
 
                 <h3>
@@ -2116,8 +2113,6 @@ export default function ImagemVideoPage() {
 
               </div>
 
-              {/* SUPORTE */}
-
               <div className="footer-column">
 
                 <h3>
@@ -2137,8 +2132,6 @@ export default function ImagemVideoPage() {
                 </Link>
 
               </div>
-
-              {/* LEGAL */}
 
               <div className="footer-column">
 
