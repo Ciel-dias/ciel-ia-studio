@@ -7,6 +7,8 @@ export default function CadastroPage() {
   const [nome, setNome] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [aceitouTermos, setAceitouTermos] = useState(false);
+  const [aceitouPrivacidade, setAceitouPrivacidade] = useState(false);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
@@ -14,9 +16,18 @@ export default function CadastroPage() {
   async function handleCadastro(e: React.FormEvent) {
     e.preventDefault();
 
-    setLoading(true);
     setMessage("");
     setError("");
+
+    // Impede o cadastro sem os dois aceites
+    if (!aceitouTermos || !aceitouPrivacidade) {
+      setError(
+        "Para criar sua conta, você precisa aceitar os Termos de Uso e a Política de Privacidade."
+      );
+      return;
+    }
+
+    setLoading(true);
 
     try {
       const supabase = createClient();
@@ -27,6 +38,8 @@ export default function CadastroPage() {
         options: {
           data: {
             nome,
+            aceitou_termos: true,
+            aceitou_privacidade: true,
           },
         },
       });
@@ -131,6 +144,7 @@ export default function CadastroPage() {
         .logo-icon {
           font-size: 42px;
           margin-bottom: 10px;
+
           filter: drop-shadow(
             0 0 10px rgba(75, 199, 255, 0.8)
           );
@@ -199,6 +213,74 @@ export default function CadastroPage() {
             inset 0 0 10px rgba(56, 174, 255, 0.04);
         }
 
+        /* =========================
+           ACEITE DOS DOCUMENTOS
+           ========================= */
+
+        .agreements {
+          margin: 4px 0 18px;
+          padding: 15px;
+
+          border-radius: 13px;
+
+          background: rgba(3, 13, 25, 0.52);
+
+          border: 1px solid rgba(94, 203, 255, 0.18);
+        }
+
+        .agreement {
+          display: flex;
+          align-items: flex-start;
+          gap: 11px;
+
+          margin-bottom: 12px;
+
+          cursor: pointer;
+        }
+
+        .agreement:last-child {
+          margin-bottom: 0;
+        }
+
+        .checkbox {
+          width: 18px;
+          height: 18px;
+
+          flex: 0 0 18px;
+
+          margin-top: 1px;
+
+          cursor: pointer;
+
+          accent-color: #58c9ff;
+        }
+
+        .agreement-text {
+          color: #aebdcd;
+
+          font-size: 13px;
+          line-height: 1.45;
+        }
+
+        .agreement-link {
+          color: #68d2ff;
+
+          font-weight: 700;
+
+          text-decoration: none;
+
+          transition:
+            color 0.2s ease,
+            text-shadow 0.2s ease;
+        }
+
+        .agreement-link:hover {
+          color: #a4e9ff;
+
+          text-shadow:
+            0 0 10px rgba(75, 199, 255, 0.7);
+        }
+
         .error {
           margin: 2px 0 16px;
           padding: 11px 13px;
@@ -206,9 +288,11 @@ export default function CadastroPage() {
           border-radius: 10px;
 
           background: rgba(239, 68, 68, 0.1);
+
           border: 1px solid rgba(248, 113, 113, 0.3);
 
           color: #fca5a5;
+
           font-size: 13px;
           line-height: 1.4;
         }
@@ -220,16 +304,20 @@ export default function CadastroPage() {
           border-radius: 10px;
 
           background: rgba(34, 197, 94, 0.1);
+
           border: 1px solid rgba(74, 222, 128, 0.3);
 
           color: #86efac;
+
           font-size: 13px;
           line-height: 1.4;
         }
 
         .button {
           width: 100%;
+
           margin-top: 4px;
+
           padding: 16px;
 
           border: none;
@@ -259,7 +347,7 @@ export default function CadastroPage() {
             opacity 0.2s ease;
         }
 
-        .button:hover {
+        .button:hover:not(:disabled) {
           transform: translateY(-2px);
 
           box-shadow:
@@ -288,7 +376,9 @@ export default function CadastroPage() {
 
         .login-link {
           color: #68d2ff;
+
           font-weight: 700;
+
           text-decoration: none;
 
           transition:
@@ -307,7 +397,8 @@ export default function CadastroPage() {
           margin-top: 24px;
           padding-top: 18px;
 
-          border-top: 1px solid rgba(100, 180, 255, 0.14);
+          border-top:
+            1px solid rgba(100, 180, 255, 0.14);
 
           text-align: center;
 
@@ -331,6 +422,10 @@ export default function CadastroPage() {
 
           .logo-icon {
             font-size: 36px;
+          }
+
+          .agreement-text {
+            font-size: 12.5px;
           }
         }
       `}</style>
@@ -419,6 +514,74 @@ export default function CadastroPage() {
               />
             </div>
 
+            {/* TERMOS E PRIVACIDADE */}
+
+            <div className="agreements">
+
+              <label className="agreement">
+
+                <input
+                  className="checkbox"
+                  type="checkbox"
+                  checked={aceitouTermos}
+                  onChange={(e) =>
+                    setAceitouTermos(e.target.checked)
+                  }
+                />
+
+                <span className="agreement-text">
+                  Li e aceito os{" "}
+
+                  <a
+                    href="/termos"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="agreement-link"
+                    onClick={(e) =>
+                      e.stopPropagation()
+                    }
+                  >
+                    Termos de Uso
+                  </a>
+                  .
+                </span>
+
+              </label>
+
+              <label className="agreement">
+
+                <input
+                  className="checkbox"
+                  type="checkbox"
+                  checked={aceitouPrivacidade}
+                  onChange={(e) =>
+                    setAceitouPrivacidade(
+                      e.target.checked
+                    )
+                  }
+                />
+
+                <span className="agreement-text">
+                  Li e aceito a{" "}
+
+                  <a
+                    href="/privacidade"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="agreement-link"
+                    onClick={(e) =>
+                      e.stopPropagation()
+                    }
+                  >
+                    Política de Privacidade
+                  </a>
+                  .
+                </span>
+
+              </label>
+
+            </div>
+
             {/* ERRO */}
 
             {error && (
@@ -440,7 +603,11 @@ export default function CadastroPage() {
             <button
               type="submit"
               className="button"
-              disabled={loading}
+              disabled={
+                loading ||
+                !aceitouTermos ||
+                !aceitouPrivacidade
+              }
             >
               {loading
                 ? "Criando..."
