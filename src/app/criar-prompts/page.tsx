@@ -121,7 +121,7 @@ Transforme essa ideia em um prompt completo, cinematográfico e bem estruturado.
           gap: 20px;
           padding: 0 42px;
 
-          background: rgba(4, 12, 24, 0.88);
+          background: rgba(4, 12, 24, 0.92);
 
           border-bottom:
             1px solid rgba(100, 180, 255, 0.18);
@@ -139,33 +139,43 @@ Transforme essa ideia em um prompt completo, cinematográfico e bem estruturado.
 
         .brand-icon {
           font-size: 28px;
+
+          filter: drop-shadow(
+            0 0 10px rgba(75, 199, 255, 0.8)
+          );
         }
 
         .brand-name {
           font-size: 20px;
-          font-weight: 700;
-          letter-spacing: 0.4px;
+          font-weight: 800;
+          letter-spacing: 0.5px;
         }
 
+        /* CABEÇALHO IGUAL ÀS OUTRAS PÁGINAS */
+
         .back {
-          color: #e8eef7;
+          color: #7bd8ff;
 
           background: transparent;
 
           text-decoration: none;
 
-          font-size: 15px;
+          font-size: 17px;
+          font-weight: 700;
 
           transition:
             color 0.2s ease,
-            text-shadow 0.2s ease;
+            text-shadow 0.2s ease,
+            transform 0.2s ease;
         }
 
         .back:hover {
-          color: #72d5ff;
+          color: #b4ecff;
 
           text-shadow:
             0 0 12px rgba(75, 199, 255, 0.8);
+
+          transform: translateX(-2px);
         }
 
         /* =========================
@@ -722,6 +732,23 @@ Transforme essa ideia em um prompt completo, cinematográfico e bem estruturado.
             grid-template-columns: 1fr;
 
             gap: 30px;
+          }
+        }
+
+        @media (max-width: 430px) {
+          .topbar {
+            flex-wrap: wrap;
+            justify-content: center;
+            padding: 14px 10px;
+          }
+
+          .brand {
+            width: 100%;
+            justify-content: center;
+          }
+
+          .back {
+            margin-top: 2px;
           }
         }
       `}</style>
