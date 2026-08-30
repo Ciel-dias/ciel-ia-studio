@@ -17,69 +17,24 @@ body {
 }
 
 /* ============================= */
-/* VARIÁVEIS DO TEMA ESCURO */
+/* TEMA ESCURO */
 /* ============================= */
 
 html[data-theme="dark"],
 body[data-theme="dark"] {
-  --ciel-background: #07111f;
-  --ciel-surface: #0b1728;
-  --ciel-card: #0d1b2e;
-  --ciel-card-hover: #11243b;
-  --ciel-border: rgba(0, 174, 255, 0.22);
-  --ciel-text: #ffffff;
-  --ciel-text-secondary: #a9bdd2;
-  --ciel-accent: #00bfff;
-  --ciel-accent-secondary: #0077ff;
-  --ciel-shadow: rgba(0, 0, 0, 0.35);
-
-  background: var(--ciel-background);
-  color: var(--ciel-text);
+  background: #07111f;
+  color: #ffffff;
 }
 
 /* ============================= */
-/* VARIÁVEIS DO TEMA CLARO */
+/* TEMA CLARO */
 /* ============================= */
 
 html[data-theme="light"],
 body[data-theme="light"] {
-  --ciel-background: #eef8ff;
-  --ciel-surface: #ffffff;
-  --ciel-card: #ffffff;
-  --ciel-card-hover: #f3faff;
-  --ciel-border: rgba(0, 119, 255, 0.20);
-  --ciel-text: #101827;
-  --ciel-text-secondary: #536579;
-  --ciel-accent: #008cff;
-  --ciel-accent-secondary: #0066cc;
-  --ciel-shadow: rgba(0, 80, 140, 0.15);
-
-  background: var(--ciel-background);
-  color: var(--ciel-text);
+  background: #eef8ff;
+  color: #101827;
 }
-
-/* ============================= */
-/* TRANSIÇÃO GLOBAL DO TEMA */
-/* ============================= */
-
-html,
-body {
-  background-color: var(--ciel-background);
-  color: var(--ciel-text);
-}
-
-body,
-body * {
-  transition:
-    background-color 0.35s ease,
-    border-color 0.35s ease,
-    color 0.35s ease,
-    box-shadow 0.35s ease;
-}
-
-/* ============================= */
-/* LINKS */
-/* ============================= */
 
 a {
   -webkit-tap-highlight-color: transparent;
