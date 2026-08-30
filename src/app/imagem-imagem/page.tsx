@@ -16,17 +16,10 @@ export default function ImagemImagemPage() {
 
   const [loading, setLoading] = useState(false);
 
-  const [resultMessage, setResultMessage] =
-    useState("");
-
-  const [taskId, setTaskId] =
-    useState("");
-
-  const [resultImageUrl, setResultImageUrl] =
-    useState("");
-
-  const [errorMessage, setErrorMessage] =
-    useState("");
+  const [resultMessage, setResultMessage] = useState("");
+  const [taskId, setTaskId] = useState("");
+  const [resultImageUrl, setResultImageUrl] = useState("");
+  const [errorMessage, setErrorMessage] = useState("");
 
   /**
    * =====================================================
@@ -42,39 +35,23 @@ export default function ImagemImagemPage() {
 
     if (!file) return;
 
-    /**
-     * Verifica se realmente é uma imagem.
-     */
     if (!file.type.startsWith("image/")) {
       setErrorMessage(
         "Selecione um arquivo de imagem válido."
       );
-
       return;
     }
 
-    /**
-     * Limite inicial de segurança.
-     *
-     * Fotos gigantes serão comprimidas pelo
-     * processador abaixo, mas não precisamos
-     * aceitar arquivos absurdamente grandes.
-     */
     if (file.size > 30 * 1024 * 1024) {
       setErrorMessage(
         "Essa imagem é muito grande. Escolha uma imagem de até 30 MB."
       );
-
       return;
     }
 
-    const preview =
-      URL.createObjectURL(file);
+    const preview = URL.createObjectURL(file);
 
     if (number === 1) {
-      /**
-       * Libera o preview anterior.
-       */
       if (preview1) {
         URL.revokeObjectURL(preview1);
       }
@@ -90,331 +67,316 @@ export default function ImagemImagemPage() {
       setPreview2(preview);
     }
 
-    /**
-     * Limpa resultados anteriores.
-     */
     setErrorMessage("");
     setResultMessage("");
     setTaskId("");
     setResultImageUrl("");
+
+    /**
+     * Permite selecionar novamente a mesma imagem.
+     */
+    event.target.value = "";
   }
 
   /**
    * =====================================================
    * PREPARAR IMAGEM
    *
-   * Redimensiona e comprime a imagem antes de enviar.
+   * CORREÇÃO:
    *
-   * Isso evita o erro HTTP 413 Payload Too Large.
+   * Usa FileReader diretamente no File selecionado.
+   * Não depende de URL.createObjectURL() para carregar
+   * a imagem durante a preparação.
+   *
+   * Isso evita o erro:
+   *
+   * "Não foi possível carregar a imagem selecionada."
    * =====================================================
    */
 
   async function prepareImage(
     file: File
   ): Promise<string> {
-    return new Promise(
-      (resolve, reject) => {
-        const objectUrl =
-          URL.createObjectURL(file);
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
 
-        const img =
-          new Image();
+      reader.onload = () => {
+        try {
+          const source =
+            typeof reader.result === "string"
+              ? reader.result
+              : "";
 
-        img.onload = () => {
-          try {
-            URL.revokeObjectURL(
-              objectUrl
+          if (!source) {
+            reject(
+              new Error(
+                "Não foi possível ler a imagem selecionada."
+              )
             );
+            return;
+          }
 
-            /**
-             * Dimensão máxima.
-             *
-             * 1600px é suficiente para referência
-             * visual e reduz bastante o tamanho
-             * das fotos de celulares.
-             */
-            const MAX_SIZE = 1600;
+          const img = new Image();
 
-            let width = img.naturalWidth;
-            let height = img.naturalHeight;
+          img.onload = () => {
+            try {
+              const MAX_SIZE = 1600;
 
-            if (!width || !height) {
-              reject(
-                new Error(
-                  "Não foi possível identificar as dimensões da imagem."
-                )
-              );
+              let width = img.naturalWidth;
+              let height = img.naturalHeight;
 
-              return;
-            }
+              if (!width || !height) {
+                reject(
+                  new Error(
+                    "Não foi possível identificar as dimensões da imagem."
+                  )
+                );
+                return;
+              }
 
-            /**
-             * A Kling exige pelo menos 300px.
-             *
-             * Não reduziremos imagens pequenas.
-             */
-            if (
-              width > MAX_SIZE ||
-              height > MAX_SIZE
-            ) {
-              const scale =
-                Math.min(
+              if (
+                width > MAX_SIZE ||
+                height > MAX_SIZE
+              ) {
+                const scale = Math.min(
                   MAX_SIZE / width,
                   MAX_SIZE / height
                 );
 
-              width =
-                Math.max(
+                width = Math.max(
                   300,
-                  Math.round(
-                    width * scale
-                  )
+                  Math.round(width * scale)
                 );
 
-              height =
-                Math.max(
+                height = Math.max(
                   300,
-                  Math.round(
-                    height * scale
+                  Math.round(height * scale)
+                );
+              }
+
+              const canvas =
+                document.createElement("canvas");
+
+              canvas.width = width;
+              canvas.height = height;
+
+              const context =
+                canvas.getContext("2d");
+
+              if (!context) {
+                reject(
+                  new Error(
+                    "Não foi possível preparar a imagem no navegador."
                   )
                 );
-            }
+                return;
+              }
 
-            /**
-             * Cria canvas.
-             */
-            const canvas =
-              document.createElement(
-                "canvas"
+              /**
+               * Fundo branco para imagens transparentes.
+               */
+              context.fillStyle = "#ffffff";
+
+              context.fillRect(
+                0,
+                0,
+                width,
+                height
               );
 
-            canvas.width =
-              width;
+              context.imageSmoothingEnabled = true;
+              context.imageSmoothingQuality = "high";
 
-            canvas.height =
-              height;
-
-            const context =
-              canvas.getContext(
-                "2d"
+              context.drawImage(
+                img,
+                0,
+                0,
+                width,
+                height
               );
 
-            if (!context) {
-              reject(
-                new Error(
-                  "Não foi possível preparar a imagem no navegador."
-                )
-              );
+              let quality = 0.82;
 
-              return;
-            }
-
-            /**
-             * Fundo branco para evitar problemas
-             * com transparência ao converter PNG
-             * para JPEG.
-             */
-            context.fillStyle =
-              "#ffffff";
-
-            context.fillRect(
-              0,
-              0,
-              width,
-              height
-            );
-
-            /**
-             * Melhora a qualidade do redimensionamento.
-             */
-            context.imageSmoothingEnabled =
-              true;
-
-            context.imageSmoothingQuality =
-              "high";
-
-            context.drawImage(
-              img,
-              0,
-              0,
-              width,
-              height
-            );
-
-            /**
-             * Começamos com qualidade 0.82.
-             */
-            let quality = 0.82;
-
-            let dataUrl =
-              canvas.toDataURL(
-                "image/jpeg",
-                quality
-              );
-
-            /**
-             * A API aceita até 10 MB de imagem.
-             *
-             * Mas o navegador precisa enviar isso
-             * dentro de um JSON, então usamos um
-             * limite muito menor para evitar HTTP 413
-             * no servidor.
-             *
-             * Aproximadamente 2.7 MB de Base64.
-             */
-            const MAX_BASE64_LENGTH =
-              2_700_000;
-
-            /**
-             * Se ficar grande, diminuímos a qualidade.
-             */
-            while (
-              dataUrl.length >
-                MAX_BASE64_LENGTH &&
-              quality > 0.45
-            ) {
-              quality -= 0.08;
-
-              dataUrl =
+              let dataUrl =
                 canvas.toDataURL(
                   "image/jpeg",
                   quality
                 );
-            }
 
-            /**
-             * Se ainda estiver grande,
-             * reduzimos também as dimensões.
-             */
-            if (
-              dataUrl.length >
-              MAX_BASE64_LENGTH
-            ) {
-              let currentWidth =
-                width;
-
-              let currentHeight =
-                height;
+              /**
+               * Mantemos o payload pequeno para
+               * evitar HTTP 413.
+               */
+              const MAX_BASE64_LENGTH = 2_700_000;
 
               while (
                 dataUrl.length >
                   MAX_BASE64_LENGTH &&
-                currentWidth > 700 &&
-                currentHeight > 700
+                quality > 0.45
               ) {
-                currentWidth =
-                  Math.max(
-                    700,
-                    Math.round(
-                      currentWidth *
-                        0.85
-                    )
-                  );
-
-                currentHeight =
-                  Math.max(
-                    700,
-                    Math.round(
-                      currentHeight *
-                        0.85
-                    )
-                  );
-
-                canvas.width =
-                  currentWidth;
-
-                canvas.height =
-                  currentHeight;
-
-                context.fillStyle =
-                  "#ffffff";
-
-                context.fillRect(
-                  0,
-                  0,
-                  currentWidth,
-                  currentHeight
-                );
-
-                context.drawImage(
-                  img,
-                  0,
-                  0,
-                  currentWidth,
-                  currentHeight
-                );
+                quality -= 0.08;
 
                 dataUrl =
                   canvas.toDataURL(
                     "image/jpeg",
-                    0.72
+                    quality
                   );
               }
-            }
 
-            /**
-             * Segurança final.
-             */
-            if (
-              dataUrl.length >
-              MAX_BASE64_LENGTH
-            ) {
+              /**
+               * Caso ainda esteja grande,
+               * reduzimos as dimensões.
+               */
+              if (
+                dataUrl.length >
+                MAX_BASE64_LENGTH
+              ) {
+                let currentWidth = width;
+                let currentHeight = height;
+
+                while (
+                  dataUrl.length >
+                    MAX_BASE64_LENGTH &&
+                  currentWidth > 700 &&
+                  currentHeight > 700
+                ) {
+                  currentWidth = Math.max(
+                    700,
+                    Math.round(
+                      currentWidth * 0.85
+                    )
+                  );
+
+                  currentHeight = Math.max(
+                    700,
+                    Math.round(
+                      currentHeight * 0.85
+                    )
+                  );
+
+                  canvas.width = currentWidth;
+                  canvas.height = currentHeight;
+
+                  context.fillStyle = "#ffffff";
+
+                  context.fillRect(
+                    0,
+                    0,
+                    currentWidth,
+                    currentHeight
+                  );
+
+                  context.drawImage(
+                    img,
+                    0,
+                    0,
+                    currentWidth,
+                    currentHeight
+                  );
+
+                  dataUrl =
+                    canvas.toDataURL(
+                      "image/jpeg",
+                      0.72
+                    );
+                }
+              }
+
+              if (
+                dataUrl.length >
+                MAX_BASE64_LENGTH
+              ) {
+                reject(
+                  new Error(
+                    "Não foi possível reduzir a imagem o suficiente. Escolha uma foto menor."
+                  )
+                );
+                return;
+              }
+
+              /**
+               * Remove o cabeçalho:
+               *
+               * data:image/jpeg;base64,
+               *
+               * deixando somente o Base64.
+               */
+              const commaIndex =
+                dataUrl.indexOf(",");
+
+              if (commaIndex === -1) {
+                reject(
+                  new Error(
+                    "Não foi possível converter a imagem para Base64."
+                  )
+                );
+                return;
+              }
+
+              const base64 =
+                dataUrl.substring(
+                  commaIndex + 1
+                );
+
+              if (!base64) {
+                reject(
+                  new Error(
+                    "A imagem convertida ficou vazia."
+                  )
+                );
+                return;
+              }
+
+              resolve(base64);
+            } catch {
               reject(
                 new Error(
-                  "Não foi possível reduzir a imagem o suficiente. Escolha uma foto menor."
+                  "Erro ao preparar a imagem."
                 )
               );
-
-              return;
             }
+          };
 
-            /**
-             * IMPORTANTE:
-             *
-             * A Kling espera o Base64 puro.
-             *
-             * Removemos:
-             *
-             * data:image/jpeg;base64,
-             */
-            const base64 =
-              dataUrl.replace(
-                /^data:image\/jpeg;base64,/,
-                ""
-              );
-
-            resolve(base64);
-          } catch (error) {
-            URL.revokeObjectURL(
-              objectUrl
-            );
-
+          img.onerror = () => {
             reject(
-              error instanceof Error
-                ? error
-                : new Error(
-                    "Erro ao preparar a imagem."
-                  )
+              new Error(
+                "Não foi possível carregar a imagem selecionada."
+              )
             );
-          }
-        };
+          };
 
-        img.onerror = () => {
-          URL.revokeObjectURL(
-            objectUrl
-          );
-
+          /**
+           * Usa o Data URL diretamente.
+           * Não usa blob URL aqui.
+           */
+          img.src = source;
+        } catch {
           reject(
             new Error(
-              "Não foi possível carregar a imagem selecionada."
+              "Erro ao processar a imagem selecionada."
             )
           );
-        };
+        }
+      };
 
-        img.src =
-          objectUrl;
-      }
-    );
+      reader.onerror = () => {
+        reject(
+          new Error(
+            "Não foi possível ler o arquivo de imagem."
+          )
+        );
+      };
+
+      reader.onabort = () => {
+        reject(
+          new Error(
+            "A leitura da imagem foi interrompida."
+          )
+        );
+      };
+
+      reader.readAsDataURL(file);
+    });
   }
 
   /**
@@ -424,75 +386,50 @@ export default function ImagemImagemPage() {
    */
 
   async function handleGenerate() {
-    /**
-     * Primeira imagem obrigatória.
-     */
     if (!image1) {
       setErrorMessage(
         "Selecione pelo menos uma imagem de referência."
       );
-
       return;
     }
 
-    /**
-     * Prompt obrigatório.
-     */
     if (!prompt.trim()) {
       setErrorMessage(
         "Descreva o que deseja criar na imagem."
       );
-
       return;
     }
 
     setLoading(true);
-
     setErrorMessage("");
-
     setResultMessage("");
-
     setTaskId("");
-
     setResultImageUrl("");
 
     try {
       /**
-       * =================================================
-       * PREPARA IMAGEM 1
-       * =================================================
+       * Prepara a primeira imagem.
        */
-
       const image1Base64 =
-        await prepareImage(
-          image1
-        );
+        await prepareImage(image1);
 
       /**
-       * =================================================
-       * PREPARA IMAGEM 2
-       *
-       * Mantemos a preparação para a próxima
-       * versão da integração.
-       *
-       * O endpoint kling-v1-5 atual utiliza
-       * uma imagem de referência principal.
-       * =================================================
+       * Prepara a segunda imagem somente se existir.
        */
-
-      let image2Base64 =
-        "";
+      let image2Base64 = "";
 
       if (image2) {
         image2Base64 =
-          await prepareImage(
-            image2
-          );
+          await prepareImage(image2);
       }
 
       /**
        * =================================================
-       * ENVIA PARA NOSSA API
+       * CHAMADA PARA A ROTA EXISTENTE
+       *
+       * /api/kling-image-to-image
+       *
+       * A rota usa KLING_API_KEY.
        * =================================================
        */
 
@@ -511,18 +448,9 @@ export default function ImagemImagemPage() {
               prompt:
                 prompt.trim(),
 
-              /**
-               * Base64 puro.
-               */
               image:
                 image1Base64,
 
-              /**
-               * Mantemos image2 no frontend.
-               *
-               * A rota atual poderá ignorá-la
-               * enquanto usamos kling-v1-5.
-               */
               image2:
                 image2Base64 ||
                 undefined,
@@ -535,12 +463,6 @@ export default function ImagemImagemPage() {
           }
         );
 
-      /**
-       * =================================================
-       * LER RESPOSTA
-       * =================================================
-       */
-
       const responseText =
         await response.text();
 
@@ -548,16 +470,18 @@ export default function ImagemImagemPage() {
 
       try {
         data =
-          JSON.parse(
-            responseText
-          );
+          responseText
+            ? JSON.parse(
+                responseText
+              )
+            : null;
       } catch {
         data = null;
       }
 
       /**
        * =================================================
-       * ERRO HTTP
+       * ERRO
        * =================================================
        */
 
@@ -570,9 +494,7 @@ export default function ImagemImagemPage() {
           data?.klingMessage ||
           `O servidor retornou o erro ${response.status}.`;
 
-        setErrorMessage(
-          message
-        );
+        setErrorMessage(message);
 
         return;
       }
@@ -601,27 +523,17 @@ export default function ImagemImagemPage() {
         data?.data?.imageUrl ||
         "";
 
-      if (
-        returnedTaskId
-      ) {
+      if (returnedTaskId) {
         setTaskId(
           returnedTaskId
         );
       }
 
-      if (
-        returnedImageUrl
-      ) {
+      if (returnedImageUrl) {
         setResultImageUrl(
           returnedImageUrl
         );
       }
-
-      /**
-       * =================================================
-       * SUCESSO
-       * =================================================
-       */
 
       setResultMessage(
         returnedTaskId
@@ -643,12 +555,6 @@ export default function ImagemImagemPage() {
       setLoading(false);
     }
   }
-
-  /**
-   * =====================================================
-   * INTERFACE
-   * =====================================================
-   */
 
   return (
     <>
@@ -1521,7 +1427,6 @@ export default function ImagemImagemPage() {
 
         </header>
 
-
         <section className="content">
 
           <div className="title-area">
@@ -1537,7 +1442,6 @@ export default function ImagemImagemPage() {
 
           </div>
 
-
           <div className="workspace">
 
             <section className="panel">
@@ -1546,11 +1450,9 @@ export default function ImagemImagemPage() {
                 🖼️ Transformar imagem
               </h2>
 
-
               <label className="label images-label">
                 Imagens de referência
               </label>
-
 
               <div className="images-container">
 
@@ -1568,11 +1470,9 @@ export default function ImagemImagemPage() {
                     IMAGEM 1
                   </span>
 
-
                   {preview1 ? (
 
                     <>
-
                       <img
                         src={preview1}
                         alt="Imagem de referência 1"
@@ -1596,7 +1496,6 @@ export default function ImagemImagemPage() {
                         />
 
                       </label>
-
                     </>
 
                   ) : (
@@ -1639,7 +1538,6 @@ export default function ImagemImagemPage() {
 
                 </div>
 
-
                 {/* IMAGEM 2 */}
 
                 <div
@@ -1654,11 +1552,9 @@ export default function ImagemImagemPage() {
                     IMAGEM 2
                   </span>
 
-
                   {preview2 ? (
 
                     <>
-
                       <img
                         src={preview2}
                         alt="Imagem de referência 2"
@@ -1682,7 +1578,6 @@ export default function ImagemImagemPage() {
                         />
 
                       </label>
-
                     </>
 
                   ) : (
@@ -1727,11 +1622,9 @@ export default function ImagemImagemPage() {
 
               </div>
 
-
               <label className="label">
                 O que deseja criar?
               </label>
-
 
               <textarea
                 className="prompt"
@@ -1743,7 +1636,6 @@ export default function ImagemImagemPage() {
                 }
                 placeholder="Exemplo: Coloque o carro da segunda imagem no cenário da primeira imagem, mantendo o realismo e a iluminação natural..."
               />
-
 
               <div className="options">
 
@@ -1777,7 +1669,6 @@ export default function ImagemImagemPage() {
                   </select>
 
                 </div>
-
 
                 <div>
 
@@ -1820,7 +1711,6 @@ export default function ImagemImagemPage() {
 
               </div>
 
-
               <div className="credits">
 
                 💎 Seus créditos:{" "}
@@ -1831,12 +1721,9 @@ export default function ImagemImagemPage() {
 
               </div>
 
-
               <button
                 className="generate"
-                onClick={
-                  handleGenerate
-                }
+                onClick={handleGenerate}
                 disabled={loading}
               >
 
@@ -1848,13 +1735,11 @@ export default function ImagemImagemPage() {
 
             </section>
 
-
             <section className="panel">
 
               <h2>
                 🖼️ Resultado
               </h2>
-
 
               <div
                 className={`preview ${
@@ -1869,9 +1754,7 @@ export default function ImagemImagemPage() {
                   {resultImageUrl ? (
 
                     <img
-                      src={
-                        resultImageUrl
-                      }
+                      src={resultImageUrl}
                       alt="Imagem gerada"
                       className="preview-image"
                     />
@@ -1892,7 +1775,6 @@ export default function ImagemImagemPage() {
 
                       </div>
 
-
                       <h3>
 
                         {loading
@@ -1904,7 +1786,6 @@ export default function ImagemImagemPage() {
                           : "Sua nova imagem aparecerá aqui"}
 
                       </h3>
-
 
                       {!loading &&
                         !resultMessage &&
@@ -1924,7 +1805,6 @@ export default function ImagemImagemPage() {
 
                   )}
 
-
                   {resultMessage && (
 
                     <div className="success-message">
@@ -1932,7 +1812,6 @@ export default function ImagemImagemPage() {
                     </div>
 
                   )}
-
 
                   {taskId && (
 
@@ -1949,7 +1828,6 @@ export default function ImagemImagemPage() {
                     </div>
 
                   )}
-
 
                   {errorMessage && (
 
@@ -1969,7 +1847,6 @@ export default function ImagemImagemPage() {
 
         </section>
 
-
         <footer className="footer">
 
           <div className="footer-inner">
@@ -1985,7 +1862,6 @@ export default function ImagemImagemPage() {
               </p>
 
             </div>
-
 
             <div className="footer-columns">
 
@@ -2021,7 +1897,6 @@ export default function ImagemImagemPage() {
 
               </div>
 
-
               <div className="footer-column">
 
                 <h3>
@@ -2041,7 +1916,6 @@ export default function ImagemImagemPage() {
                 </Link>
 
               </div>
-
 
               <div className="footer-column">
 
@@ -2064,7 +1938,6 @@ export default function ImagemImagemPage() {
               </div>
 
             </div>
-
 
             <div className="footer-bottom">
 
