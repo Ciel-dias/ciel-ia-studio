@@ -103,9 +103,7 @@ export default function MinhaContaPage() {
     setError("");
 
     if (!newPassword) {
-      setError(
-        "Digite uma nova senha."
-      );
+      setError("Digite uma nova senha.");
       return;
     }
 
@@ -116,10 +114,7 @@ export default function MinhaContaPage() {
       return;
     }
 
-    if (
-      newPassword !==
-      confirmPassword
-    ) {
+    if (newPassword !== confirmPassword) {
       setError(
         "As senhas não coincidem."
       );
@@ -237,19 +232,22 @@ export default function MinhaContaPage() {
         }
 
         /* ================================
-           CABEÇALHO
+           CABEÇALHO — IGUAL AO DASHBOARD
         ================================= */
 
         .topbar {
+          width: 100%;
           min-height: 74px;
-          padding: 0 42px;
 
           display: flex;
           align-items: center;
           justify-content: space-between;
 
+          gap: 20px;
+          padding: 0 42px;
+
           background:
-            rgba(4, 12, 24, 0.9);
+            rgba(4, 12, 24, 0.88);
 
           border-bottom:
             1px solid
@@ -262,10 +260,12 @@ export default function MinhaContaPage() {
           display: flex;
           align-items: center;
           gap: 10px;
+
+          white-space: nowrap;
         }
 
         .brand-icon {
-          font-size: 27px;
+          font-size: 28px;
         }
 
         .brand-name {
@@ -276,18 +276,29 @@ export default function MinhaContaPage() {
         }
 
         .back {
-          color: #bfeaff;
+          display: flex;
+          align-items: center;
+
+          color: #e8eef7;
+
           text-decoration: none;
-          font-size: 14px;
+
+          font-size: 15px;
           font-weight: 600;
-          transition: 0.2s ease;
+
+          white-space: nowrap;
+
+          transition:
+            color 0.2s ease,
+            text-shadow 0.2s ease;
         }
 
         .back:hover {
-          color: #6ed7ff;
+          color: #159ddd;
+
           text-shadow:
             0 0 12px
-            rgba(75, 199, 255, 0.8);
+            rgba(75, 199, 255, 0.6);
         }
 
         /* ================================
@@ -302,11 +313,14 @@ export default function MinhaContaPage() {
             );
 
           margin: 0 auto;
-          padding: 55px 0 70px;
+
+          padding:
+            55px 0 70px;
         }
 
         .title-area {
           text-align: center;
+
           margin-bottom: 38px;
         }
 
@@ -352,6 +366,7 @@ export default function MinhaContaPage() {
 
         .card {
           border-radius: 22px;
+
           padding: 28px;
 
           background:
@@ -386,7 +401,9 @@ export default function MinhaContaPage() {
 
         .profile {
           text-align: center;
-          padding: 10px 0 18px;
+
+          padding:
+            10px 0 18px;
         }
 
         .avatar {
@@ -434,8 +451,7 @@ export default function MinhaContaPage() {
 
           font-size: 14px;
 
-          word-break:
-            break-word;
+          word-break: break-word;
         }
 
         /* ================================
@@ -445,6 +461,7 @@ export default function MinhaContaPage() {
         .info-list {
           display: flex;
           flex-direction: column;
+
           gap: 13px;
         }
 
@@ -471,15 +488,18 @@ export default function MinhaContaPage() {
 
         .info-label {
           color: #91a4b7;
+
           font-size: 13px;
         }
 
         .info-value {
           color: #dcefff;
+
           font-size: 14px;
           font-weight: 700;
 
           text-align: right;
+
           word-break: break-word;
         }
 
@@ -517,13 +537,17 @@ export default function MinhaContaPage() {
 
         .credits-title {
           color: #b9c9d9;
+
           font-size: 14px;
+
           margin-bottom: 7px;
         }
 
         .credits-number {
           font-size: 38px;
+
           font-weight: 800;
+
           color: #fff;
         }
 
@@ -606,6 +630,7 @@ export default function MinhaContaPage() {
           padding: 14px;
 
           border: none;
+
           border-radius: 12px;
 
           cursor: pointer;
@@ -646,6 +671,7 @@ export default function MinhaContaPage() {
           border-radius: 11px;
 
           font-size: 13px;
+
           line-height: 1.5;
         }
 
@@ -907,11 +933,22 @@ export default function MinhaContaPage() {
         @media (max-width: 650px) {
           .topbar {
             min-height: 68px;
+
             padding: 0 16px;
+
+            gap: 12px;
           }
 
           .brand-name {
             font-size: 16px;
+          }
+
+          .brand-icon {
+            font-size: 23px;
+          }
+
+          .back {
+            font-size: 13px;
           }
 
           .content {
@@ -926,6 +963,7 @@ export default function MinhaContaPage() {
 
           .card {
             padding: 21px;
+
             border-radius: 18px;
           }
 
@@ -956,27 +994,31 @@ export default function MinhaContaPage() {
 
           .footer-columns {
             grid-template-columns: 1fr;
+
             gap: 30px;
           }
         }
 
         @media (max-width: 430px) {
           .topbar {
-            flex-wrap: wrap;
+            flex-wrap: nowrap;
 
-            justify-content: center;
+            justify-content: space-between;
 
             padding:
               14px 10px;
           }
 
           .brand {
-            width: 100%;
-            justify-content: center;
+            width: auto;
+
+            justify-content: flex-start;
           }
 
           .back {
-            margin-top: 4px;
+            margin-top: 0;
+
+            text-align: right;
           }
 
           .title-area h1 {
@@ -989,7 +1031,9 @@ export default function MinhaContaPage() {
 
           .info-row {
             align-items: flex-start;
+
             flex-direction: column;
+
             gap: 5px;
           }
 
@@ -1001,7 +1045,11 @@ export default function MinhaContaPage() {
 
       <main className="page">
 
-        {/* CABEÇALHO */}
+        {/* ================================
+            CABEÇALHO
+            CIEL IA STUDIO À ESQUERDA
+            VOLTAR AO DASHBOARD À DIREITA
+        ================================= */}
 
         <header className="topbar">
 
@@ -1026,7 +1074,9 @@ export default function MinhaContaPage() {
 
         </header>
 
-        {/* CONTEÚDO */}
+        {/* ================================
+            CONTEÚDO
+        ================================= */}
 
         <section className="content">
 
@@ -1290,7 +1340,9 @@ export default function MinhaContaPage() {
 
         </section>
 
-        {/* RODAPÉ */}
+        {/* ================================
+            RODAPÉ
+        ================================= */}
 
         <footer className="footer">
 
