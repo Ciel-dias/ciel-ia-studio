@@ -7,6 +7,8 @@ type KlingResponse = {
   status?: string;
   message?: string;
   taskId?: string | null;
+  imageUrl?: string | null;
+  videoUrl?: string | null;
   klingStatus?: number;
   klingResponse?: {
     code?: number;
@@ -14,32 +16,143 @@ type KlingResponse = {
     request_id?: string;
     data?: {
       task_id?: string;
+      task_status?: string;
+      task_status_msg?: string;
+      task_result?: {
+        videos?: Array<{
+          id?: string;
+          url?: string;
+        }>;
+      };
     };
     task_id?: string;
+    task_status?: string;
   };
 };
 
-export default function TextoVideoPage() {
-  const [prompt, setPrompt] = useState("");
-  const [aspectRatio, setAspectRatio] = useState("9:16");
-  const [duration, setDuration] = useState("5 segundos");
-  const [style, setStyle] = useState("Realista");
-  const [loading, setLoading] = useState(false);
+type ResultState = {
+  type: "idle" | "loading" | "success" | "error";
+  message: string;
+  details?: KlingResponse;
+};
 
-  const [result, setResult] = useState<{
-    type: "idle" | "loading" | "success" | "error";
-    message: string;
-    details?: KlingResponse;
-  }>({
-    type: "idle",
-    message: "",
-  });
+export default function ImagemVideoPage() {
+  const [image, setImage] = useState<string | null>(null);
+  const [prompt, setPrompt] = useState("");
+
+  const [aspectRatio, setAspectRatio] =
+    useState("9:16");
+
+  const [duration, setDuration] =
+    useState("5 segundos");
+
+  const [style, setStyle] =
+    useState("Realista");
+
+  const [loading, setLoading] =
+    useState(false);
+
+  const [result, setResult] =
+    useState<ResultState>({
+      type: "idle",
+      message: "",
+    });
+
+  function fileToDataUrl(
+    file: File
+  ): Promise<string> {
+    return new Promise(
+      (resolve, reject) => {
+        const reader =
+          new FileReader();
+
+        reader.onload = () => {
+          resolve(
+            reader.result as string
+          );
+        };
+
+        reader.onerror = () => {
+          reject(
+            new Error(
+              "Não foi possível ler a imagem."
+            )
+          );
+        };
+
+        reader.readAsDataURL(file);
+      }
+    );
+  }
+
+  async function handleImageChange(
+    event: React.ChangeEvent<HTMLInputElement>
+  ) {
+    const file =
+      event.target.files?.[0];
+
+    if (!file) return;
+
+    if (!file.type.startsWith("image/")) {
+      setResult({
+        type: "error",
+        message:
+          "Selecione um arquivo de imagem válido.",
+      });
+
+      return;
+    }
+
+    if (file.size > 10 * 1024 * 1024) {
+      setResult({
+        type: "error",
+        message:
+          "A imagem é muito grande. Escolha uma imagem de até 10 MB.",
+      });
+
+      return;
+    }
+
+    try {
+      const dataUrl =
+        await fileToDataUrl(file);
+
+      setImage(dataUrl);
+
+      setResult({
+        type: "idle",
+        message: "",
+      });
+    } catch (error) {
+      console.error(
+        "Erro ao carregar imagem:",
+        error
+      );
+
+      setResult({
+        type: "error",
+        message:
+          "Não foi possível carregar a imagem.",
+      });
+    }
+  }
 
   async function handleGenerate() {
+    if (!image) {
+      setResult({
+        type: "error",
+        message:
+          "Envie uma imagem antes de gerar o vídeo.",
+      });
+
+      return;
+    }
+
     if (!prompt.trim()) {
       setResult({
         type: "error",
-        message: "Digite uma descrição para gerar seu vídeo.",
+        message:
+          "Digite uma descrição para o vídeo.",
       });
 
       return;
@@ -49,70 +162,83 @@ export default function TextoVideoPage() {
 
     setResult({
       type: "loading",
-      message: "Enviando sua criação para a Kling...",
+      message:
+        "Enviando sua imagem para a Kling...",
     });
 
     try {
-      /*
-       * A rota atual da Kling trabalha com:
-       * 5 ou 10 segundos.
-       */
-
       const durationValue =
         duration === "10 segundos"
           ? "10"
           : "5";
 
-      const response = await fetch("/api/kling", {
-        method: "POST",
+      const finalPrompt =
+        style &&
+        style !== "Realista"
+          ? `${prompt.trim()} Estilo visual: ${style}.`
+          : prompt.trim();
 
-        headers: {
-          "Content-Type": "application/json",
-        },
+      const response =
+        await fetch(
+          "/api/kling-image-to-video",
+          {
+            method: "POST",
 
-        body: JSON.stringify({
-          prompt: prompt.trim(),
+            headers: {
+              "Content-Type":
+                "application/json",
+            },
 
-          aspect_ratio: aspectRatio,
+            body: JSON.stringify({
+              image,
 
-          duration: durationValue,
+              prompt: finalPrompt,
 
-          mode: "std",
+              aspect_ratio:
+                aspectRatio,
 
-          model_name: "kling-v3",
+              duration:
+                durationValue,
 
-          negative_prompt:
-            "baixa qualidade, deformações, mãos deformadas, rosto deformado",
-        }),
-      });
+              model_name:
+                "kling-v3",
 
-      const data: KlingResponse =
-        await response.json();
+              mode: "std",
+            }),
+          }
+        );
 
-      /*
-       * Erro retornado pela API.
-       */
+      let data: KlingResponse;
 
-      if (!response.ok || data.status === "error") {
+      try {
+        data =
+          await response.json();
+      } catch {
+        throw new Error(
+          "A API retornou uma resposta inválida."
+        );
+      }
+
+      console.log(
+        "CIEL IA STUDIO - Imagem → Vídeo:",
+        data
+      );
+
+      if (
+        !response.ok ||
+        data.status === "error"
+      ) {
         const klingData =
           data.klingResponse;
 
         const klingCode =
-          klingData?.code ?? "N/A";
+          klingData?.code ??
+          "N/A";
 
         const klingMessage =
           klingData?.message ||
           data.message ||
           "A Kling recusou a solicitação.";
-
-        const requestId =
-          klingData?.request_id ||
-          "N/A";
-
-        /*
-         * Código 1102:
-         * Account balance not enough
-         */
 
         if (
           klingCode === 1102 ||
@@ -137,7 +263,8 @@ export default function TextoVideoPage() {
         setResult({
           type: "error",
 
-          message: klingMessage,
+          message:
+            klingMessage,
 
           details: data,
         });
@@ -145,14 +272,12 @@ export default function TextoVideoPage() {
         return;
       }
 
-      /*
-       * Solicitação aceita pela Kling.
-       */
-
       const taskId =
         data.taskId ||
-        data.klingResponse?.data?.task_id ||
-        data.klingResponse?.task_id ||
+        data.klingResponse
+          ?.data?.task_id ||
+        data.klingResponse
+          ?.task_id ||
         null;
 
       setResult({
@@ -168,7 +293,7 @@ export default function TextoVideoPage() {
       });
     } catch (error) {
       console.error(
-        "Erro ao chamar /api/kling:",
+        "Erro ao chamar /api/kling-image-to-video:",
         error
       );
 
@@ -217,7 +342,7 @@ export default function TextoVideoPage() {
         .page {
           min-height: 100vh;
 
-          color: #fff;
+          color: #ffffff;
 
           background:
             radial-gradient(
@@ -225,11 +350,13 @@ export default function TextoVideoPage() {
               rgba(20, 119, 190, 0.4),
               transparent 38%
             ),
+
             radial-gradient(
               circle at 15% 70%,
               rgba(15, 76, 125, 0.28),
               transparent 40%
             ),
+
             linear-gradient(
               135deg,
               #06101e 0%,
@@ -241,13 +368,14 @@ export default function TextoVideoPage() {
         }
 
         /* =========================
-           TOPO
+           CABEÇALHO CORRIGIDO
+           IGUAL AO CONTATO
         ========================= */
 
         .topbar {
-          min-height: 74px;
+          width: 100%;
 
-          padding: 0 42px;
+          min-height: 74px;
 
           display: flex;
 
@@ -255,18 +383,27 @@ export default function TextoVideoPage() {
 
           justify-content: space-between;
 
+          padding: 0 42px;
+
           background:
-            rgba(4, 12, 24, 0.9);
+            rgba(
+              4,
+              12,
+              24,
+              0.92
+            );
 
           border-bottom:
-            1px solid rgba(
+            1px solid
+            rgba(
               100,
               180,
               255,
               0.18
             );
 
-          backdrop-filter: blur(12px);
+          backdrop-filter:
+            blur(12px);
         }
 
         .brand {
@@ -275,38 +412,62 @@ export default function TextoVideoPage() {
           align-items: center;
 
           gap: 10px;
+
+          white-space: nowrap;
         }
 
         .brand-icon {
-          font-size: 27px;
+          font-size: 28px;
+
+          filter:
+            drop-shadow(
+              0 0 10px
+              rgba(
+                75,
+                199,
+                255,
+                0.8
+              )
+            );
         }
 
         .brand-name {
           font-size: 20px;
 
-          font-weight: 700;
+          font-weight: 800;
 
-          letter-spacing: 0.4px;
+          letter-spacing: 0.5px;
         }
 
-        .back {
-          color: #bfeaff;
+        .back-link {
+          color: #7bd8ff;
 
           text-decoration: none;
 
-          font-size: 14px;
+          font-size: 17px;
+
+          font-weight: 700;
 
           transition:
             color 0.2s ease,
-            text-shadow 0.2s ease;
+            text-shadow 0.2s ease,
+            transform 0.2s ease;
         }
 
-        .back:hover {
-          color: #6ed7ff;
+        .back-link:hover {
+          color: #b4ecff;
 
           text-shadow:
             0 0 12px
-            rgba(75, 199, 255, 0.8);
+            rgba(
+              75,
+              199,
+              255,
+              0.8
+            );
+
+          transform:
+            translateX(-2px);
         }
 
         /* =========================
@@ -315,7 +476,10 @@ export default function TextoVideoPage() {
 
         .content {
           width:
-            min(1180px, calc(100% - 40px));
+            min(
+              1180px,
+              calc(100% - 40px)
+            );
 
           margin: 0 auto;
 
@@ -333,16 +497,22 @@ export default function TextoVideoPage() {
           margin: 0;
 
           font-size:
-            clamp(32px, 5vw, 52px);
+            clamp(
+              32px,
+              5vw,
+              52px
+            );
 
           text-transform: uppercase;
+
+          letter-spacing: 0.5px;
         }
 
         .title-area p {
           margin:
             14px auto 0;
 
-          max-width: 650px;
+          max-width: 680px;
 
           color: #b7c5d5;
 
@@ -367,7 +537,7 @@ export default function TextoVideoPage() {
         }
 
         /* =========================
-           PAINÉIS
+           PAINEL
         ========================= */
 
         .panel {
@@ -378,22 +548,48 @@ export default function TextoVideoPage() {
           background:
             linear-gradient(
               145deg,
-              rgba(35, 47, 65, 0.95),
-              rgba(14, 25, 40, 0.97)
+              rgba(
+                35,
+                47,
+                65,
+                0.95
+              ),
+              rgba(
+                14,
+                25,
+                40,
+                0.97
+              )
             );
 
           border:
-            2px solid #58c9ff;
+            2px solid
+            #58c9ff;
 
           box-shadow:
             0 0 8px
-            rgba(70, 199, 255, 0.8),
+            rgba(
+              70,
+              199,
+              255,
+              0.8
+            ),
 
             0 0 22px
-            rgba(43, 167, 255, 0.35),
+            rgba(
+              43,
+              167,
+              255,
+              0.35
+            ),
 
             inset 0 0 22px
-            rgba(56, 174, 255, 0.07);
+            rgba(
+              56,
+              174,
+              255,
+              0.07
+            );
         }
 
         .panel h2 {
@@ -404,7 +600,7 @@ export default function TextoVideoPage() {
         }
 
         /* =========================
-           CAMPOS
+           LABELS
         ========================= */
 
         .label {
@@ -420,10 +616,234 @@ export default function TextoVideoPage() {
           font-weight: 700;
         }
 
+        /* =========================
+           UPLOAD
+        ========================= */
+
+        .upload-box {
+          position: relative;
+
+          width: 100%;
+
+          height: 270px;
+
+          border-radius: 16px;
+
+          border:
+            2px dashed
+            rgba(
+              104,
+              207,
+              255,
+              0.5
+            );
+
+          background:
+            radial-gradient(
+              circle,
+              rgba(
+                43,
+                167,
+                255,
+                0.09
+              ),
+              transparent 60%
+            ),
+
+            rgba(
+              3,
+              13,
+              25,
+              0.75
+            );
+
+          display: flex;
+
+          align-items: center;
+
+          justify-content: center;
+
+          text-align: center;
+
+          overflow: hidden;
+
+          cursor: pointer;
+
+          transition:
+            border-color 0.2s ease,
+            box-shadow 0.2s ease,
+            background 0.2s ease;
+        }
+
+        .upload-box:hover {
+          border-color:
+            #63d3ff;
+
+          box-shadow:
+            0 0 12px
+            rgba(
+              70,
+              199,
+              255,
+              0.35
+            ),
+
+            inset 0 0 20px
+            rgba(
+              56,
+              174,
+              255,
+              0.08
+            );
+        }
+
+        .upload-input {
+          display: none;
+        }
+
+        .upload-content {
+          position: relative;
+
+          z-index: 2;
+
+          padding: 20px;
+        }
+
+        .upload-plus {
+          width: 70px;
+
+          height: 70px;
+
+          margin:
+            0 auto 16px;
+
+          display: flex;
+
+          align-items: center;
+
+          justify-content: center;
+
+          border-radius: 18px;
+
+          border:
+            2px solid
+            #58c9ff;
+
+          background:
+            rgba(
+              5,
+              24,
+              42,
+              0.8
+            );
+
+          color: #69d5ff;
+
+          font-size: 42px;
+
+          line-height: 1;
+
+          box-shadow:
+            0 0 10px
+            rgba(
+              70,
+              199,
+              255,
+              0.45
+            ),
+
+            inset 0 0 15px
+            rgba(
+              56,
+              174,
+              255,
+              0.08
+            );
+        }
+
+        .upload-title {
+          margin: 0;
+
+          font-size: 18px;
+
+          font-weight: 700;
+        }
+
+        .upload-description {
+          margin:
+            9px auto 0;
+
+          max-width: 310px;
+
+          color: #8798aa;
+
+          font-size: 14px;
+
+          line-height: 1.5;
+        }
+
+        /* =========================
+           PRÉVIA
+        ========================= */
+
+        .image-preview {
+          position: absolute;
+
+          inset: 0;
+
+          width: 100%;
+
+          height: 100%;
+
+          object-fit: contain;
+
+          background:
+            #020c18;
+
+          display: block;
+        }
+
+        .image-overlay {
+          position: absolute;
+
+          left: 0;
+
+          right: 0;
+
+          bottom: 0;
+
+          padding: 14px;
+
+          background:
+            linear-gradient(
+              transparent,
+              rgba(
+                0,
+                0,
+                0,
+                0.82
+              )
+            );
+
+          color: #ffffff;
+
+          font-size: 13px;
+
+          font-weight: 700;
+
+          text-align: center;
+
+          z-index: 3;
+        }
+
+        /* =========================
+           PROMPT
+        ========================= */
+
         .prompt {
           width: 100%;
 
-          min-height: 210px;
+          min-height: 165px;
 
           resize: vertical;
 
@@ -431,16 +851,26 @@ export default function TextoVideoPage() {
 
           border:
             1px solid
-            rgba(94, 203, 255, 0.45);
+            rgba(
+              94,
+              203,
+              255,
+              0.45
+            );
 
           border-radius: 14px;
 
           outline: none;
 
           background:
-            rgba(3, 13, 25, 0.8);
+            rgba(
+              3,
+              13,
+              25,
+              0.8
+            );
 
-          color: #fff;
+          color: #ffffff;
 
           font-size: 15px;
 
@@ -452,17 +882,27 @@ export default function TextoVideoPage() {
             sans-serif;
         }
 
-        .prompt::placeholder {
-          color: #68798b;
-        }
-
         .prompt:focus {
-          border-color: #63d3ff;
+          border-color:
+            #63d3ff;
 
           box-shadow:
             0 0 15px
-            rgba(70, 199, 255, 0.25);
+            rgba(
+              70,
+              199,
+              255,
+              0.25
+            );
         }
+
+        .prompt::placeholder {
+          color: #657589;
+        }
+
+        /* =========================
+           OPÇÕES
+        ========================= */
 
         .options {
           display: grid;
@@ -482,13 +922,19 @@ export default function TextoVideoPage() {
 
           border:
             1px solid
-            rgba(94, 203, 255, 0.35);
+            rgba(
+              94,
+              203,
+              255,
+              0.35
+            );
 
           outline: none;
 
-          background: #0a192b;
+          background:
+            #0a192b;
 
-          color: #fff;
+          color: #ffffff;
 
           font-size: 14px;
 
@@ -496,11 +942,17 @@ export default function TextoVideoPage() {
         }
 
         select:focus {
-          border-color: #63d3ff;
+          border-color:
+            #63d3ff;
 
           box-shadow:
             0 0 12px
-            rgba(70, 199, 255, 0.2);
+            rgba(
+              70,
+              199,
+              255,
+              0.2
+            );
         }
 
         /* =========================
@@ -516,11 +968,21 @@ export default function TextoVideoPage() {
           border-radius: 12px;
 
           background:
-            rgba(29, 112, 157, 0.16);
+            rgba(
+              29,
+              112,
+              157,
+              0.16
+            );
 
           border:
             1px solid
-            rgba(94, 203, 255, 0.25);
+            rgba(
+              94,
+              203,
+              255,
+              0.25
+            );
 
           color: #bfeaff;
 
@@ -559,10 +1021,20 @@ export default function TextoVideoPage() {
 
           box-shadow:
             0 0 10px
-            rgba(70, 199, 255, 0.7),
+            rgba(
+              70,
+              199,
+              255,
+              0.7
+            ),
 
             0 0 24px
-            rgba(43, 167, 255, 0.35);
+            rgba(
+              43,
+              167,
+              255,
+              0.35
+            );
 
           transition:
             transform 0.2s,
@@ -570,18 +1042,30 @@ export default function TextoVideoPage() {
         }
 
         .generate:hover {
-          transform: translateY(-2px);
+          transform:
+            translateY(-2px);
 
           box-shadow:
             0 0 14px
-            rgba(85, 211, 255, 1),
+            rgba(
+              85,
+              211,
+              255,
+              1
+            ),
 
             0 0 32px
-            rgba(43, 167, 255, 0.55);
+            rgba(
+              43,
+              167,
+              255,
+              0.55
+            );
         }
 
         .generate:active {
-          transform: scale(0.98);
+          transform:
+            scale(0.98);
         }
 
         .generate:disabled {
@@ -593,11 +1077,11 @@ export default function TextoVideoPage() {
         }
 
         /* =========================
-           PREVIEW
+           RESULTADO
         ========================= */
 
         .preview {
-          min-height: 500px;
+          min-height: 560px;
 
           display: flex;
 
@@ -611,15 +1095,31 @@ export default function TextoVideoPage() {
 
           border:
             1px dashed
-            rgba(104, 207, 255, 0.35);
+            rgba(
+              104,
+              207,
+              255,
+              0.35
+            );
 
           background:
             radial-gradient(
               circle,
-              rgba(43, 167, 255, 0.08),
+              rgba(
+                43,
+                167,
+                255,
+                0.08
+              ),
               transparent 55%
             ),
-            rgba(2, 12, 24, 0.55);
+
+            rgba(
+              2,
+              12,
+              24,
+              0.55
+            );
 
           overflow: hidden;
 
@@ -642,7 +1142,7 @@ export default function TextoVideoPage() {
           margin:
             10px auto 0;
 
-          max-width: 430px;
+          max-width: 400px;
 
           color: #8798aa;
 
@@ -683,11 +1183,21 @@ export default function TextoVideoPage() {
           border-radius: 16px;
 
           background:
-            rgba(26, 126, 91, 0.14);
+            rgba(
+              26,
+              126,
+              91,
+              0.14
+            );
 
           border:
             1px solid
-            rgba(78, 220, 164, 0.45);
+            rgba(
+              78,
+              220,
+              164,
+              0.45
+            );
         }
 
         .result-success
@@ -703,11 +1213,21 @@ export default function TextoVideoPage() {
           border-radius: 16px;
 
           background:
-            rgba(145, 35, 45, 0.16);
+            rgba(
+              145,
+              35,
+              45,
+              0.16
+            );
 
           border:
             1px solid
-            rgba(255, 105, 120, 0.5);
+            rgba(
+              255,
+              105,
+              120,
+              0.5
+            );
         }
 
         .result-error
@@ -725,11 +1245,21 @@ export default function TextoVideoPage() {
           border-radius: 12px;
 
           background:
-            rgba(0, 0, 0, 0.25);
+            rgba(
+              0,
+              0,
+              0,
+              0.25
+            );
 
           border:
             1px solid
-            rgba(255, 255, 255, 0.08);
+            rgba(
+              255,
+              255,
+              255,
+              0.08
+            );
 
           font-size: 13px;
 
@@ -750,11 +1280,21 @@ export default function TextoVideoPage() {
           border-radius: 10px;
 
           background:
-            rgba(94, 203, 255, 0.08);
+            rgba(
+              94,
+              203,
+              255,
+              0.08
+            );
 
           border:
             1px solid
-            rgba(94, 203, 255, 0.25);
+            rgba(
+              94,
+              203,
+              255,
+              0.25
+            );
 
           word-break: break-all;
 
@@ -768,13 +1308,28 @@ export default function TextoVideoPage() {
         .footer {
           border-top:
             1px solid
-            rgba(100, 180, 255, 0.18);
+            rgba(
+              100,
+              180,
+              255,
+              0.18
+            );
 
           background:
             linear-gradient(
               180deg,
-              rgba(4, 15, 29, 0.96),
-              rgba(3, 11, 22, 1)
+              rgba(
+                4,
+                15,
+                29,
+                0.96
+              ),
+              rgba(
+                3,
+                11,
+                22,
+                1
+              )
             );
 
           padding:
@@ -783,7 +1338,10 @@ export default function TextoVideoPage() {
 
         .footer-inner {
           width:
-            min(1180px, 100%);
+            min(
+              1180px,
+              100%
+            );
 
           margin: 0 auto;
         }
@@ -851,7 +1409,12 @@ export default function TextoVideoPage() {
 
           border-top:
             1px solid
-            rgba(100, 180, 255, 0.16);
+            rgba(
+              100,
+              180,
+              255,
+              0.16
+            );
 
           text-align: center;
 
@@ -866,15 +1429,18 @@ export default function TextoVideoPage() {
 
         @media (max-width: 850px) {
           .topbar {
-            padding: 0 22px;
+            padding:
+              0 22px;
           }
 
           .workspace {
-            grid-template-columns: 1fr;
+            grid-template-columns:
+              1fr;
           }
 
           .preview {
-            min-height: 380px;
+            min-height:
+              380px;
           }
         }
 
@@ -886,22 +1452,30 @@ export default function TextoVideoPage() {
           .topbar {
             min-height: 68px;
 
-            padding: 0 16px;
+            padding:
+              0 16px;
 
             gap: 12px;
           }
 
           .brand-name {
-            font-size: 16px;
+            font-size: 18px;
           }
 
           .brand-icon {
             font-size: 23px;
           }
 
+          .back-link {
+            font-size: 15px;
+          }
+
           .content {
             width:
-              min(430px, calc(100% - 28px));
+              min(
+                430px,
+                calc(100% - 28px)
+              );
 
             padding-top: 38px;
           }
@@ -913,11 +1487,17 @@ export default function TextoVideoPage() {
           }
 
           .options {
-            grid-template-columns: 1fr;
+            grid-template-columns:
+              1fr;
+          }
+
+          .upload-box {
+            height: 230px;
           }
 
           .preview {
-            min-height: 320px;
+            min-height:
+              320px;
           }
 
           .footer {
@@ -926,9 +1506,35 @@ export default function TextoVideoPage() {
           }
 
           .footer-columns {
-            grid-template-columns: 1fr;
+            grid-template-columns:
+              1fr;
 
             gap: 30px;
+          }
+        }
+
+        @media (max-width: 480px) {
+          .topbar {
+            min-height: 68px;
+
+            padding:
+              0 15px;
+          }
+
+          .brand {
+            gap: 7px;
+          }
+
+          .brand-icon {
+            font-size: 23px;
+          }
+
+          .brand-name {
+            font-size: 15px;
+          }
+
+          .back-link {
+            font-size: 13px;
           }
         }
 
@@ -948,7 +1554,7 @@ export default function TextoVideoPage() {
             justify-content: center;
           }
 
-          .back {
+          .back-link {
             margin-top: 4px;
           }
 
@@ -959,12 +1565,18 @@ export default function TextoVideoPage() {
           .title-area p {
             font-size: 16px;
           }
+
+          .upload-box {
+            height: 220px;
+          }
         }
       `}</style>
 
       <main className="page">
 
-        {/* CABEÇALHO */}
+        {/* =========================
+            CABEÇALHO
+        ========================= */}
 
         <header className="topbar">
 
@@ -982,56 +1594,111 @@ export default function TextoVideoPage() {
 
           <Link
             href="/dashboard"
-            className="back"
+            className="back-link"
           >
             ← Voltar ao Dashboard
           </Link>
 
         </header>
 
-        {/* CONTEÚDO */}
+        {/* =========================
+            CONTEÚDO
+        ========================= */}
 
         <section className="content">
 
           <div className="title-area">
 
             <h1>
-              Texto → Vídeo
+              Imagem → Vídeo
             </h1>
 
             <p>
-              Transforme suas ideias em vídeos
-              incríveis usando inteligência artificial.
+              Transforme sua imagem em
+              vídeo com inteligência
+              artificial.
             </p>
 
           </div>
 
           <div className="workspace">
 
-            {/* PAINEL DE CRIAÇÃO */}
+            {/* =========================
+                PAINEL DE CRIAÇÃO
+            ========================= */}
 
             <section className="panel">
 
               <h2>
-                🎥 Criar vídeo
+                🎬 Criar vídeo
               </h2>
 
               <label className="label">
-                Descreva o que você deseja criar
+                Sua imagem
+              </label>
+
+              <label className="upload-box">
+
+                <input
+                  className="upload-input"
+                  type="file"
+                  accept="image/*"
+                  onChange={
+                    handleImageChange
+                  }
+                />
+
+                {image ? (
+                  <>
+                    <img
+                      src={image}
+                      alt="Imagem selecionada"
+                      className="image-preview"
+                    />
+
+                    <div className="image-overlay">
+                      Clique para trocar a imagem
+                    </div>
+                  </>
+                ) : (
+                  <div className="upload-content">
+
+                    <div className="upload-plus">
+                      +
+                    </div>
+
+                    <h3 className="upload-title">
+                      Envie sua imagem
+                    </h3>
+
+                    <p className="upload-description">
+                      Escolha uma imagem
+                      para transformar
+                      em vídeo com IA.
+                    </p>
+
+                  </div>
+                )}
+
+              </label>
+
+              <label className="label">
+                Descreva o vídeo que
+                você deseja criar
               </label>
 
               <textarea
                 className="prompt"
                 value={prompt}
                 onChange={(e) =>
-                  setPrompt(e.target.value)
+                  setPrompt(
+                    e.target.value
+                  )
                 }
-                placeholder="Exemplo: Uma mulher caminhando em uma cidade futurista ao pôr do sol, câmera cinematográfica acompanhando seus movimentos..."
+                placeholder="Exemplo: Faça a câmera se aproximar lentamente, com movimento natural, iluminação cinematográfica e vento suave..."
               />
 
               <div className="options">
-
-                {/* PROPORÇÃO */}
 
                 <div>
 
@@ -1040,7 +1707,9 @@ export default function TextoVideoPage() {
                   </label>
 
                   <select
-                    value={aspectRatio}
+                    value={
+                      aspectRatio
+                    }
                     onChange={(e) =>
                       setAspectRatio(
                         e.target.value
@@ -1064,8 +1733,6 @@ export default function TextoVideoPage() {
 
                 </div>
 
-                {/* DURAÇÃO */}
-
                 <div>
 
                   <label className="label">
@@ -1073,7 +1740,9 @@ export default function TextoVideoPage() {
                   </label>
 
                   <select
-                    value={duration}
+                    value={
+                      duration
+                    }
                     onChange={(e) =>
                       setDuration(
                         e.target.value
@@ -1095,8 +1764,6 @@ export default function TextoVideoPage() {
 
               </div>
 
-              {/* ESTILO */}
-
               <label className="label">
                 Estilo
               </label>
@@ -1104,7 +1771,9 @@ export default function TextoVideoPage() {
               <select
                 value={style}
                 onChange={(e) =>
-                  setStyle(e.target.value)
+                  setStyle(
+                    e.target.value
+                  )
                 }
               >
 
@@ -1130,8 +1799,6 @@ export default function TextoVideoPage() {
 
               </select>
 
-              {/* CRÉDITOS */}
-
               <div className="credits">
 
                 💎 Seus créditos:{" "}
@@ -1142,35 +1809,42 @@ export default function TextoVideoPage() {
 
               </div>
 
-              {/* BOTÃO */}
-
               <button
                 className="generate"
-                onClick={handleGenerate}
+                onClick={
+                  handleGenerate
+                }
                 disabled={loading}
               >
 
                 {loading
-                  ? "🎥 Enviando para Kling..."
-                  : "🎥 Gerar Vídeo"}
+                  ? "🎬 Enviando para Kling..."
+                  : "✨ Gerar Vídeo"}
 
               </button>
 
             </section>
 
-            {/* RESULTADO */}
+            {/* =========================
+                RESULTADO
+            ========================= */}
 
             <section className="panel">
 
               <h2>
-                🎬 Resultado
+                🎥 Resultado
               </h2>
 
-              <div className="preview">
+              <div
+                className={`preview ${
+                  loading
+                    ? "loading"
+                    : ""
+                }`}
+              >
 
-                {/* ESTADO INICIAL */}
-
-                {result.type === "idle" && (
+                {result.type ===
+                  "idle" && (
                   <div>
 
                     <div className="preview-icon">
@@ -1182,21 +1856,18 @@ export default function TextoVideoPage() {
                     </h3>
 
                     <p>
-                      Escreva um prompt ao lado e
-                      clique em “Gerar Vídeo” para
-                      começar.
+                      Envie uma imagem,
+                      descreva o movimento
+                      desejado e clique
+                      em “Gerar Vídeo”.
                     </p>
 
                   </div>
                 )}
 
-                {/* ENVIANDO */}
-
-                {result.type === "loading" && (
-                  <div
-                    className=
-                      "result-loading loading"
-                  >
+                {result.type ===
+                  "loading" && (
+                  <div className="result-loading">
 
                     <div className="preview-icon">
                       🎥
@@ -1207,17 +1878,25 @@ export default function TextoVideoPage() {
                     </h3>
 
                     <p>
-                      Estamos enviando sua
-                      solicitação de geração
-                      de vídeo.
+                      Estamos enviando
+                      sua imagem e suas
+                      configurações
+                      para geração
+                      do vídeo.
+                    </p>
+
+                    <p>
+                      Duração:{" "}
+                      <strong>
+                        {duration}
+                      </strong>
                     </p>
 
                   </div>
                 )}
 
-                {/* SUCESSO */}
-
-                {result.type === "success" && (
+                {result.type ===
+                  "success" && (
                   <div className="result-success">
 
                     <div className="preview-icon">
@@ -1225,16 +1904,19 @@ export default function TextoVideoPage() {
                     </div>
 
                     <h3>
-                      Tarefa enviada com sucesso!
+                      Tarefa enviada
+                      com sucesso!
                     </h3>
 
                     <p>
-                      A Kling aceitou sua
-                      solicitação e iniciou o
+                      A Kling aceitou
+                      sua solicitação
+                      e iniciou o
                       processamento.
                     </p>
 
-                    {result.details?.taskId && (
+                    {result.details
+                      ?.taskId && (
                       <div className="task-id">
 
                         <strong>
@@ -1243,17 +1925,44 @@ export default function TextoVideoPage() {
 
                         <br />
 
-                        {result.details.taskId}
+                        {
+                          result.details
+                            .taskId
+                        }
 
                       </div>
                     )}
 
+                    <div className="details">
+
+                      <div>
+                        <strong>
+                          Duração:
+                        </strong>{" "}
+                        {duration}
+                      </div>
+
+                      <div>
+                        <strong>
+                          Proporção:
+                        </strong>{" "}
+                        {aspectRatio}
+                      </div>
+
+                      <div>
+                        <strong>
+                          Modelo:
+                        </strong>{" "}
+                        kling-v3
+                      </div>
+
+                    </div>
+
                   </div>
                 )}
 
-                {/* ERRO */}
-
-                {result.type === "error" && (
+                {result.type ===
+                  "error" && (
                   <div className="result-error">
 
                     <div className="preview-icon">
@@ -1261,8 +1970,13 @@ export default function TextoVideoPage() {
                     </div>
 
                     <h3>
-                      {result.message}
+                      Não foi possível
+                      gerar o vídeo
                     </h3>
+
+                    <p>
+                      {result.message}
+                    </p>
 
                     {result.details && (
                       <div className="details">
@@ -1322,7 +2036,9 @@ export default function TextoVideoPage() {
 
         </section>
 
-        {/* RODAPÉ */}
+        {/* =========================
+            RODAPÉ
+        ========================= */}
 
         <footer className="footer">
 
@@ -1335,14 +2051,13 @@ export default function TextoVideoPage() {
               </h2>
 
               <p>
-                Crie. Transforme. Inove com IA.
+                Crie. Transforme. Inove
+                com IA.
               </p>
 
             </div>
 
             <div className="footer-columns">
-
-              {/* PRODUTO */}
 
               <div className="footer-column">
 
@@ -1376,8 +2091,6 @@ export default function TextoVideoPage() {
 
               </div>
 
-              {/* SUPORTE */}
-
               <div className="footer-column">
 
                 <h3>
@@ -1397,8 +2110,6 @@ export default function TextoVideoPage() {
                 </Link>
 
               </div>
-
-              {/* LEGAL */}
 
               <div className="footer-column">
 
@@ -1425,7 +2136,8 @@ export default function TextoVideoPage() {
             <div className="footer-bottom">
 
               © 2026 CIEL IA STUDIO.
-              Todos os direitos reservados.
+              Todos os direitos
+              reservados.
 
             </div>
 
