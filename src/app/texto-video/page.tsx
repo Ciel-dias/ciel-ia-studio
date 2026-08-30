@@ -7,7 +7,6 @@ type KlingResponse = {
   status?: string;
   message?: string;
   taskId?: string | null;
-  imageUrl?: string | null;
   videoUrl?: string | null;
   klingStatus?: number;
   klingResponse?: {
@@ -36,8 +35,7 @@ type ResultState = {
   details?: KlingResponse;
 };
 
-export default function ImagemVideoPage() {
-  const [image, setImage] = useState<string | null>(null);
+export default function TextoVideoPage() {
   const [prompt, setPrompt] = useState("");
 
   const [aspectRatio, setAspectRatio] =
@@ -58,96 +56,13 @@ export default function ImagemVideoPage() {
       message: "",
     });
 
-  function fileToDataUrl(
-    file: File
-  ): Promise<string> {
-    return new Promise(
-      (resolve, reject) => {
-        const reader =
-          new FileReader();
-
-        reader.onload = () => {
-          resolve(
-            reader.result as string
-          );
-        };
-
-        reader.onerror = () => {
-          reject(
-            new Error(
-              "Não foi possível ler a imagem."
-            )
-          );
-        };
-
-        reader.readAsDataURL(file);
-      }
-    );
-  }
-
-  async function handleImageChange(
-    event: React.ChangeEvent<HTMLInputElement>
-  ) {
-    const file =
-      event.target.files?.[0];
-
-    if (!file) return;
-
-    if (!file.type.startsWith("image/")) {
-      setResult({
-        type: "error",
-        message:
-          "Selecione um arquivo de imagem válido.",
-      });
-
-      return;
-    }
-
-    if (file.size > 10 * 1024 * 1024) {
-      setResult({
-        type: "error",
-        message:
-          "A imagem é muito grande. Escolha uma imagem de até 10 MB.",
-      });
-
-      return;
-    }
-
-    try {
-      const dataUrl =
-        await fileToDataUrl(file);
-
-      setImage(dataUrl);
-
-      setResult({
-        type: "idle",
-        message: "",
-      });
-    } catch (error) {
-      console.error(
-        "Erro ao carregar imagem:",
-        error
-      );
-
-      setResult({
-        type: "error",
-        message:
-          "Não foi possível carregar a imagem.",
-      });
-    }
-  }
+  /*
+   * =========================
+   * GERAR VÍDEO
+   * =========================
+   */
 
   async function handleGenerate() {
-    if (!image) {
-      setResult({
-        type: "error",
-        message:
-          "Envie uma imagem antes de gerar o vídeo.",
-      });
-
-      return;
-    }
-
     if (!prompt.trim()) {
       setResult({
         type: "error",
@@ -163,14 +78,22 @@ export default function ImagemVideoPage() {
     setResult({
       type: "loading",
       message:
-        "Enviando sua imagem para a Kling...",
+        "Enviando seu prompt para a Kling...",
     });
 
     try {
+      /*
+       * Kling aceita 5 ou 10 segundos.
+       */
+
       const durationValue =
         duration === "10 segundos"
           ? "10"
           : "5";
+
+      /*
+       * Prompt final.
+       */
 
       const finalPrompt =
         style &&
@@ -178,9 +101,13 @@ export default function ImagemVideoPage() {
           ? `${prompt.trim()} Estilo visual: ${style}.`
           : prompt.trim();
 
+      /*
+       * Chamada para a API.
+       */
+
       const response =
         await fetch(
-          "/api/kling-image-to-video",
+          "/api/kling-text-to-video",
           {
             method: "POST",
 
@@ -190,8 +117,6 @@ export default function ImagemVideoPage() {
             },
 
             body: JSON.stringify({
-              image,
-
               prompt: finalPrompt,
 
               aspect_ratio:
@@ -208,6 +133,10 @@ export default function ImagemVideoPage() {
           }
         );
 
+      /*
+       * Tenta ler JSON.
+       */
+
       let data: KlingResponse;
 
       try {
@@ -220,9 +149,15 @@ export default function ImagemVideoPage() {
       }
 
       console.log(
-        "CIEL IA STUDIO - Imagem → Vídeo:",
+        "CIEL IA STUDIO - Texto → Vídeo:",
         data
       );
+
+      /*
+       * =========================
+       * ERRO
+       * =========================
+       */
 
       if (
         !response.ok ||
@@ -239,6 +174,10 @@ export default function ImagemVideoPage() {
           klingData?.message ||
           data.message ||
           "A Kling recusou a solicitação.";
+
+        /*
+         * Saldo insuficiente.
+         */
 
         if (
           klingCode === 1102 ||
@@ -272,6 +211,12 @@ export default function ImagemVideoPage() {
         return;
       }
 
+      /*
+       * =========================
+       * SUCESSO
+       * =========================
+       */
+
       const taskId =
         data.taskId ||
         data.klingResponse
@@ -293,7 +238,7 @@ export default function ImagemVideoPage() {
       });
     } catch (error) {
       console.error(
-        "Erro ao chamar /api/kling-image-to-video:",
+        "Erro ao chamar /api/kling-text-to-video:",
         error
       );
 
@@ -378,14 +323,13 @@ export default function ImagemVideoPage() {
         }
 
         /* =========================
-           TOPO
-           PADRÃO DO CONTATO
+           CABEÇALHO
         ========================= */
 
         .topbar {
-          width: 100%;
-
           min-height: 74px;
+
+          padding: 0 42px;
 
           display: flex;
 
@@ -393,14 +337,12 @@ export default function ImagemVideoPage() {
 
           justify-content: space-between;
 
-          padding: 0 42px;
-
           background:
             rgba(
               4,
               12,
               24,
-              0.92
+              0.9
             );
 
           border-bottom:
@@ -427,7 +369,7 @@ export default function ImagemVideoPage() {
         }
 
         .brand-icon {
-          font-size: 28px;
+          font-size: 27px;
 
           filter:
             drop-shadow(
@@ -446,15 +388,15 @@ export default function ImagemVideoPage() {
 
           font-weight: 800;
 
-          letter-spacing: 0.5px;
+          letter-spacing: 0.4px;
         }
 
         .back {
-          color: #7bd8ff;
+          color: #bfeaff;
 
           text-decoration: none;
 
-          font-size: 17px;
+          font-size: 14px;
 
           font-weight: 700;
 
@@ -465,7 +407,7 @@ export default function ImagemVideoPage() {
         }
 
         .back:hover {
-          color: #b4ecff;
+          color: #6ed7ff;
 
           text-shadow:
             0 0 12px
@@ -610,7 +552,7 @@ export default function ImagemVideoPage() {
         }
 
         /* =========================
-           LABELS
+           LABEL
         ========================= */
 
         .label {
@@ -627,15 +569,15 @@ export default function ImagemVideoPage() {
         }
 
         /* =========================
-           UPLOAD
+           ÁREA DE TEXTO
         ========================= */
 
-        .upload-box {
+        .text-box {
           position: relative;
 
           width: 100%;
 
-          height: 270px;
+          min-height: 275px;
 
           border-radius: 16px;
 
@@ -677,25 +619,22 @@ export default function ImagemVideoPage() {
 
           overflow: hidden;
 
-          cursor: pointer;
-
           transition:
             border-color 0.2s ease,
-            box-shadow 0.2s ease,
-            background 0.2s ease;
+            box-shadow 0.2s ease;
         }
 
-        .upload-box:hover {
+        .text-box:focus-within {
           border-color:
             #63d3ff;
 
           box-shadow:
-            0 0 12px
+            0 0 14px
             rgba(
               70,
               199,
               255,
-              0.35
+              0.28
             ),
 
             inset 0 0 20px
@@ -707,19 +646,7 @@ export default function ImagemVideoPage() {
             );
         }
 
-        .upload-input {
-          display: none;
-        }
-
-        .upload-content {
-          position: relative;
-
-          z-index: 2;
-
-          padding: 20px;
-        }
-
-        .upload-plus {
+        .text-icon {
           width: 70px;
 
           height: 70px;
@@ -749,9 +676,7 @@ export default function ImagemVideoPage() {
 
           color: #69d5ff;
 
-          font-size: 42px;
-
-          line-height: 1;
+          font-size: 34px;
 
           box-shadow:
             0 0 10px
@@ -771,7 +696,13 @@ export default function ImagemVideoPage() {
             );
         }
 
-        .upload-title {
+        .text-content {
+          width: 100%;
+
+          padding: 22px;
+        }
+
+        .text-title {
           margin: 0;
 
           font-size: 18px;
@@ -779,11 +710,11 @@ export default function ImagemVideoPage() {
           font-weight: 700;
         }
 
-        .upload-description {
+        .text-description {
           margin:
-            9px auto 0;
+            9px auto 18px;
 
-          max-width: 310px;
+          max-width: 350px;
 
           color: #8798aa;
 
@@ -792,72 +723,14 @@ export default function ImagemVideoPage() {
           line-height: 1.5;
         }
 
-        /* =========================
-           PRÉVIA
-        ========================= */
-
-        .image-preview {
-          position: absolute;
-
-          inset: 0;
-
-          width: 100%;
-
-          height: 100%;
-
-          object-fit: contain;
-
-          background:
-            #020c18;
-
-          display: block;
-        }
-
-        .image-overlay {
-          position: absolute;
-
-          left: 0;
-
-          right: 0;
-
-          bottom: 0;
-
-          padding: 14px;
-
-          background:
-            linear-gradient(
-              transparent,
-              rgba(
-                0,
-                0,
-                0,
-                0.82
-              )
-            );
-
-          color: #ffffff;
-
-          font-size: 13px;
-
-          font-weight: 700;
-
-          text-align: center;
-
-          z-index: 3;
-        }
-
-        /* =========================
-           PROMPT
-        ========================= */
-
         .prompt {
           width: 100%;
 
-          min-height: 165px;
+          min-height: 135px;
+
+          padding: 15px;
 
           resize: vertical;
-
-          padding: 16px;
 
           border:
             1px solid
@@ -868,7 +741,7 @@ export default function ImagemVideoPage() {
               0.45
             );
 
-          border-radius: 14px;
+          border-radius: 13px;
 
           outline: none;
 
@@ -877,7 +750,7 @@ export default function ImagemVideoPage() {
               3,
               13,
               25,
-              0.8
+              0.85
             );
 
           color: #ffffff;
@@ -890,6 +763,12 @@ export default function ImagemVideoPage() {
             Arial,
             Helvetica,
             sans-serif;
+
+          text-align: left;
+
+          transition:
+            border-color 0.2s ease,
+            box-shadow 0.2s ease;
         }
 
         .prompt:focus {
@@ -963,6 +842,12 @@ export default function ImagemVideoPage() {
               255,
               0.2
             );
+        }
+
+        select option {
+          background: #0a192b;
+
+          color: #ffffff;
         }
 
         /* =========================
@@ -1463,21 +1348,17 @@ export default function ImagemVideoPage() {
             min-height: 68px;
 
             padding:
-              0 20px;
+              0 16px;
 
             gap: 12px;
           }
 
           .brand-name {
-            font-size: 18px;
+            font-size: 16px;
           }
 
           .brand-icon {
             font-size: 23px;
-          }
-
-          .back {
-            font-size: 15px;
           }
 
           .content {
@@ -1501,8 +1382,9 @@ export default function ImagemVideoPage() {
               1fr;
           }
 
-          .upload-box {
-            height: 230px;
+          .text-box {
+            min-height:
+              260px;
           }
 
           .preview {
@@ -1523,49 +1405,28 @@ export default function ImagemVideoPage() {
           }
         }
 
+        /* =========================
+           CELULAR PEQUENO
+        ========================= */
+
         @media (max-width: 430px) {
           .topbar {
-            min-height: 68px;
+            flex-wrap: wrap;
+
+            justify-content: center;
 
             padding:
-              0 15px;
-
-            display: flex;
-
-            flex-wrap: nowrap;
-
-            justify-content:
-              space-between;
+              14px 10px;
           }
 
           .brand {
-            gap: 7px;
+            width: 100%;
 
-            flex-shrink: 1;
-
-            min-width: 0;
-          }
-
-          .brand-icon {
-            font-size: 23px;
-
-            flex-shrink: 0;
-          }
-
-          .brand-name {
-            font-size: 15px;
-
-            overflow: hidden;
-
-            text-overflow: ellipsis;
+            justify-content: center;
           }
 
           .back {
-            font-size: 13px;
-
-            white-space: nowrap;
-
-            flex-shrink: 0;
+            margin-top: 4px;
           }
 
           .title-area h1 {
@@ -1576,8 +1437,9 @@ export default function ImagemVideoPage() {
             font-size: 16px;
           }
 
-          .upload-box {
-            height: 220px;
+          .text-box {
+            min-height:
+              250px;
           }
         }
       `}</style>
@@ -1620,12 +1482,12 @@ export default function ImagemVideoPage() {
           <div className="title-area">
 
             <h1>
-              Imagem → Vídeo
+              Texto → Vídeo
             </h1>
 
             <p>
-              Transforme sua imagem em
-              vídeo com inteligência
+              Transforme suas ideias em
+              vídeos com inteligência
               artificial.
             </p>
 
@@ -1643,78 +1505,52 @@ export default function ImagemVideoPage() {
                 🎬 Criar vídeo
               </h2>
 
-              {/* IMAGEM */}
+              {/* TEXTO */}
 
               <label className="label">
-                Sua imagem
+                Descreva o vídeo que você
+                deseja criar
               </label>
 
-              <label className="upload-box">
+              <div className="text-box">
 
-                <input
-                  className="upload-input"
-                  type="file"
-                  accept="image/*"
-                  onChange={
-                    handleImageChange
-                  }
-                />
+                <div className="text-content">
 
-                {image ? (
-                  <>
-                    <img
-                      src={image}
-                      alt="Imagem selecionada"
-                      className="image-preview"
-                    />
-
-                    <div className="image-overlay">
-                      Clique para trocar a imagem
-                    </div>
-                  </>
-                ) : (
-                  <div className="upload-content">
-
-                    <div className="upload-plus">
-                      +
-                    </div>
-
-                    <h3 className="upload-title">
-                      Envie sua imagem
-                    </h3>
-
-                    <p className="upload-description">
-                      Escolha uma imagem
-                      para transformar
-                      em vídeo com IA.
-                    </p>
-
+                  <div className="text-icon">
+                    ✍️
                   </div>
-                )}
 
-              </label>
+                  <h3 className="text-title">
+                    Transforme seu texto em vídeo
+                  </h3>
 
-              {/* PROMPT */}
+                  <p className="text-description">
+                    Descreva a cena, os
+                    personagens, movimentos,
+                    ambiente e estilo que
+                    você deseja.
+                  </p>
 
-              <label className="label">
-                Descreva o vídeo que
-                você deseja criar
-              </label>
+                  <textarea
+                    className="prompt"
+                    value={prompt}
+                    onChange={(e) =>
+                      setPrompt(
+                        e.target.value
+                      )
+                    }
+                    placeholder="Exemplo: Uma mulher caminhando em uma praia ao pôr do sol, câmera se aproximando lentamente, vento suave movimentando os cabelos, iluminação cinematográfica e aparência extremamente realista..."
+                  />
 
-              <textarea
-                className="prompt"
-                value={prompt}
-                onChange={(e) =>
-                  setPrompt(
-                    e.target.value
-                  )
-                }
-                placeholder="Exemplo: Faça a câmera se aproximar lentamente, com movimento natural, iluminação cinematográfica e vento suave..."
-              />
+                </div>
+
+              </div>
 
               {/* OPÇÕES */}
 
               <div className="options">
+
+                {/* PROPORÇÃO */}
 
                 <div>
 
@@ -1748,6 +1584,8 @@ export default function ImagemVideoPage() {
                   </select>
 
                 </div>
+
+                {/* DURAÇÃO */}
 
                 <div>
 
@@ -1865,6 +1703,8 @@ export default function ImagemVideoPage() {
                 }`}
               >
 
+                {/* INICIAL */}
+
                 {result.type ===
                   "idle" && (
                   <div>
@@ -1878,14 +1718,16 @@ export default function ImagemVideoPage() {
                     </h3>
 
                     <p>
-                      Envie uma imagem,
-                      descreva o movimento
-                      desejado e clique
+                      Escreva o que você
+                      deseja criar, escolha
+                      as opções e clique
                       em “Gerar Vídeo”.
                     </p>
 
                   </div>
                 )}
+
+                {/* CARREGANDO */}
 
                 {result.type ===
                   "loading" && (
@@ -1901,7 +1743,7 @@ export default function ImagemVideoPage() {
 
                     <p>
                       Estamos enviando
-                      sua imagem e suas
+                      seu texto e suas
                       configurações
                       para geração
                       do vídeo.
@@ -1916,6 +1758,8 @@ export default function ImagemVideoPage() {
 
                   </div>
                 )}
+
+                {/* SUCESSO */}
 
                 {result.type ===
                   "success" && (
@@ -1982,6 +1826,8 @@ export default function ImagemVideoPage() {
 
                   </div>
                 )}
+
+                {/* ERRO */}
 
                 {result.type ===
                   "error" && (
@@ -2081,6 +1927,8 @@ export default function ImagemVideoPage() {
 
             <div className="footer-columns">
 
+              {/* PRODUTO */}
+
               <div className="footer-column">
 
                 <h3>
@@ -2113,6 +1961,8 @@ export default function ImagemVideoPage() {
 
               </div>
 
+              {/* SUPORTE */}
+
               <div className="footer-column">
 
                 <h3>
@@ -2132,6 +1982,8 @@ export default function ImagemVideoPage() {
                 </Link>
 
               </div>
+
+              {/* LEGAL */}
 
               <div className="footer-column">
 
