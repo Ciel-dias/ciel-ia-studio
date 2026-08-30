@@ -35,19 +35,14 @@ export function ThemeProvider({
 }: {
   children: ReactNode;
 }) {
-  const [theme, setThemeState] = useState<Theme>(getInitialTheme);
-
-  useEffect(() => {
-    const savedTheme = localStorage.getItem("ciel-theme");
-
-    const initialTheme: Theme =
-      savedTheme === "light" ? "light" : "dark";
-
-    setThemeState(initialTheme);
-  }, []);
+  const [theme, setThemeState] = useState<Theme>(
+    getInitialTheme
+  );
 
   useEffect(() => {
     document.documentElement.dataset.theme = theme;
+    document.documentElement.style.colorScheme = theme;
+
     document.body.dataset.theme = theme;
 
     localStorage.setItem("ciel-theme", theme);
