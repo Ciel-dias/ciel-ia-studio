@@ -7,7 +7,6 @@ type KlingResponse = {
   status?: string;
   message?: string;
   taskId?: string | null;
-  videoUrl?: string | null;
   klingStatus?: number;
   klingResponse?: {
     code?: number;
@@ -17,15 +16,7 @@ type KlingResponse = {
       task_id?: string;
       task_status?: string;
       task_status_msg?: string;
-      task_result?: {
-        videos?: Array<{
-          id?: string;
-          url?: string;
-        }>;
-      };
     };
-    task_id?: string;
-    task_status?: string;
   };
 };
 
@@ -56,12 +47,6 @@ export default function TextoVideoPage() {
       message: "",
     });
 
-  /*
-   * =========================
-   * GERAR VÍDEO
-   * =========================
-   */
-
   async function handleGenerate() {
     if (!prompt.trim()) {
       setResult({
@@ -82,66 +67,52 @@ export default function TextoVideoPage() {
     });
 
     try {
-      /*
-       * Kling aceita 5 ou 10 segundos.
-       */
-
       const durationValue =
         duration === "10 segundos"
           ? "10"
           : "5";
 
-      /*
-       * Prompt final.
-       */
-
       const finalPrompt =
-        style &&
         style !== "Realista"
           ? `${prompt.trim()} Estilo visual: ${style}.`
           : prompt.trim();
 
-      /*
-       * Chamada para a API.
-       */
+      const response = await fetch(
+        "/api/kling-text-to-video",
+        {
+          method: "POST",
 
-      const response =
-        await fetch(
-          "/api/kling-text-to-video",
-          {
-            method: "POST",
+          headers: {
+            "Content-Type":
+              "application/json",
+          },
 
-            headers: {
-              "Content-Type":
-                "application/json",
-            },
+          body: JSON.stringify({
+            prompt: finalPrompt,
 
-            body: JSON.stringify({
-              prompt: finalPrompt,
+            aspect_ratio:
+              aspectRatio,
 
-              aspect_ratio:
-                aspectRatio,
+            duration:
+              durationValue,
 
-              duration:
-                durationValue,
+            model_name:
+              "kling-v3",
 
-              model_name:
-                "kling-v3",
+            mode: "std",
+          }),
+        }
+      );
 
-              mode: "std",
-            }),
-          }
-        );
-
-      /*
-       * Tenta ler JSON.
-       */
+      const responseText =
+        await response.text();
 
       let data: KlingResponse;
 
       try {
-        data =
-          await response.json();
+        data = JSON.parse(
+          responseText
+        );
       } catch {
         throw new Error(
           "A API retornou uma resposta inválida."
@@ -153,76 +124,27 @@ export default function TextoVideoPage() {
         data
       );
 
-      /*
-       * =========================
-       * ERRO
-       * =========================
-       */
-
       if (
         !response.ok ||
         data.status === "error"
       ) {
-        const klingData =
-          data.klingResponse;
-
-        const klingCode =
-          klingData?.code ??
-          "N/A";
-
         const klingMessage =
-          klingData?.message ||
+          data.klingResponse?.message ||
           data.message ||
           "A Kling recusou a solicitação.";
 
-        /*
-         * Saldo insuficiente.
-         */
-
-        if (
-          klingCode === 1102 ||
-          klingMessage
-            .toLowerCase()
-            .includes(
-              "account balance not enough"
-            )
-        ) {
-          setResult({
-            type: "error",
-
-            message:
-              "Saldo insuficiente na Kling para gerar este vídeo.",
-
-            details: data,
-          });
-
-          return;
-        }
-
         setResult({
           type: "error",
-
-          message:
-            klingMessage,
-
+          message: klingMessage,
           details: data,
         });
 
         return;
       }
 
-      /*
-       * =========================
-       * SUCESSO
-       * =========================
-       */
-
       const taskId =
         data.taskId ||
-        data.klingResponse
-          ?.data?.task_id ||
-        data.klingResponse
-          ?.task_id ||
+        data.klingResponse?.data?.task_id ||
         null;
 
       setResult({
@@ -327,22 +249,27 @@ export default function TextoVideoPage() {
         ========================= */
 
         .topbar {
+          width: 100%;
+
           min-height: 74px;
 
-          padding: 0 42px;
+          padding:
+            0 42px;
 
           display: flex;
 
           align-items: center;
 
-          justify-content: space-between;
+          justify-content: flex-end;
+
+          gap: 32px;
 
           background:
             rgba(
               4,
               12,
               24,
-              0.9
+              0.92
             );
 
           border-bottom:
@@ -366,10 +293,12 @@ export default function TextoVideoPage() {
           gap: 10px;
 
           white-space: nowrap;
+
+          order: 1;
         }
 
         .brand-icon {
-          font-size: 27px;
+          font-size: 28px;
 
           filter:
             drop-shadow(
@@ -388,26 +317,36 @@ export default function TextoVideoPage() {
 
           font-weight: 800;
 
-          letter-spacing: 0.4px;
+          letter-spacing: 0.5px;
         }
 
         .back {
-          color: #bfeaff;
+          display: inline-flex;
+
+          align-items: center;
+
+          justify-content: center;
+
+          color: #7bd8ff;
 
           text-decoration: none;
 
-          font-size: 14px;
+          font-size: 17px;
 
           font-weight: 700;
+
+          white-space: nowrap;
 
           transition:
             color 0.2s ease,
             text-shadow 0.2s ease,
             transform 0.2s ease;
+
+          order: 2;
         }
 
         .back:hover {
-          color: #6ed7ff;
+          color: #b4ecff;
 
           text-shadow:
             0 0 12px
@@ -569,168 +508,17 @@ export default function TextoVideoPage() {
         }
 
         /* =========================
-           ÁREA DE TEXTO
+           PROMPT
         ========================= */
-
-        .text-box {
-          position: relative;
-
-          width: 100%;
-
-          min-height: 275px;
-
-          border-radius: 16px;
-
-          border:
-            2px dashed
-            rgba(
-              104,
-              207,
-              255,
-              0.5
-            );
-
-          background:
-            radial-gradient(
-              circle,
-              rgba(
-                43,
-                167,
-                255,
-                0.09
-              ),
-              transparent 60%
-            ),
-
-            rgba(
-              3,
-              13,
-              25,
-              0.75
-            );
-
-          display: flex;
-
-          align-items: center;
-
-          justify-content: center;
-
-          text-align: center;
-
-          overflow: hidden;
-
-          transition:
-            border-color 0.2s ease,
-            box-shadow 0.2s ease;
-        }
-
-        .text-box:focus-within {
-          border-color:
-            #63d3ff;
-
-          box-shadow:
-            0 0 14px
-            rgba(
-              70,
-              199,
-              255,
-              0.28
-            ),
-
-            inset 0 0 20px
-            rgba(
-              56,
-              174,
-              255,
-              0.08
-            );
-        }
-
-        .text-icon {
-          width: 70px;
-
-          height: 70px;
-
-          margin:
-            0 auto 16px;
-
-          display: flex;
-
-          align-items: center;
-
-          justify-content: center;
-
-          border-radius: 18px;
-
-          border:
-            2px solid
-            #58c9ff;
-
-          background:
-            rgba(
-              5,
-              24,
-              42,
-              0.8
-            );
-
-          color: #69d5ff;
-
-          font-size: 34px;
-
-          box-shadow:
-            0 0 10px
-            rgba(
-              70,
-              199,
-              255,
-              0.45
-            ),
-
-            inset 0 0 15px
-            rgba(
-              56,
-              174,
-              255,
-              0.08
-            );
-        }
-
-        .text-content {
-          width: 100%;
-
-          padding: 22px;
-        }
-
-        .text-title {
-          margin: 0;
-
-          font-size: 18px;
-
-          font-weight: 700;
-        }
-
-        .text-description {
-          margin:
-            9px auto 18px;
-
-          max-width: 350px;
-
-          color: #8798aa;
-
-          font-size: 14px;
-
-          line-height: 1.5;
-        }
 
         .prompt {
           width: 100%;
 
-          min-height: 135px;
-
-          padding: 15px;
+          min-height: 260px;
 
           resize: vertical;
+
+          padding: 17px;
 
           border:
             1px solid
@@ -741,7 +529,7 @@ export default function TextoVideoPage() {
               0.45
             );
 
-          border-radius: 13px;
+          border-radius: 14px;
 
           outline: none;
 
@@ -750,30 +538,37 @@ export default function TextoVideoPage() {
               3,
               13,
               25,
-              0.85
+              0.8
             );
 
           color: #ffffff;
 
           font-size: 15px;
 
-          line-height: 1.5;
+          line-height: 1.55;
 
           font-family:
             Arial,
             Helvetica,
             sans-serif;
 
-          text-align: left;
-
           transition:
             border-color 0.2s ease,
-            box-shadow 0.2s ease;
+            box-shadow 0.2s ease,
+            background 0.2s ease;
         }
 
         .prompt:focus {
           border-color:
             #63d3ff;
+
+          background:
+            rgba(
+              3,
+              16,
+              30,
+              0.95
+            );
 
           box-shadow:
             0 0 15px
@@ -1163,10 +958,6 @@ export default function TextoVideoPage() {
           word-break: break-word;
         }
 
-        .details strong {
-          color: #d9f5ff;
-        }
-
         .task-id {
           margin-top: 15px;
 
@@ -1326,6 +1117,8 @@ export default function TextoVideoPage() {
           .topbar {
             padding:
               0 22px;
+
+            gap: 22px;
           }
 
           .workspace {
@@ -1350,7 +1143,10 @@ export default function TextoVideoPage() {
             padding:
               0 16px;
 
-            gap: 12px;
+            gap: 14px;
+
+            justify-content:
+              space-between;
           }
 
           .brand-name {
@@ -1359,6 +1155,10 @@ export default function TextoVideoPage() {
 
           .brand-icon {
             font-size: 23px;
+          }
+
+          .back {
+            font-size: 13px;
           }
 
           .content {
@@ -1382,9 +1182,9 @@ export default function TextoVideoPage() {
               1fr;
           }
 
-          .text-box {
+          .prompt {
             min-height:
-              260px;
+              230px;
           }
 
           .preview {
@@ -1411,22 +1211,36 @@ export default function TextoVideoPage() {
 
         @media (max-width: 430px) {
           .topbar {
+            min-height: auto;
+
             flex-wrap: wrap;
 
-            justify-content: center;
+            justify-content:
+              flex-end;
 
             padding:
-              14px 10px;
+              14px 12px;
+
+            gap: 8px 14px;
           }
 
           .brand {
-            width: 100%;
+            width: auto;
 
-            justify-content: center;
+            justify-content:
+              flex-end;
+          }
+
+          .brand-icon {
+            font-size: 21px;
+          }
+
+          .brand-name {
+            font-size: 14px;
           }
 
           .back {
-            margin-top: 4px;
+            font-size: 12px;
           }
 
           .title-area h1 {
@@ -1437,9 +1251,9 @@ export default function TextoVideoPage() {
             font-size: 16px;
           }
 
-          .text-box {
+          .prompt {
             min-height:
-              250px;
+              220px;
           }
         }
       `}</style>
@@ -1496,7 +1310,7 @@ export default function TextoVideoPage() {
           <div className="workspace">
 
             {/* =========================
-                PAINEL DE CRIAÇÃO
+                CRIAÇÃO
             ========================= */}
 
             <section className="panel">
@@ -1505,52 +1319,23 @@ export default function TextoVideoPage() {
                 🎬 Criar vídeo
               </h2>
 
-              {/* TEXTO */}
-
               <label className="label">
                 Descreva o vídeo que você
                 deseja criar
               </label>
 
-              <div className="text-box">
-
-                <div className="text-content">
-
-                  <div className="text-icon">
-                    ✍️
-                  </div>
-
-                  <h3 className="text-title">
-                    Transforme seu texto em vídeo
-                  </h3>
-
-                  <p className="text-description">
-                    Descreva a cena, os
-                    personagens, movimentos,
-                    ambiente e estilo que
-                    você deseja.
-                  </p>
-
-                  <textarea
-                    className="prompt"
-                    value={prompt}
-                    onChange={(e) =>
-                      setPrompt(
-                        e.target.value
-                      )
-                    }
-                    placeholder="Exemplo: Uma mulher caminhando em uma praia ao pôr do sol, câmera se aproximando lentamente, vento suave movimentando os cabelos, iluminação cinematográfica e aparência extremamente realista..."
-                  />
-
-                </div>
-
-              </div>
-
-              {/* OPÇÕES */}
+              <textarea
+                className="prompt"
+                value={prompt}
+                onChange={(e) =>
+                  setPrompt(
+                    e.target.value
+                  )
+                }
+                placeholder="Exemplo: Uma mulher caminhando em uma praia ao pôr do sol, câmera se aproximando lentamente, cabelos movidos pelo vento, iluminação cinematográfica, movimento natural e aparência realista..."
+              />
 
               <div className="options">
-
-                {/* PROPORÇÃO */}
 
                 <div>
 
@@ -1585,8 +1370,6 @@ export default function TextoVideoPage() {
 
                 </div>
 
-                {/* DURAÇÃO */}
-
                 <div>
 
                   <label className="label">
@@ -1617,8 +1400,6 @@ export default function TextoVideoPage() {
                 </div>
 
               </div>
-
-              {/* ESTILO */}
 
               <label className="label">
                 Estilo
@@ -1655,8 +1436,6 @@ export default function TextoVideoPage() {
 
               </select>
 
-              {/* CRÉDITOS */}
-
               <div className="credits">
 
                 💎 Seus créditos:{" "}
@@ -1666,8 +1445,6 @@ export default function TextoVideoPage() {
                 </strong>
 
               </div>
-
-              {/* BOTÃO */}
 
               <button
                 className="generate"
@@ -1703,8 +1480,6 @@ export default function TextoVideoPage() {
                 }`}
               >
 
-                {/* INICIAL */}
-
                 {result.type ===
                   "idle" && (
                   <div>
@@ -1714,20 +1489,18 @@ export default function TextoVideoPage() {
                     </div>
 
                     <h3>
-                      Seu vídeo aparecerá aqui
+                      Seu vídeo aparecerá
+                      aqui
                     </h3>
 
                     <p>
-                      Escreva o que você
-                      deseja criar, escolha
-                      as opções e clique
-                      em “Gerar Vídeo”.
+                      Escreva o que deseja
+                      criar e clique em
+                      “Gerar Vídeo”.
                     </p>
 
                   </div>
                 )}
-
-                {/* CARREGANDO */}
 
                 {result.type ===
                   "loading" && (
@@ -1738,15 +1511,15 @@ export default function TextoVideoPage() {
                     </div>
 
                     <h3>
-                      Enviando para a Kling...
+                      Enviando para a
+                      Kling...
                     </h3>
 
                     <p>
                       Estamos enviando
-                      seu texto e suas
-                      configurações
-                      para geração
-                      do vídeo.
+                      seu prompt e suas
+                      configurações para
+                      geração do vídeo.
                     </p>
 
                     <p>
@@ -1758,8 +1531,6 @@ export default function TextoVideoPage() {
 
                   </div>
                 )}
-
-                {/* SUCESSO */}
 
                 {result.type ===
                   "success" && (
@@ -1775,10 +1546,9 @@ export default function TextoVideoPage() {
                     </h3>
 
                     <p>
-                      A Kling aceitou
-                      sua solicitação
-                      e iniciou o
-                      processamento.
+                      A Kling aceitou sua
+                      solicitação e iniciou
+                      o processamento.
                     </p>
 
                     {result.details
@@ -1817,6 +1587,13 @@ export default function TextoVideoPage() {
 
                       <div>
                         <strong>
+                          Estilo:
+                        </strong>{" "}
+                        {style}
+                      </div>
+
+                      <div>
+                        <strong>
                           Modelo:
                         </strong>{" "}
                         kling-v3
@@ -1826,8 +1603,6 @@ export default function TextoVideoPage() {
 
                   </div>
                 )}
-
-                {/* ERRO */}
 
                 {result.type ===
                   "error" && (
@@ -1927,8 +1702,6 @@ export default function TextoVideoPage() {
 
             <div className="footer-columns">
 
-              {/* PRODUTO */}
-
               <div className="footer-column">
 
                 <h3>
@@ -1961,8 +1734,6 @@ export default function TextoVideoPage() {
 
               </div>
 
-              {/* SUPORTE */}
-
               <div className="footer-column">
 
                 <h3>
@@ -1982,8 +1753,6 @@ export default function TextoVideoPage() {
                 </Link>
 
               </div>
-
-              {/* LEGAL */}
 
               <div className="footer-column">
 
