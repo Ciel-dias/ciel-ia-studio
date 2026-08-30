@@ -50,9 +50,16 @@ export default function ConfiguracoesPage() {
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
-          background: theme === "dark" ? "#07111f" : "#eef8ff",
-          color: theme === "dark" ? "#ffffff" : "#101827",
-          fontFamily: "Arial, Helvetica, sans-serif",
+          background:
+            theme === "dark"
+              ? "#07111f"
+              : "#eef8ff",
+          color:
+            theme === "dark"
+              ? "#ffffff"
+              : "#101827",
+          fontFamily:
+            "Arial, Helvetica, sans-serif",
         }}
       >
         Carregando...
@@ -83,6 +90,10 @@ export default function ConfiguracoesPage() {
         a {
           -webkit-tap-highlight-color: transparent;
         }
+
+        /* =========================
+           PÁGINA
+        ========================= */
 
         .settings-page {
           min-height: 100vh;
@@ -155,12 +166,11 @@ export default function ConfiguracoesPage() {
 
           background: ${
             dark
-              ? "rgba(4, 12, 24, 0.88)"
-              : "rgba(245, 251, 255, 0.90)"
+              ? "rgba(4, 12, 24, 0.92)"
+              : "rgba(245, 251, 255, 0.92)"
           };
 
-          border-bottom:
-            1px solid
+          border-bottom: 1px solid
             ${
               dark
                 ? "rgba(100, 180, 255, 0.18)"
@@ -168,6 +178,10 @@ export default function ConfiguracoesPage() {
             };
 
           backdrop-filter: blur(12px);
+
+          transition:
+            background 0.35s ease,
+            border-color 0.35s ease;
         }
 
         .brand {
@@ -183,65 +197,67 @@ export default function ConfiguracoesPage() {
           font-size: 28px;
 
           filter: drop-shadow(
-            0 0 9px rgba(75, 199, 255, 0.75)
+            0 0 10px rgba(75, 199, 255, 0.8)
           );
         }
 
         .brand-name {
           font-size: 20px;
 
-          font-weight: 700;
+          font-weight: 800;
 
-          letter-spacing: 0.4px;
+          letter-spacing: 0.5px;
 
-          color: ${dark ? "#ffffff" : "#102033"};
+          color: ${dark ? "#ffffff" : "#101827"};
         }
 
-        .back {
-          display: inline-flex;
-
-          align-items: center;
-
-          gap: 7px;
-
-          color: ${dark ? "#e8eef7" : "#34485c"};
+        .back-link {
+          color: #7bd8ff;
 
           text-decoration: none;
 
-          font-size: 15px;
+          font-size: 17px;
+
+          font-weight: 700;
 
           transition:
             color 0.2s ease,
-            text-shadow 0.2s ease;
+            text-shadow 0.2s ease,
+            transform 0.2s ease;
         }
 
-        .back:hover {
-          color: #159ddd;
+        .back-link:hover {
+          color: #b4ecff;
 
           text-shadow:
-            0 0 12px rgba(75, 199, 255, 0.7);
+            0 0 12px rgba(75, 199, 255, 0.8);
+
+          transform: translateX(-2px);
         }
 
         /* =========================
-           CONTEÚDO
+           CONTAINER
         ========================= */
 
         .settings-container {
-          width: min(700px, calc(100% - 48px));
+          width: min(700px, 100%);
 
           margin: 0 auto;
 
           padding:
-            55px 0 70px;
+            55px 20px 70px;
         }
+
+        /* =========================
+           CABEÇALHO DA PÁGINA
+        ========================= */
 
         .header {
           margin-bottom: 30px;
         }
 
         .header h1 {
-          margin:
-            0 0 8px;
+          margin: 0 0 8px;
 
           font-size: 34px;
 
@@ -257,6 +273,10 @@ export default function ConfiguracoesPage() {
 
           line-height: 1.5;
         }
+
+        /* =========================
+           SEÇÕES
+        ========================= */
 
         .section {
           margin-bottom: 20px;
@@ -284,8 +304,7 @@ export default function ConfiguracoesPage() {
             `
             };
 
-          border:
-            1px solid
+          border: 1px solid
             ${
               dark
                 ? "rgba(88, 201, 255, 0.35)"
@@ -294,11 +313,11 @@ export default function ConfiguracoesPage() {
 
           box-shadow:
             0 0 15px
-            ${
-              dark
-                ? "rgba(43, 167, 255, 0.16)"
-                : "rgba(43, 167, 255, 0.10)"
-            };
+              ${
+                dark
+                  ? "rgba(43, 167, 255, 0.16)"
+                  : "rgba(43, 167, 255, 0.10)"
+              };
 
           transition:
             background 0.35s ease,
@@ -306,8 +325,7 @@ export default function ConfiguracoesPage() {
         }
 
         .section h2 {
-          margin:
-            0 0 20px;
+          margin: 0 0 20px;
 
           font-size: 20px;
 
@@ -315,7 +333,7 @@ export default function ConfiguracoesPage() {
         }
 
         /* =========================
-           CONTA
+           INFORMAÇÕES
         ========================= */
 
         .info {
@@ -327,8 +345,7 @@ export default function ConfiguracoesPage() {
         }
 
         .label {
-          margin:
-            0 0 6px;
+          margin: 0 0 6px;
 
           color: ${dark ? "#8f9eaf" : "#637587"};
 
@@ -346,7 +363,7 @@ export default function ConfiguracoesPage() {
         }
 
         /* =========================
-           TEMA
+           TEMAS
         ========================= */
 
         .theme-options {
@@ -365,8 +382,7 @@ export default function ConfiguracoesPage() {
 
           border-radius: 14px;
 
-          border:
-            2px solid
+          border: 2px solid
             ${
               dark
                 ? "rgba(100, 180, 255, 0.20)"
@@ -403,11 +419,11 @@ export default function ConfiguracoesPage() {
 
           box-shadow:
             0 0 15px
-            ${
-              dark
-                ? "rgba(21, 157, 221, 0.35)"
-                : "rgba(21, 157, 221, 0.20)"
-            };
+              ${
+                dark
+                  ? "rgba(21, 157, 221, 0.35)"
+                  : "rgba(21, 157, 221, 0.20)"
+              };
         }
 
         .theme-icon {
@@ -439,47 +455,13 @@ export default function ConfiguracoesPage() {
         ========================= */
 
         .security-text {
-          margin:
-            0 0 18px;
+          margin: 0;
 
           color: ${dark ? "#aebaca" : "#5d7082"};
 
           font-size: 14px;
 
-          line-height: 1.6;
-        }
-
-        .security-button {
-          width: 100%;
-
-          padding: 13px 15px;
-
-          border-radius: 12px;
-
-          border:
-            1px solid
-            ${
-              dark
-                ? "rgba(100, 180, 255, 0.25)"
-                : "rgba(40, 110, 160, 0.25)"
-            };
-
-          background:
-            ${
-              dark
-                ? "rgba(5, 16, 30, 0.65)"
-                : "rgba(255, 255, 255, 0.65)"
-            };
-
-          color: ${dark ? "#ffffff" : "#142132"};
-
-          font-size: 14px;
-
-          font-weight: 600;
-
-          cursor: not-allowed;
-
-          opacity: 0.65;
+          line-height: 1.5;
         }
 
         /* =========================
@@ -493,8 +475,7 @@ export default function ConfiguracoesPage() {
 
           border-radius: 12px;
 
-          border:
-            1px solid
+          border: 1px solid
             ${
               dark
                 ? "rgba(100, 180, 255, 0.25)"
@@ -528,36 +509,34 @@ export default function ConfiguracoesPage() {
           border-color: #159ddd;
         }
 
-        .dashboard-button {
-          display: block;
-
-          margin-top: 20px;
-
-          text-align: center;
-
-          color: ${dark ? "#aebaca" : "#536577"};
-
-          text-decoration: none;
-
-          font-size: 14px;
-
-          transition: color 0.2s ease;
-        }
-
-        .dashboard-button:hover {
-          color: #159ddd;
-        }
-
         /* =========================
-           CELULAR
+           RESPONSIVO
         ========================= */
 
-        @media (max-width: 650px) {
+        @media (max-width: 700px) {
+          .topbar {
+            padding: 0 20px;
+          }
+
+          .brand-name {
+            font-size: 18px;
+          }
+
+          .back-link {
+            font-size: 15px;
+          }
+
+          .settings-container {
+            padding:
+              45px 16px 55px;
+          }
+        }
+
+        @media (max-width: 480px) {
           .topbar {
             min-height: 68px;
 
-            padding:
-              14px 16px;
+            padding: 0 15px;
           }
 
           .brand {
@@ -569,22 +548,16 @@ export default function ConfiguracoesPage() {
           }
 
           .brand-name {
-            font-size: 16px;
+            font-size: 15px;
           }
 
-          .back {
+          .back-link {
             font-size: 13px;
           }
 
           .settings-container {
-            width:
-              min(
-                calc(100% - 32px),
-                430px
-              );
-
             padding:
-              42px 0 55px;
+              38px 12px 50px;
           }
 
           .header h1 {
@@ -601,20 +574,6 @@ export default function ConfiguracoesPage() {
 
           .theme-options {
             grid-template-columns: 1fr;
-          }
-        }
-
-        @media (max-width: 430px) {
-          .topbar {
-            gap: 10px;
-          }
-
-          .brand-name {
-            font-size: 15px;
-          }
-
-          .back {
-            font-size: 12px;
           }
         }
       `}</style>
@@ -641,7 +600,7 @@ export default function ConfiguracoesPage() {
 
           <Link
             href="/dashboard"
-            className="back"
+            className="back-link"
           >
             ← Voltar ao Dashboard
           </Link>
@@ -782,18 +741,9 @@ export default function ConfiguracoesPage() {
             </h2>
 
             <p className="security-text">
-              Mantenha sua conta protegida e
-              acompanhe as opções de segurança
-              disponíveis no CIEL IA STUDIO.
+              Em breve você poderá alterar sua senha
+              e gerenciar outras opções de segurança.
             </p>
-
-            <button
-              type="button"
-              className="security-button"
-              disabled
-            >
-              🔐 Alterar senha — Em breve
-            </button>
 
           </section>
 
@@ -808,13 +758,6 @@ export default function ConfiguracoesPage() {
           >
             Sair da conta
           </button>
-
-          <Link
-            href="/dashboard"
-            className="dashboard-button"
-          >
-            Voltar para o dashboard
-          </Link>
 
         </div>
 
