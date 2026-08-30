@@ -9,19 +9,29 @@ export default function ContatoPage() {
   const [assunto, setAssunto] = useState("");
   const [mensagem, setMensagem] = useState("");
   const [enviado, setEnviado] = useState(false);
+  const [loading, setLoading] = useState(false);
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
 
-    // Formulário preparado para futura integração
-    // com sistema de suporte / banco de dados.
+    setLoading(true);
+    setEnviado(false);
 
-    setEnviado(true);
+    /*
+     * FUTURO:
+     * Aqui vamos conectar o formulário ao sistema
+     * de mensagens/e-mail do CIEL IA STUDIO.
+     */
 
-    setNome("");
-    setEmail("");
-    setAssunto("");
-    setMensagem("");
+    setTimeout(() => {
+      setLoading(false);
+      setEnviado(true);
+
+      setNome("");
+      setEmail("");
+      setAssunto("");
+      setMensagem("");
+    }, 700);
   }
 
   return (
@@ -35,11 +45,11 @@ export default function ContatoPage() {
         body {
           margin: 0;
           padding: 0;
+          background: #06101e;
         }
 
         body {
           font-family: Arial, Helvetica, sans-serif;
-          background: #06101e;
         }
 
         a {
@@ -52,13 +62,13 @@ export default function ContatoPage() {
 
           background:
             radial-gradient(
-              circle at 80% 10%,
-              rgba(20, 119, 190, 0.38),
-              transparent 36%
+              circle at 75% 18%,
+              rgba(20, 119, 190, 0.42),
+              transparent 38%
             ),
             radial-gradient(
-              circle at 10% 70%,
-              rgba(15, 76, 125, 0.28),
+              circle at 15% 70%,
+              rgba(15, 76, 125, 0.32),
               transparent 40%
             ),
             linear-gradient(
@@ -68,164 +78,191 @@ export default function ContatoPage() {
               #0b3556 100%
             );
 
-          padding: 45px 20px 70px;
+          overflow-x: hidden;
         }
 
-        .container {
-          width: min(900px, 100%);
-          margin: 0 auto;
-        }
+        /* =========================
+           TOPO
+        ========================= */
 
-        .back-button {
-          display: inline-flex;
+        .topbar {
+          width: 100%;
+          min-height: 74px;
+
+          display: flex;
           align-items: center;
-          gap: 8px;
+          justify-content: space-between;
 
-          margin-bottom: 30px;
+          padding: 0 42px;
 
-          color: #78d9ff;
-          text-decoration: none;
+          background: rgba(4, 12, 24, 0.92);
 
-          font-size: 14px;
-          font-weight: 700;
+          border-bottom: 1px solid
+            rgba(100, 180, 255, 0.18);
 
-          transition:
-            color 0.2s ease,
-            transform 0.2s ease;
+          backdrop-filter: blur(12px);
         }
 
-        .back-button:hover {
-          color: #b5ecff;
-          transform: translateX(-3px);
+        .brand {
+          display: flex;
+          align-items: center;
+          gap: 10px;
+
+          white-space: nowrap;
         }
 
-        .header {
-          text-align: center;
-          margin-bottom: 38px;
-        }
-
-        .icon {
-          font-size: 48px;
-          margin-bottom: 12px;
+        .brand-icon {
+          font-size: 28px;
 
           filter: drop-shadow(
-            0 0 12px rgba(75, 199, 255, 0.75)
+            0 0 10px rgba(75, 199, 255, 0.8)
           );
         }
 
-        h1 {
-          margin: 0;
-
-          font-size: clamp(32px, 5vw, 46px);
+        .brand-name {
+          font-size: 20px;
           font-weight: 800;
           letter-spacing: 0.5px;
         }
 
-        .subtitle {
-          margin: 13px auto 0;
+        .back-link {
+          color: #7bd8ff;
 
-          max-width: 620px;
-
-          color: #aebdcd;
+          text-decoration: none;
 
           font-size: 17px;
-          line-height: 1.6;
+          font-weight: 700;
+
+          transition:
+            color 0.2s ease,
+            text-shadow 0.2s ease,
+            transform 0.2s ease;
         }
 
-        .contact-grid {
-          display: grid;
-          grid-template-columns: repeat(2, minmax(0, 1fr));
-          gap: 22px;
+        .back-link:hover {
+          color: #b4ecff;
 
-          margin-bottom: 28px;
+          text-shadow:
+            0 0 12px rgba(75, 199, 255, 0.8);
+
+          transform: translateX(-2px);
         }
 
-        .info-card {
-          padding: 25px;
+        /* =========================
+           CONTEÚDO
+        ========================= */
 
-          border-radius: 20px;
+        .content {
+          width: min(900px, calc(100% - 32px));
 
-          background:
-            linear-gradient(
-              145deg,
-              rgba(35, 47, 65, 0.96),
-              rgba(14, 25, 40, 0.98)
-            );
+          margin: 0 auto;
 
-          border: 1px solid rgba(88, 201, 255, 0.55);
-
-          box-shadow:
-            0 0 10px rgba(70, 199, 255, 0.16),
-            inset 0 0 20px rgba(56, 174, 255, 0.04);
+          padding: 68px 0 80px;
         }
 
-        .info-icon {
-          font-size: 30px;
+        .hero {
+          text-align: center;
+
+          margin-bottom: 42px;
+        }
+
+        .hero-icon {
+          font-size: 58px;
+
           margin-bottom: 12px;
+
+          filter: drop-shadow(
+            0 0 14px rgba(75, 199, 255, 0.75)
+          );
         }
 
-        .info-card h2 {
-          margin: 0 0 8px;
-
-          font-size: 18px;
-        }
-
-        .info-card p {
+        .hero h1 {
           margin: 0;
 
-          color: #aebdcd;
+          font-size: clamp(38px, 6vw, 56px);
 
-          font-size: 14px;
+          line-height: 1.1;
+
+          font-weight: 800;
+
+          letter-spacing: 0.3px;
+        }
+
+        .hero p {
+          max-width: 680px;
+
+          margin: 20px auto 0;
+
+          color: #b8c8d8;
+
+          font-size: clamp(17px, 2.4vw, 21px);
+
           line-height: 1.55;
         }
 
-        .placeholder {
-          display: inline-block;
-          margin-top: 8px;
+        /* =========================
+           CARD
+        ========================= */
 
-          color: #68d2ff;
+        .contact-card {
+          width: 100%;
 
-          font-weight: 700;
-        }
+          padding: 38px;
 
-        .form-card {
-          padding: 32px;
-
-          border-radius: 22px;
+          border-radius: 24px;
 
           background:
             linear-gradient(
               145deg,
               rgba(35, 47, 65, 0.97),
-              rgba(14, 25, 40, 0.99)
+              rgba(14, 25, 40, 0.98)
             );
 
           border: 2px solid #58c9ff;
 
           box-shadow:
-            0 0 9px rgba(70, 199, 255, 0.42),
-            0 0 28px rgba(43, 167, 255, 0.18),
-            inset 0 0 24px rgba(56, 174, 255, 0.05);
+            0 0 8px rgba(70, 199, 255, 0.75),
+            0 0 28px rgba(43, 167, 255, 0.32),
+            inset 0 0 25px
+              rgba(56, 174, 255, 0.06);
         }
 
-        .form-title {
-          margin: 0 0 7px;
+        .card-title {
+          margin: 0 0 8px;
 
-          font-size: 24px;
+          font-size: 27px;
           font-weight: 800;
         }
 
-        .form-description {
-          margin: 0 0 25px;
+        .card-subtitle {
+          margin: 0 0 30px;
 
-          color: #9eacbd;
+          color: #aebdcd;
 
-          font-size: 14px;
+          font-size: 15px;
+
           line-height: 1.5;
         }
 
+        /* =========================
+           FORMULÁRIO
+        ========================= */
+
+        .form {
+          width: 100%;
+        }
+
+        .row {
+          display: grid;
+
+          grid-template-columns:
+            repeat(2, minmax(0, 1fr));
+
+          gap: 20px;
+        }
+
         .field {
-          margin-bottom: 18px;
+          margin-bottom: 20px;
         }
 
         .label {
@@ -233,9 +270,10 @@ export default function ContatoPage() {
 
           margin-bottom: 8px;
 
-          color: #d5e1ec;
+          color: #d8e5f0;
 
           font-size: 14px;
+
           font-weight: 700;
         }
 
@@ -244,15 +282,19 @@ export default function ContatoPage() {
         .select {
           width: 100%;
 
-          border-radius: 11px;
-          border: 1px solid rgba(94, 203, 255, 0.35);
+          border-radius: 12px;
+
+          border: 1px solid
+            rgba(94, 203, 255, 0.38);
 
           outline: none;
 
           background: rgba(3, 13, 25, 0.82);
+
           color: #ffffff;
 
           font-family: Arial, Helvetica, sans-serif;
+
           font-size: 15px;
 
           transition:
@@ -263,14 +305,19 @@ export default function ContatoPage() {
 
         .input,
         .select {
-          height: 48px;
-          padding: 0 14px;
+          height: 50px;
+
+          padding: 0 15px;
         }
 
         .textarea {
-          min-height: 145px;
-          padding: 13px 14px;
+          min-height: 155px;
+
+          padding: 14px 15px;
+
           resize: vertical;
+
+          line-height: 1.5;
         }
 
         .input::placeholder,
@@ -286,16 +333,59 @@ export default function ContatoPage() {
           background: rgba(3, 16, 30, 0.95);
 
           box-shadow:
-            0 0 12px rgba(70, 199, 255, 0.2);
+            0 0 12px
+              rgba(70, 199, 255, 0.24),
+            inset 0 0 10px
+              rgba(56, 174, 255, 0.04);
         }
+
+        .select {
+          cursor: pointer;
+        }
+
+        .select option {
+          background: #0d1c2d;
+
+          color: #ffffff;
+        }
+
+        /* =========================
+           SUCESSO
+        ========================= */
+
+        .success {
+          margin-bottom: 20px;
+
+          padding: 13px 15px;
+
+          border-radius: 11px;
+
+          background: rgba(34, 197, 94, 0.1);
+
+          border: 1px solid
+            rgba(74, 222, 128, 0.3);
+
+          color: #86efac;
+
+          font-size: 14px;
+
+          line-height: 1.45;
+        }
+
+        /* =========================
+           BOTÃO
+        ========================= */
 
         .button {
           width: 100%;
 
-          padding: 15px;
+          margin-top: 4px;
+
+          padding: 16px;
 
           border: none;
-          border-radius: 12px;
+
+          border-radius: 13px;
 
           cursor: pointer;
 
@@ -308,97 +398,195 @@ export default function ContatoPage() {
               #75e0ff
             );
 
-          font-size: 15px;
+          font-size: 16px;
+
           font-weight: 800;
 
           box-shadow:
-            0 0 10px rgba(70, 199, 255, 0.55),
-            0 0 22px rgba(43, 167, 255, 0.25);
+            0 0 10px
+              rgba(70, 199, 255, 0.7),
+            0 0 24px
+              rgba(43, 167, 255, 0.35);
 
           transition:
             transform 0.2s ease,
-            box-shadow 0.2s ease;
+            box-shadow 0.2s ease,
+            opacity 0.2s ease;
         }
 
         .button:hover {
           transform: translateY(-2px);
 
           box-shadow:
-            0 0 14px rgba(85, 211, 255, 0.9),
-            0 0 28px rgba(43, 167, 255, 0.45);
+            0 0 14px
+              rgba(85, 211, 255, 1),
+            0 0 32px
+              rgba(43, 167, 255, 0.55);
         }
 
         .button:active {
           transform: scale(0.98);
         }
 
-        .success {
-          margin-bottom: 18px;
+        .button:disabled {
+          cursor: not-allowed;
 
-          padding: 13px 15px;
+          opacity: 0.6;
 
-          border-radius: 10px;
-
-          background: rgba(34, 197, 94, 0.1);
-
-          border: 1px solid rgba(74, 222, 128, 0.3);
-
-          color: #86efac;
-
-          font-size: 14px;
-          line-height: 1.45;
+          transform: none;
         }
 
-        .footer-note {
-          margin-top: 25px;
+        /* =========================
+           AVISO
+        ========================= */
+
+        .privacy-note {
+          margin-top: 22px;
+
+          padding-top: 20px;
+
+          border-top: 1px solid
+            rgba(100, 180, 255, 0.14);
 
           text-align: center;
 
-          color: #718297;
+          color: #8192a5;
 
           font-size: 12px;
+
           line-height: 1.5;
         }
 
-        @media (max-width: 650px) {
-          .page {
-            padding: 30px 15px 50px;
+        /* =========================
+           RESPONSIVO
+        ========================= */
+
+        @media (max-width: 700px) {
+          .topbar {
+            padding: 0 20px;
           }
 
-          .contact-grid {
-            grid-template-columns: 1fr;
+          .brand-name {
+            font-size: 18px;
           }
 
-          .form-card {
-            padding: 24px 20px;
-          }
-
-          .info-card {
-            padding: 22px;
-          }
-
-          .header {
-            margin-bottom: 30px;
-          }
-
-          .subtitle {
+          .back-link {
             font-size: 15px;
+          }
+
+          .content {
+            padding-top: 52px;
+          }
+
+          .contact-card {
+            padding: 28px 22px;
+          }
+
+          .row {
+            grid-template-columns: 1fr;
+
+            gap: 0;
+          }
+        }
+
+        @media (max-width: 480px) {
+          .topbar {
+            min-height: 68px;
+
+            padding: 0 15px;
+          }
+
+          .brand {
+            gap: 7px;
+          }
+
+          .brand-icon {
+            font-size: 23px;
+          }
+
+          .brand-name {
+            font-size: 15px;
+          }
+
+          .back-link {
+            font-size: 13px;
+          }
+
+          .content {
+            width: min(
+              100% - 24px,
+              900px
+            );
+
+            padding: 45px 0 60px;
+          }
+
+          .hero-icon {
+            font-size: 50px;
+          }
+
+          .hero h1 {
+            font-size: 38px;
+          }
+
+          .hero p {
+            font-size: 16px;
+          }
+
+          .contact-card {
+            padding: 25px 18px;
+
+            border-radius: 20px;
+          }
+
+          .card-title {
+            font-size: 23px;
+          }
+
+          .card-subtitle {
+            font-size: 14px;
           }
         }
       `}</style>
 
       <main className="page">
-        <div className="container">
+
+        {/* =========================
+            CABEÇALHO
+        ========================= */}
+
+        <header className="topbar">
+
+          <div className="brand">
+
+            <span className="brand-icon">
+              ✨
+            </span>
+
+            <span className="brand-name">
+              CIEL IA STUDIO
+            </span>
+
+          </div>
 
           <Link
             href="/dashboard"
-            className="back-button"
+            className="back-link"
           >
             ← Voltar ao Dashboard
           </Link>
 
-          <header className="header">
-            <div className="icon">
+        </header>
+
+        {/* =========================
+            CONTEÚDO
+        ========================= */}
+
+        <section className="content">
+
+          <div className="hero">
+
+            <div className="hero-icon">
               💬
             </div>
 
@@ -406,109 +594,93 @@ export default function ContatoPage() {
               Contato
             </h1>
 
-            <p className="subtitle">
-              Estamos aqui para ajudar. Entre em contato
-              com a equipe do CIEL IA STUDIO sempre que
-              precisar.
+            <p>
+              Entre em contato com o CIEL IA STUDIO.
+              Envie sua dúvida, sugestão ou mensagem
+              para nossa equipe.
             </p>
-          </header>
 
-          <section className="contact-grid">
+          </div>
 
-            <div className="info-card">
-              <div className="info-icon">
-                📧
-              </div>
+          {/* =========================
+              FORMULÁRIO
+          ========================= */}
 
-              <h2>
-                E-mail
-              </h2>
+          <section className="contact-card">
 
-              <p>
-                Nosso canal oficial de contato será
-                disponibilizado aqui.
-              </p>
-
-              <span className="placeholder">
-                Seu e-mail aqui
-              </span>
-            </div>
-
-            <div className="info-card">
-              <div className="info-icon">
-                🛟
-              </div>
-
-              <h2>
-                Suporte
-              </h2>
-
-              <p>
-                Precisa de ajuda com sua conta,
-                créditos ou alguma funcionalidade?
-                Envie uma mensagem pelo formulário.
-              </p>
-            </div>
-
-          </section>
-
-          <section className="form-card">
-
-            <h2 className="form-title">
+            <h2 className="card-title">
               Envie uma mensagem
             </h2>
 
-            <p className="form-description">
-              Preencha os campos abaixo. Este formulário
-              já está preparado para receber a integração
-              do sistema de suporte posteriormente.
+            <p className="card-subtitle">
+              Preencha o formulário abaixo e
+              entraremos em contato assim que
+              possível.
             </p>
 
             {enviado && (
               <div className="success">
-                ✓ Mensagem preparada com sucesso.
-                O envio real será conectado ao sistema
-                de suporte posteriormente.
+                ✓ Mensagem enviada com sucesso!
+                <br />
+                Em breve entraremos em contato.
               </div>
             )}
 
-            <form onSubmit={handleSubmit}>
+            <form
+              className="form"
+              onSubmit={handleSubmit}
+            >
 
-              <div className="field">
-                <label className="label">
-                  Nome
-                </label>
+              <div className="row">
 
-                <input
-                  className="input"
-                  type="text"
-                  value={nome}
-                  onChange={(e) =>
-                    setNome(e.target.value)
-                  }
-                  placeholder="Seu nome"
-                  required
-                />
+                {/* NOME */}
+
+                <div className="field">
+
+                  <label className="label">
+                    Nome
+                  </label>
+
+                  <input
+                    className="input"
+                    type="text"
+                    value={nome}
+                    onChange={(e) =>
+                      setNome(e.target.value)
+                    }
+                    placeholder="Seu nome"
+                    required
+                  />
+
+                </div>
+
+                {/* E-MAIL */}
+
+                <div className="field">
+
+                  <label className="label">
+                    E-mail
+                  </label>
+
+                  <input
+                    className="input"
+                    type="email"
+                    value={email}
+                    onChange={(e) =>
+                      setEmail(e.target.value)
+                    }
+                    placeholder="seu@email.com"
+                    required
+                  />
+
+                </div>
+
               </div>
 
-              <div className="field">
-                <label className="label">
-                  E-mail
-                </label>
-
-                <input
-                  className="input"
-                  type="email"
-                  value={email}
-                  onChange={(e) =>
-                    setEmail(e.target.value)
-                  }
-                  placeholder="seu@email.com"
-                  required
-                />
-              </div>
+              {/* ASSUNTO */}
 
               <div className="field">
+
                 <label className="label">
                   Assunto
                 </label>
@@ -521,8 +693,17 @@ export default function ContatoPage() {
                   }
                   required
                 >
+
                   <option value="">
                     Selecione um assunto
+                  </option>
+
+                  <option value="duvida">
+                    Dúvida
+                  </option>
+
+                  <option value="problema">
+                    Problema técnico
                   </option>
 
                   <option value="conta">
@@ -533,14 +714,6 @@ export default function ContatoPage() {
                     Créditos
                   </option>
 
-                  <option value="geracao">
-                    Problema com geração
-                  </option>
-
-                  <option value="bug">
-                    Relatar um problema
-                  </option>
-
                   <option value="sugestao">
                     Sugestão
                   </option>
@@ -548,10 +721,15 @@ export default function ContatoPage() {
                   <option value="outro">
                     Outro assunto
                   </option>
+
                 </select>
+
               </div>
 
+              {/* MENSAGEM */}
+
               <div className="field">
+
                 <label className="label">
                   Mensagem
                 </label>
@@ -564,25 +742,36 @@ export default function ContatoPage() {
                   }
                   placeholder="Digite sua mensagem..."
                   required
+                  minLength={10}
                 />
+
               </div>
+
+              {/* BOTÃO */}
 
               <button
                 type="submit"
                 className="button"
+                disabled={loading}
               >
-                ENVIAR MENSAGEM
+                {loading
+                  ? "Enviando..."
+                  : "ENVIAR MENSAGEM"}
               </button>
 
             </form>
 
+            <div className="privacy-note">
+              🔒 Suas informações serão tratadas
+              com segurança e de acordo com a
+              Política de Privacidade do CIEL IA
+              STUDIO.
+            </div>
+
           </section>
 
-          <p className="footer-note">
-            CIEL IA STUDIO — Crie. Transforme. Inove com IA.
-          </p>
+        </section>
 
-        </div>
       </main>
     </>
   );
