@@ -58,13 +58,6 @@ export default function ImagemVideoPage() {
       message: "",
     });
 
-  /*
-   * Converte o arquivo selecionado
-   * em Base64/Data URL.
-   *
-   * Isso permite que a imagem seja
-   * enviada para nossa API.
-   */
   function fileToDataUrl(
     file: File
   ): Promise<string> {
@@ -92,9 +85,6 @@ export default function ImagemVideoPage() {
     );
   }
 
-  /*
-   * Seleção da imagem.
-   */
   async function handleImageChange(
     event: React.ChangeEvent<HTMLInputElement>
   ) {
@@ -103,9 +93,6 @@ export default function ImagemVideoPage() {
 
     if (!file) return;
 
-    /*
-     * Verifica se realmente é uma imagem.
-     */
     if (!file.type.startsWith("image/")) {
       setResult({
         type: "error",
@@ -116,9 +103,6 @@ export default function ImagemVideoPage() {
       return;
     }
 
-    /*
-     * Limite de segurança no frontend.
-     */
     if (file.size > 10 * 1024 * 1024) {
       setResult({
         type: "error",
@@ -135,10 +119,6 @@ export default function ImagemVideoPage() {
 
       setImage(dataUrl);
 
-      /*
-       * Limpa resultado anterior
-       * quando uma nova imagem é escolhida.
-       */
       setResult({
         type: "idle",
         message: "",
@@ -157,9 +137,6 @@ export default function ImagemVideoPage() {
     }
   }
 
-  /*
-   * GERAR VÍDEO
-   */
   async function handleGenerate() {
     if (!image) {
       setResult({
@@ -190,28 +167,17 @@ export default function ImagemVideoPage() {
     });
 
     try {
-      /*
-       * A Kling trabalha com:
-       *
-       * 5 ou 10 segundos.
-       */
       const durationValue =
         duration === "10 segundos"
           ? "10"
           : "5";
 
-      /*
-       * Prompt final.
-       */
       const finalPrompt =
         style &&
         style !== "Realista"
           ? `${prompt.trim()} Estilo visual: ${style}.`
           : prompt.trim();
 
-      /*
-       * Chamada para nossa rota.
-       */
       const response =
         await fetch(
           "/api/kling-image-to-video",
@@ -242,9 +208,6 @@ export default function ImagemVideoPage() {
           }
         );
 
-      /*
-       * Lê a resposta como JSON.
-       */
       let data: KlingResponse;
 
       try {
@@ -261,9 +224,6 @@ export default function ImagemVideoPage() {
         data
       );
 
-      /*
-       * ERRO
-       */
       if (
         !response.ok ||
         data.status === "error"
@@ -280,10 +240,6 @@ export default function ImagemVideoPage() {
           data.message ||
           "A Kling recusou a solicitação.";
 
-        /*
-         * Código 1102:
-         * saldo insuficiente.
-         */
         if (
           klingCode === 1102 ||
           klingMessage
@@ -316,9 +272,6 @@ export default function ImagemVideoPage() {
         return;
       }
 
-      /*
-       * SUCESSO
-       */
       const taskId =
         data.taskId ||
         data.klingResponse
@@ -429,9 +382,9 @@ export default function ImagemVideoPage() {
         ========================= */
 
         .topbar {
-          min-height: 74px;
+          width: 100%;
 
-          padding: 0 42px;
+          min-height: 74px;
 
           display: flex;
 
@@ -439,12 +392,14 @@ export default function ImagemVideoPage() {
 
           justify-content: space-between;
 
+          padding: 0 42px;
+
           background:
             rgba(
               4,
               12,
               24,
-              0.9
+              0.92
             );
 
           border-bottom:
@@ -471,31 +426,45 @@ export default function ImagemVideoPage() {
         }
 
         .brand-icon {
-          font-size: 27px;
+          font-size: 28px;
+
+          filter:
+            drop-shadow(
+              0 0 10px
+              rgba(
+                75,
+                199,
+                255,
+                0.8
+              )
+            );
         }
 
         .brand-name {
           font-size: 20px;
 
-          font-weight: 700;
+          font-weight: 800;
 
-          letter-spacing: 0.4px;
+          letter-spacing: 0.5px;
         }
 
         .back {
-          color: #bfeaff;
+          color: #7bd8ff;
 
           text-decoration: none;
 
-          font-size: 14px;
+          font-size: 17px;
+
+          font-weight: 700;
 
           transition:
             color 0.2s ease,
-            text-shadow 0.2s ease;
+            text-shadow 0.2s ease,
+            transform 0.2s ease;
         }
 
         .back:hover {
-          color: #6ed7ff;
+          color: #b4ecff;
 
           text-shadow:
             0 0 12px
@@ -505,6 +474,9 @@ export default function ImagemVideoPage() {
               255,
               0.8
             );
+
+          transform:
+            translateX(-2px);
         }
 
         /* =========================
@@ -1503,6 +1475,10 @@ export default function ImagemVideoPage() {
             font-size: 23px;
           }
 
+          .back {
+            font-size: 15px;
+          }
+
           .content {
             width:
               min(
@@ -1546,24 +1522,51 @@ export default function ImagemVideoPage() {
           }
         }
 
+        @media (max-width: 480px) {
+          .topbar {
+            min-height: 68px;
+
+            padding:
+              0 15px;
+          }
+
+          .brand {
+            gap: 7px;
+          }
+
+          .brand-icon {
+            font-size: 23px;
+          }
+
+          .brand-name {
+            font-size: 15px;
+          }
+
+          .back {
+            font-size: 13px;
+          }
+        }
+
         @media (max-width: 430px) {
           .topbar {
             flex-wrap: wrap;
 
-            justify-content: center;
+            justify-content:
+              space-between;
 
             padding:
-              14px 10px;
+              14px 15px;
           }
 
           .brand {
-            width: 100%;
+            width: auto;
 
-            justify-content: center;
+            justify-content:
+              flex-start;
           }
 
           .back {
-            margin-top: 4px;
+            margin-top: 0;
           }
 
           .title-area h1 {
@@ -1714,8 +1717,6 @@ export default function ImagemVideoPage() {
 
               <div className="options">
 
-                {/* PROPORÇÃO */}
-
                 <div>
 
                   <label className="label">
@@ -1748,8 +1749,6 @@ export default function ImagemVideoPage() {
                   </select>
 
                 </div>
-
-                {/* DURAÇÃO */}
 
                 <div>
 
@@ -1867,8 +1866,6 @@ export default function ImagemVideoPage() {
                 }`}
               >
 
-                {/* ESTADO INICIAL */}
-
                 {result.type ===
                   "idle" && (
                   <div>
@@ -1890,8 +1887,6 @@ export default function ImagemVideoPage() {
 
                   </div>
                 )}
-
-                {/* CARREGANDO */}
 
                 {result.type ===
                   "loading" && (
@@ -1922,8 +1917,6 @@ export default function ImagemVideoPage() {
 
                   </div>
                 )}
-
-                {/* SUCESSO */}
 
                 {result.type ===
                   "success" && (
@@ -1990,8 +1983,6 @@ export default function ImagemVideoPage() {
 
                   </div>
                 )}
-
-                {/* ERRO */}
 
                 {result.type ===
                   "error" && (
