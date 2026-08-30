@@ -36,26 +36,46 @@ Transforme essa ideia em um prompt completo, cinematográfico e bem estruturado.
 
       const data = await response.json();
 
+      if (!response.ok) {
+        throw new Error(
+          data?.error ||
+            "Não foi possível gerar o prompt."
+        );
+      }
+
       setPrompt(
         data.result ||
-          data.message ||
           "Não foi possível gerar o prompt."
       );
-    } catch {
-      setPrompt(
-        "Erro ao conectar com a inteligência artificial."
+    } catch (error) {
+      console.error(
+        "Erro ao gerar prompt:",
+        error
       );
-    }
 
-    setLoading(false);
+      setPrompt(
+        error instanceof Error
+          ? error.message
+          : "Erro ao conectar com a inteligência artificial."
+      );
+    } finally {
+      setLoading(false);
+    }
   }
 
   async function copiarPrompt() {
     if (!prompt) return;
 
-    await navigator.clipboard.writeText(prompt);
-
-    alert("Prompt copiado!");
+    try {
+      await navigator.clipboard.writeText(prompt);
+      alert("Prompt copiado!");
+    } catch (error) {
+      console.error(
+        "Erro ao copiar prompt:",
+        error
+      );
+      alert("Não foi possível copiar o prompt.");
+    }
   }
 
   return (
@@ -73,7 +93,10 @@ Transforme essa ideia em um prompt completo, cinematográfico e bem estruturado.
         }
 
         body {
-          font-family: Arial, Helvetica, sans-serif;
+          font-family:
+            Arial,
+            Helvetica,
+            sans-serif;
         }
 
         a,
@@ -121,9 +144,11 @@ Transforme essa ideia em um prompt completo, cinematográfico e bem estruturado.
 
           padding: 0 42px;
 
-          background: rgba(4, 12, 24, 0.92);
+          background:
+            rgba(4, 12, 24, 0.92);
 
-          border-bottom: 1px solid
+          border-bottom:
+            1px solid
             rgba(100, 180, 255, 0.18);
 
           backdrop-filter: blur(12px);
@@ -140,9 +165,11 @@ Transforme essa ideia em um prompt completo, cinematográfico e bem estruturado.
         .brand-icon {
           font-size: 28px;
 
-          filter: drop-shadow(
-            0 0 10px rgba(75, 199, 255, 0.8)
-          );
+          filter:
+            drop-shadow(
+              0 0 10px
+              rgba(75, 199, 255, 0.8)
+            );
         }
 
         .brand-name {
@@ -169,7 +196,8 @@ Transforme essa ideia em um prompt completo, cinematográfico e bem estruturado.
           color: #b4ecff;
 
           text-shadow:
-            0 0 12px rgba(75, 199, 255, 0.8);
+            0 0 12px
+            rgba(75, 199, 255, 0.8);
 
           transform: translateX(-2px);
         }
@@ -179,7 +207,11 @@ Transforme essa ideia em um prompt completo, cinematográfico e bem estruturado.
         ========================= */
 
         .content {
-          width: min(1180px, calc(100% - 48px));
+          width:
+            min(
+              1180px,
+              calc(100% - 48px)
+            );
 
           margin: 0 auto;
 
@@ -197,7 +229,11 @@ Transforme essa ideia em um prompt completo, cinematográfico e bem estruturado.
           margin: 0;
 
           font-size:
-            clamp(34px, 5vw, 56px);
+            clamp(
+              34px,
+              5vw,
+              56px
+            );
 
           line-height: 1.12;
 
@@ -217,13 +253,17 @@ Transforme essa ideia em um prompt completo, cinematográfico e bem estruturado.
           color: #b9c5d4;
 
           font-size:
-            clamp(17px, 2vw, 21px);
+            clamp(
+              17px,
+              2vw,
+              21px
+            );
 
           line-height: 1.5;
         }
 
         /* =========================
-           CARD PRINCIPAL
+           ÁREA PRINCIPAL
         ========================= */
 
         .workspace {
@@ -234,7 +274,11 @@ Transforme essa ideia em um prompt completo, cinematográfico e bem estruturado.
         }
 
         .panel {
-          width: min(760px, 100%);
+          width:
+            min(
+              760px,
+              100%
+            );
 
           border-radius: 22px;
 
@@ -251,9 +295,12 @@ Transforme essa ideia em um prompt completo, cinematográfico e bem estruturado.
             2px solid #58c9ff;
 
           box-shadow:
-            0 0 8px rgba(70, 199, 255, 0.9),
-            0 0 22px rgba(43, 167, 255, 0.48),
-            inset 0 0 22px rgba(56, 174, 255, 0.08);
+            0 0 8px
+              rgba(70, 199, 255, 0.9),
+            0 0 22px
+              rgba(43, 167, 255, 0.48),
+            inset 0 0 22px
+              rgba(56, 174, 255, 0.08);
 
           transition:
             box-shadow 0.22s ease,
@@ -262,9 +309,12 @@ Transforme essa ideia em um prompt completo, cinematográfico e bem estruturado.
 
         .panel:hover {
           box-shadow:
-            0 0 12px rgba(85, 211, 255, 1),
-            0 0 32px rgba(43, 167, 255, 0.7),
-            inset 0 0 25px rgba(56, 174, 255, 0.12);
+            0 0 12px
+              rgba(85, 211, 255, 1),
+            0 0 32px
+              rgba(43, 167, 255, 0.7),
+            inset 0 0 25px
+              rgba(56, 174, 255, 0.12);
         }
 
         .panel-header {
@@ -329,7 +379,8 @@ Transforme essa ideia em um prompt completo, cinematográfico e bem estruturado.
           padding: 17px;
 
           border:
-            1px solid rgba(94, 203, 255, 0.45);
+            1px solid
+            rgba(94, 203, 255, 0.45);
 
           border-radius: 14px;
 
@@ -362,7 +413,8 @@ Transforme essa ideia em um prompt completo, cinematográfico e bem estruturado.
           border-color: #63d3ff;
 
           box-shadow:
-            0 0 15px rgba(70, 199, 255, 0.25);
+            0 0 15px
+            rgba(70, 199, 255, 0.25);
         }
 
         /* =========================
@@ -396,8 +448,10 @@ Transforme essa ideia em um prompt completo, cinematográfico e bem estruturado.
           font-weight: 800;
 
           box-shadow:
-            0 0 10px rgba(70, 199, 255, 0.7),
-            0 0 24px rgba(43, 167, 255, 0.35);
+            0 0 10px
+              rgba(70, 199, 255, 0.7),
+            0 0 24px
+              rgba(43, 167, 255, 0.35);
 
           transition:
             transform 0.2s ease,
@@ -405,15 +459,19 @@ Transforme essa ideia em um prompt completo, cinematográfico e bem estruturado.
         }
 
         .generate:hover {
-          transform: translateY(-2px);
+          transform:
+            translateY(-2px);
 
           box-shadow:
-            0 0 14px rgba(85, 211, 255, 1),
-            0 0 32px rgba(43, 167, 255, 0.55);
+            0 0 14px
+              rgba(85, 211, 255, 1),
+            0 0 32px
+              rgba(43, 167, 255, 0.55);
         }
 
         .generate:active {
-          transform: scale(0.98);
+          transform:
+            scale(0.98);
         }
 
         .generate:disabled {
@@ -439,10 +497,12 @@ Transforme essa ideia em um prompt completo, cinematográfico e bem estruturado.
             rgba(2, 12, 24, 0.62);
 
           border:
-            1px solid rgba(104, 207, 255, 0.35);
+            1px solid
+            rgba(104, 207, 255, 0.35);
 
           box-shadow:
-            inset 0 0 20px rgba(56, 174, 255, 0.05);
+            inset 0 0 20px
+              rgba(56, 174, 255, 0.05);
         }
 
         .result-title {
@@ -478,7 +538,8 @@ Transforme essa ideia em um prompt completo, cinematográfico e bem estruturado.
           word-break: break-word;
 
           border:
-            1px solid rgba(94, 203, 255, 0.22);
+            1px solid
+            rgba(94, 203, 255, 0.22);
         }
 
         .copy {
@@ -489,7 +550,8 @@ Transforme essa ideia em um prompt completo, cinematográfico e bem estruturado.
           padding: 13px;
 
           border:
-            1px solid rgba(94, 203, 255, 0.45);
+            1px solid
+            rgba(94, 203, 255, 0.45);
 
           border-radius: 12px;
 
@@ -514,7 +576,8 @@ Transforme essa ideia em um prompt completo, cinematográfico e bem estruturado.
             rgba(29, 130, 180, 0.35);
 
           box-shadow:
-            0 0 15px rgba(70, 199, 255, 0.25);
+            0 0 15px
+            rgba(70, 199, 255, 0.25);
         }
 
         /* =========================
@@ -523,7 +586,8 @@ Transforme essa ideia em um prompt completo, cinematográfico e bem estruturado.
 
         .footer {
           border-top:
-            1px solid rgba(100, 180, 255, 0.18);
+            1px solid
+            rgba(100, 180, 255, 0.18);
 
           background:
             linear-gradient(
@@ -537,7 +601,11 @@ Transforme essa ideia em um prompt completo, cinematográfico e bem estruturado.
         }
 
         .footer-inner {
-          width: min(1180px, 100%);
+          width:
+            min(
+              1180px,
+              100%
+            );
 
           margin: 0 auto;
         }
@@ -590,7 +658,8 @@ Transforme essa ideia em um prompt completo, cinematográfico e bem estruturado.
 
           font-size: 14px;
 
-          transition: color 0.2s ease;
+          transition:
+            color 0.2s ease;
         }
 
         .footer-column a:hover {
@@ -603,7 +672,8 @@ Transforme essa ideia em um prompt completo, cinematográfico e bem estruturado.
           padding-top: 22px;
 
           border-top:
-            1px solid rgba(100, 180, 255, 0.16);
+            1px solid
+            rgba(100, 180, 255, 0.16);
 
           text-align: center;
 
@@ -643,7 +713,10 @@ Transforme essa ideia em um prompt completo, cinematográfico e bem estruturado.
 
           .content {
             width:
-              min(760px, calc(100% - 40px));
+              min(
+                760px,
+                calc(100% - 40px)
+              );
           }
         }
 
@@ -683,7 +756,10 @@ Transforme essa ideia em um prompt completo, cinematográfico e bem estruturado.
 
           .content {
             width:
-              min(100% - 32px, 430px);
+              min(
+                calc(100% - 32px),
+                430px
+              );
 
             padding:
               42px 0 55px;
@@ -736,6 +812,10 @@ Transforme essa ideia em um prompt completo, cinematográfico e bem estruturado.
             min-height: 68px;
 
             padding: 0 15px;
+
+            flex-wrap: nowrap;
+
+            justify-content: space-between;
           }
 
           .brand {
@@ -754,6 +834,8 @@ Transforme essa ideia em um prompt completo, cinematográfico e bem estruturado.
 
           .back-link {
             font-size: 13px;
+
+            white-space: nowrap;
           }
         }
       `}</style>
@@ -787,7 +869,6 @@ Transforme essa ideia em um prompt completo, cinematográfico e bem estruturado.
 
         </header>
 
-
         {/* =========================
             CONTEÚDO
         ========================= */}
@@ -801,12 +882,12 @@ Transforme essa ideia em um prompt completo, cinematográfico e bem estruturado.
             </h1>
 
             <p>
-              Transforme suas ideias em prompts
-              profissionais usando inteligência artificial.
+              Transforme suas ideias em
+              prompts profissionais usando
+              inteligência artificial.
             </p>
 
           </div>
-
 
           <div className="workspace">
 
@@ -823,13 +904,12 @@ Transforme essa ideia em um prompt completo, cinematográfico e bem estruturado.
                 </h2>
 
                 <p className="panel-subtitle">
-                  Descreva sua ideia e deixe a IA
-                  transformar sua inspiração em um
-                  prompt profissional.
+                  Descreva sua ideia e deixe a
+                  IA transformar sua inspiração
+                  em um prompt profissional.
                 </p>
 
               </div>
-
 
               <label className="label">
                 Descreva sua ideia
@@ -844,7 +924,6 @@ Transforme essa ideia em um prompt completo, cinematográfico e bem estruturado.
                 placeholder="Exemplo: Uma mulher caminhando em uma cidade futurista ao pôr do sol, com aparência cinematográfica..."
               />
 
-
               <button
                 className={`generate ${
                   loading ? "loading" : ""
@@ -857,9 +936,7 @@ Transforme essa ideia em um prompt completo, cinematográfico e bem estruturado.
                   : "✨ Gerar Prompt"}
               </button>
 
-
               {prompt && (
-
                 <div className="result">
 
                   <div className="result-title">
@@ -874,11 +951,9 @@ Transforme essa ideia em um prompt completo, cinematográfico e bem estruturado.
 
                   </div>
 
-
                   <div className="result-text">
                     {prompt}
                   </div>
-
 
                   <button
                     className="copy"
@@ -888,7 +963,6 @@ Transforme essa ideia em um prompt completo, cinematográfico e bem estruturado.
                   </button>
 
                 </div>
-
               )}
 
             </section>
@@ -896,7 +970,6 @@ Transforme essa ideia em um prompt completo, cinematográfico e bem estruturado.
           </div>
 
         </section>
-
 
         {/* =========================
             RODAPÉ
@@ -918,8 +991,9 @@ Transforme essa ideia em um prompt completo, cinematográfico e bem estruturado.
 
             </div>
 
-
             <div className="footer-columns">
+
+              {/* PRODUTO */}
 
               <div className="footer-column">
 
@@ -927,32 +1001,33 @@ Transforme essa ideia em um prompt completo, cinematográfico e bem estruturado.
                   Produto
                 </h3>
 
-                <a href="/criar-prompts">
+                <Link href="/criar-prompts">
                   Criar Prompts
-                </a>
+                </Link>
 
-                <a href="/texto-imagem">
+                <Link href="/texto-imagem">
                   Texto → Imagem
-                </a>
+                </Link>
 
-                <a href="/texto-video">
+                <Link href="/texto-video">
                   Texto → Vídeo
-                </a>
+                </Link>
 
-                <a href="/imagem-imagem">
+                <Link href="/imagem-imagem">
                   Imagem → Imagem
-                </a>
+                </Link>
 
-                <a href="/imagem-video">
+                <Link href="/imagem-video">
                   Imagem → Vídeo
-                </a>
+                </Link>
 
-                <a href="/projetos">
+                <Link href="/projetos">
                   Meus Projetos
-                </a>
+                </Link>
 
               </div>
 
+              {/* SUPORTE */}
 
               <div className="footer-column">
 
@@ -960,20 +1035,21 @@ Transforme essa ideia em um prompt completo, cinematográfico e bem estruturado.
                   Suporte
                 </h3>
 
-                <a href="/ajuda">
+                <Link href="/ajuda">
                   Central de Ajuda
-                </a>
+                </Link>
 
-                <a href="/contato">
+                <Link href="/contato">
                   Contato
-                </a>
+                </Link>
 
-                <a href="/sobre">
+                <Link href="/sobre">
                   Sobre o CIEL IA STUDIO
-                </a>
+                </Link>
 
               </div>
 
+              {/* LEGAL */}
 
               <div className="footer-column">
 
@@ -981,25 +1057,21 @@ Transforme essa ideia em um prompt completo, cinematográfico e bem estruturado.
                   Legal
                 </h3>
 
-                <a href="/termos">
+                <Link href="/termos">
                   Termos de Uso
-                </a>
+                </Link>
 
-                <a href="/privacidade">
+                <Link href="/privacidade">
                   Política de Privacidade
-                </a>
-
-                <a href="/reembolso">
-                  Política de Reembolso
-                </a>
+                </Link>
 
               </div>
 
             </div>
 
-
             <div className="footer-bottom">
-              © 2026 CIEL IA STUDIO. Todos os direitos reservados.
+              © 2026 CIEL IA STUDIO.
+              Todos os direitos reservados.
             </div>
 
           </div>
