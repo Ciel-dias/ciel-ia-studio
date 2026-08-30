@@ -49,7 +49,7 @@ export default function ProjetosPage() {
         body {
           margin: 0;
           padding: 0;
-          background: #07111f;
+          background: #06101e;
         }
 
         body {
@@ -81,7 +81,7 @@ export default function ProjetosPage() {
             ),
             radial-gradient(
               circle at 14% 68%,
-              rgba(15, 76, 125, 0.3),
+              rgba(15, 76, 125, 0.32),
               transparent 40%
             ),
             linear-gradient(
@@ -95,25 +95,25 @@ export default function ProjetosPage() {
         }
 
         /* =========================
-           TOPO
+           CABEÇALHO
         ========================= */
 
         .topbar {
           width: 100%;
+
           min-height: 74px;
+
+          display: flex;
+
+          align-items: center;
+
+          justify-content: space-between;
 
           padding: 0 42px;
 
-          display: flex;
-          align-items: center;
-          justify-content: space-between;
-
-          gap: 20px;
-
           background: rgba(4, 12, 24, 0.92);
 
-          border-bottom:
-            1px solid
+          border-bottom: 1px solid
             rgba(100, 180, 255, 0.18);
 
           backdrop-filter: blur(12px);
@@ -121,6 +121,7 @@ export default function ProjetosPage() {
 
         .brand {
           display: flex;
+
           align-items: center;
 
           gap: 10px;
@@ -131,11 +132,9 @@ export default function ProjetosPage() {
         .brand-icon {
           font-size: 28px;
 
-          filter:
-            drop-shadow(
-              0 0 10px
-              rgba(75, 199, 255, 0.8)
-            );
+          filter: drop-shadow(
+            0 0 10px rgba(75, 199, 255, 0.8)
+          );
         }
 
         .brand-name {
@@ -145,10 +144,6 @@ export default function ProjetosPage() {
 
           letter-spacing: 0.5px;
         }
-
-        /* =========================
-           VOLTAR AO DASHBOARD
-        ========================= */
 
         .back {
           color: #7bd8ff;
@@ -170,7 +165,7 @@ export default function ProjetosPage() {
 
           text-shadow:
             0 0 12px
-            rgba(75, 199, 255, 0.8);
+              rgba(75, 199, 255, 0.8);
 
           transform: translateX(-2px);
         }
@@ -180,16 +175,14 @@ export default function ProjetosPage() {
         ========================= */
 
         .content {
-          width:
-            min(
-              1180px,
-              calc(100% - 40px)
-            );
+          width: min(
+            1180px,
+            calc(100% - 40px)
+          );
 
           margin: 0 auto;
 
-          padding:
-            55px 0 70px;
+          padding: 55px 0 70px;
         }
 
         .title-area {
@@ -201,8 +194,11 @@ export default function ProjetosPage() {
         .title-area h1 {
           margin: 0;
 
-          font-size:
-            clamp(32px, 5vw, 52px);
+          font-size: clamp(
+            32px,
+            5vw,
+            52px
+          );
 
           line-height: 1.12;
 
@@ -210,8 +206,7 @@ export default function ProjetosPage() {
         }
 
         .title-area p {
-          margin:
-            15px auto 0;
+          margin: 15px auto 0;
 
           max-width: 650px;
 
@@ -237,16 +232,18 @@ export default function ProjetosPage() {
 
           margin-bottom: 28px;
 
-          padding:
-            18px 20px;
+          padding: 18px 20px;
 
           border-radius: 18px;
 
-          background:
-            rgba(4, 15, 29, 0.65);
+          background: rgba(
+            4,
+            15,
+            29,
+            0.65
+          );
 
-          border:
-            1px solid
+          border: 1px solid
             rgba(94, 203, 255, 0.22);
 
           backdrop-filter: blur(10px);
@@ -269,17 +266,19 @@ export default function ProjetosPage() {
         }
 
         .filter {
-          padding:
-            9px 15px;
+          padding: 9px 15px;
 
           border-radius: 11px;
 
-          border:
-            1px solid
+          border: 1px solid
             rgba(94, 203, 255, 0.28);
 
-          background:
-            rgba(5, 20, 36, 0.8);
+          background: rgba(
+            5,
+            20,
+            36,
+            0.8
+          );
 
           color: #b9c8d7;
 
@@ -314,10 +313,9 @@ export default function ProjetosPage() {
 
           box-shadow:
             0 0 10px
-            rgba(70, 199, 255, 0.55),
-
+              rgba(70, 199, 255, 0.55),
             0 0 20px
-            rgba(43, 167, 255, 0.25);
+              rgba(43, 167, 255, 0.25);
         }
 
         /* =========================
@@ -358,18 +356,15 @@ export default function ProjetosPage() {
               rgba(14, 25, 40, 0.97)
             );
 
-          border:
-            2px solid #58c9ff;
+          border: 2px solid #58c9ff;
 
           box-shadow:
             0 0 8px
-            rgba(70, 199, 255, 0.8),
-
+              rgba(70, 199, 255, 0.8),
             0 0 22px
-            rgba(43, 167, 255, 0.35),
-
+              rgba(43, 167, 255, 0.35),
             inset 0 0 22px
-            rgba(56, 174, 255, 0.07);
+              rgba(56, 174, 255, 0.07);
 
           transition:
             transform 0.22s ease,
@@ -378,8 +373,7 @@ export default function ProjetosPage() {
         }
 
         .project-card:hover {
-          transform:
-            translateY(-5px);
+          transform: translateY(-5px);
 
           background:
             linear-gradient(
@@ -390,21 +384,19 @@ export default function ProjetosPage() {
 
           box-shadow:
             0 0 12px
-            rgba(85, 211, 255, 1),
-
+              rgba(85, 211, 255, 1),
             0 0 32px
-            rgba(43, 167, 255, 0.7),
-
+              rgba(43, 167, 255, 0.7),
             inset 0 0 25px
-            rgba(56, 174, 255, 0.12);
+              rgba(56, 174, 255, 0.12);
         }
 
         .project-icon {
           width: 92px;
+
           height: 92px;
 
-          margin:
-            0 auto 22px;
+          margin: 0 auto 22px;
 
           display: flex;
 
@@ -422,11 +414,14 @@ export default function ProjetosPage() {
               rgba(43, 167, 255, 0.18),
               transparent 70%
             ),
+            rgba(
+              3,
+              13,
+              25,
+              0.72
+            );
 
-            rgba(3, 13, 25, 0.72);
-
-          border:
-            1px solid
+          border: 1px solid
             rgba(94, 203, 255, 0.3);
         }
 
@@ -437,8 +432,7 @@ export default function ProjetosPage() {
         }
 
         .project-card p {
-          margin:
-            13px auto 0;
+          margin: 13px auto 0;
 
           max-width: 280px;
 
@@ -454,18 +448,20 @@ export default function ProjetosPage() {
 
           margin-top: 18px;
 
-          padding:
-            7px 12px;
+          padding: 7px 12px;
 
           border-radius: 10px;
 
           color: #bfeaff;
 
-          background:
-            rgba(29, 112, 157, 0.15);
+          background: rgba(
+            29,
+            112,
+            157,
+            0.15
+          );
 
-          border:
-            1px solid
+          border: 1px solid
             rgba(94, 203, 255, 0.2);
 
           font-size: 12px;
@@ -480,19 +476,21 @@ export default function ProjetosPage() {
         .empty {
           margin-top: 30px;
 
-          padding:
-            55px 25px;
+          padding: 55px 25px;
 
           text-align: center;
 
           border-radius: 22px;
 
-          border:
-            1px dashed
+          border: 1px dashed
             rgba(104, 207, 255, 0.35);
 
-          background:
-            rgba(2, 12, 24, 0.48);
+          background: rgba(
+            2,
+            12,
+            24,
+            0.48
+          );
         }
 
         .empty-icon {
@@ -508,8 +506,7 @@ export default function ProjetosPage() {
         }
 
         .empty p {
-          margin:
-            10px auto 0;
+          margin: 10px auto 0;
 
           max-width: 500px;
 
@@ -523,8 +520,7 @@ export default function ProjetosPage() {
 
           margin-top: 22px;
 
-          padding:
-            13px 22px;
+          padding: 13px 22px;
 
           border-radius: 13px;
 
@@ -545,25 +541,21 @@ export default function ProjetosPage() {
 
           box-shadow:
             0 0 10px
-            rgba(70, 199, 255, 0.65),
-
+              rgba(70, 199, 255, 0.65),
             0 0 22px
-            rgba(43, 167, 255, 0.3);
+              rgba(43, 167, 255, 0.3);
 
-          transition:
-            0.2s ease;
+          transition: 0.2s ease;
         }
 
         .create-button:hover {
-          transform:
-            translateY(-2px);
+          transform: translateY(-2px);
 
           box-shadow:
             0 0 14px
-            rgba(85, 211, 255, 1),
-
+              rgba(85, 211, 255, 1),
             0 0 30px
-            rgba(43, 167, 255, 0.5);
+              rgba(43, 167, 255, 0.5);
         }
 
         /* =========================
@@ -571,8 +563,7 @@ export default function ProjetosPage() {
         ========================= */
 
         .footer {
-          border-top:
-            1px solid
+          border-top: 1px solid
             rgba(100, 180, 255, 0.18);
 
           background:
@@ -582,16 +573,14 @@ export default function ProjetosPage() {
               rgba(3, 11, 22, 1)
             );
 
-          padding:
-            52px 42px 24px;
+          padding: 52px 42px 24px;
         }
 
         .footer-inner {
-          width:
-            min(
-              1180px,
-              100%
-            );
+          width: min(
+            1180px,
+            100%
+          );
 
           margin: 0 auto;
         }
@@ -601,8 +590,7 @@ export default function ProjetosPage() {
         }
 
         .footer-brand h2 {
-          margin:
-            0 0 8px;
+          margin: 0 0 8px;
 
           font-size: 24px;
         }
@@ -625,8 +613,7 @@ export default function ProjetosPage() {
         }
 
         .footer-column h3 {
-          margin:
-            0 0 18px;
+          margin: 0 0 18px;
 
           font-size: 16px;
         }
@@ -644,8 +631,7 @@ export default function ProjetosPage() {
 
           font-size: 14px;
 
-          transition:
-            color 0.2s ease;
+          transition: color 0.2s ease;
         }
 
         .footer-column a:hover {
@@ -657,8 +643,7 @@ export default function ProjetosPage() {
 
           padding-top: 22px;
 
-          border-top:
-            1px solid
+          border-top: 1px solid
             rgba(100, 180, 255, 0.16);
 
           text-align: center;
@@ -711,12 +696,15 @@ export default function ProjetosPage() {
             font-size: 23px;
           }
 
+          .back {
+            font-size: 14px;
+          }
+
           .content {
-            width:
-              min(
-                100% - 28px,
-                430px
-              );
+            width: min(
+              calc(100% - 28px),
+              430px
+            );
 
             padding-top: 38px;
           }
@@ -736,8 +724,7 @@ export default function ProjetosPage() {
           }
 
           .footer {
-            padding:
-              42px 24px 22px;
+            padding: 42px 24px 22px;
           }
 
           .footer-columns {
@@ -748,29 +735,34 @@ export default function ProjetosPage() {
         }
 
         /* =========================
-           CELULAR PEQUENO
+           CELULARES PEQUENOS
         ========================= */
 
         @media (max-width: 430px) {
           .topbar {
-            flex-wrap: wrap;
+            min-height: 68px;
 
-            justify-content: center;
+            padding: 0 12px;
 
-            padding:
-              14px 10px;
+            gap: 8px;
           }
 
           .brand {
-            width: 100%;
+            gap: 7px;
+          }
 
-            justify-content: center;
+          .brand-icon {
+            font-size: 22px;
+          }
+
+          .brand-name {
+            font-size: 14px;
           }
 
           .back {
-            margin-top: 2px;
+            font-size: 12px;
 
-            font-size: 13px;
+            white-space: nowrap;
           }
 
           .title-area h1 {
@@ -833,8 +825,9 @@ export default function ProjetosPage() {
             </h1>
 
             <p>
-              Acesse, organize e acompanhe todas as suas
-              criações feitas no CIEL IA STUDIO.
+              Acesse, organize e acompanhe
+              todas as suas criações feitas
+              no CIEL IA STUDIO.
             </p>
 
           </div>
@@ -937,9 +930,9 @@ export default function ProjetosPage() {
             </h2>
 
             <p>
-              Quando você começar a gerar imagens,
-              vídeos e prompts, eles serão organizados
-              nesta área.
+              Quando você começar a gerar
+              imagens, vídeos e prompts,
+              eles serão organizados nesta área.
             </p>
 
             <a
@@ -975,6 +968,8 @@ export default function ProjetosPage() {
 
             <div className="footer-columns">
 
+              {/* PRODUTO */}
+
               <div className="footer-column">
 
                 <h3>
@@ -1007,6 +1002,8 @@ export default function ProjetosPage() {
 
               </div>
 
+              {/* SUPORTE */}
+
               <div className="footer-column">
 
                 <h3>
@@ -1026,6 +1023,8 @@ export default function ProjetosPage() {
                 </a>
 
               </div>
+
+              {/* LEGAL */}
 
               <div className="footer-column">
 
@@ -1050,8 +1049,10 @@ export default function ProjetosPage() {
             </div>
 
             <div className="footer-bottom">
+
               © 2026 CIEL IA STUDIO.
               Todos os direitos reservados.
+
             </div>
 
           </div>
