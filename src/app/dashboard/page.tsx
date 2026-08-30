@@ -212,20 +212,17 @@ export default function DashboardPage() {
           gap: 20px;
           padding: 0 42px;
 
-          background:
-            ${
-              theme === "dark"
-                ? "rgba(4, 12, 24, 0.88)"
-                : "rgba(255, 255, 255, 0.88)"
-            };
+          background: ${
+            theme === "dark"
+              ? "rgba(4, 12, 24, 0.88)"
+              : "rgba(255, 255, 255, 0.88)"
+          };
 
-          border-bottom:
-            1px solid
-            ${
-              theme === "dark"
-                ? "rgba(100, 180, 255, 0.18)"
-                : "rgba(40, 110, 160, 0.18)"
-            };
+          border-bottom: 1px solid ${
+            theme === "dark"
+              ? "rgba(100, 180, 255, 0.18)"
+              : "rgba(40, 110, 160, 0.18)"
+          };
 
           backdrop-filter: blur(12px);
 
@@ -259,12 +256,11 @@ export default function DashboardPage() {
 
         .nav a,
         .nav button {
-          color:
-            ${
-              theme === "dark"
-                ? "#e8eef7"
-                : "#172333"
-            };
+          color: ${
+            theme === "dark"
+              ? "#e8eef7"
+              : "#172333"
+          };
 
           background: transparent;
           border: none;
@@ -300,29 +296,25 @@ export default function DashboardPage() {
 
           border-radius: 50%;
 
-          border:
-            1px solid
-            ${
-              theme === "dark"
-                ? "rgba(104, 207, 255, 0.45)"
-                : "rgba(30, 130, 190, 0.35)"
-            } !important;
+          border: 1px solid ${
+            theme === "dark"
+              ? "rgba(104, 207, 255, 0.45)"
+              : "rgba(30, 130, 190, 0.35)"
+          } !important;
 
-          background:
-            ${
-              theme === "dark"
-                ? "rgba(20, 100, 150, 0.18)"
-                : "rgba(255, 255, 255, 0.7)"
-            } !important;
+          background: ${
+            theme === "dark"
+              ? "rgba(20, 100, 150, 0.18)"
+              : "rgba(255, 255, 255, 0.7)"
+          } !important;
 
           font-size: 19px !important;
 
-          box-shadow:
-            ${
-              theme === "dark"
-                ? "0 0 12px rgba(70, 199, 255, 0.22)"
-                : "0 0 12px rgba(70, 160, 220, 0.18)"
-            };
+          box-shadow: ${
+            theme === "dark"
+              ? "0 0 12px rgba(70, 199, 255, 0.22)"
+              : "0 0 12px rgba(70, 160, 220, 0.18)"
+          };
 
           transition:
             transform 0.2s ease,
@@ -356,12 +348,11 @@ export default function DashboardPage() {
         .hero p {
           margin: 20px auto 0;
 
-          color:
-            ${
-              theme === "dark"
-                ? "#b9c5d4"
-                : "#536579"
-            };
+          color: ${
+            theme === "dark"
+              ? "#b9c5d4"
+              : "#536579"
+          };
 
           font-size: clamp(17px, 2vw, 22px);
 
@@ -485,26 +476,20 @@ export default function DashboardPage() {
         .card-icon {
           font-size: 50px;
           line-height: 1;
-
           margin-bottom: 18px;
         }
 
         .card-title {
           font-size: 20px;
           font-weight: 700;
-
           line-height: 1.25;
-
           margin: 0;
         }
 
         .card-description {
           font-size: 15px;
-
           line-height: 1.45;
-
           margin: 12px 0 0;
-
           max-width: 230px;
         }
 
@@ -518,9 +503,7 @@ export default function DashboardPage() {
 
         .card-arrow {
           margin-top: 22px;
-
           font-size: 15px;
-
           font-weight: 700;
         }
 
@@ -533,13 +516,11 @@ export default function DashboardPage() {
         }
 
         .footer {
-          border-top:
-            1px solid
-            ${
-              theme === "dark"
-                ? "rgba(100, 180, 255, 0.18)"
-                : "rgba(40, 110, 160, 0.18)"
-            };
+          border-top: 1px solid ${
+            theme === "dark"
+              ? "rgba(100, 180, 255, 0.18)"
+              : "rgba(40, 110, 160, 0.18)"
+          };
 
           background:
             ${
@@ -568,7 +549,6 @@ export default function DashboardPage() {
 
         .footer-inner {
           width: min(1180px, 100%);
-
           margin: 0 auto;
         }
 
@@ -578,19 +558,17 @@ export default function DashboardPage() {
 
         .footer-brand h2 {
           margin: 0 0 8px;
-
           font-size: 24px;
         }
 
         .footer-brand p {
           margin: 0;
 
-          color:
-            ${
-              theme === "dark"
-                ? "#9eacbd"
-                : "#5d7082"
-            };
+          color: ${
+            theme === "dark"
+              ? "#9eacbd"
+              : "#5d7082"
+          };
 
           font-size: 15px;
         }
@@ -606,7 +584,6 @@ export default function DashboardPage() {
 
         .footer-column h3 {
           margin: 0 0 18px;
-
           font-size: 16px;
         }
 
@@ -617,12 +594,11 @@ export default function DashboardPage() {
 
           margin-bottom: 12px;
 
-          color:
-            ${
-              theme === "dark"
-                ? "#aebaca"
-                : "#536577"
-            };
+          color: ${
+            theme === "dark"
+              ? "#aebaca"
+              : "#536577"
+          };
 
           text-decoration: none;
 
@@ -641,22 +617,19 @@ export default function DashboardPage() {
 
           padding-top: 22px;
 
-          border-top:
-            1px solid
-            ${
-              theme === "dark"
-                ? "rgba(100, 180, 255, 0.16)"
-                : "rgba(40, 110, 160, 0.16)"
-            };
+          border-top: 1px solid ${
+            theme === "dark"
+              ? "rgba(100, 180, 255, 0.16)"
+              : "rgba(40, 110, 160, 0.16)"
+          };
 
           text-align: center;
 
-          color:
-            ${
-              theme === "dark"
-                ? "#8997a9"
-                : "#65788a"
-            };
+          color: ${
+            theme === "dark"
+              ? "#8997a9"
+              : "#65788a"
+          };
 
           font-size: 13px;
         }
@@ -686,9 +659,7 @@ export default function DashboardPage() {
         @media (max-width: 650px) {
           .topbar {
             min-height: 68px;
-
             padding: 0 16px;
-
             gap: 12px;
           }
 
@@ -712,7 +683,6 @@ export default function DashboardPage() {
           .theme-button {
             width: 34px;
             height: 34px;
-
             font-size: 17px !important;
           }
 
@@ -736,7 +706,6 @@ export default function DashboardPage() {
 
           .card {
             min-height: 230px;
-
             padding: 30px 22px;
           }
 
@@ -746,7 +715,6 @@ export default function DashboardPage() {
 
           .footer-columns {
             grid-template-columns: 1fr;
-
             gap: 30px;
           }
         }
@@ -754,25 +722,19 @@ export default function DashboardPage() {
         @media (max-width: 430px) {
           .topbar {
             flex-wrap: wrap;
-
             justify-content: center;
-
             padding: 14px 10px;
           }
 
           .brand {
             width: 100%;
-
             justify-content: center;
           }
 
           .nav {
             width: 100%;
-
             justify-content: center;
-
             flex-wrap: wrap;
-
             gap: 12px 16px;
           }
 
@@ -800,8 +762,6 @@ export default function DashboardPage() {
 
       <div className="dashboard-page">
 
-        {/* CABEÇALHO */}
-
         <header className="topbar">
 
           <div className="brand">
@@ -818,8 +778,8 @@ export default function DashboardPage() {
 
           <nav className="nav">
 
-            {/* ROTA CORRETA DA MINHA CONTA */}
-            <Link href="/conta">
+            {/* ROTA CORRIGIDA */}
+            <Link href="/minha-conta">
               Minha Conta
             </Link>
 
@@ -862,9 +822,6 @@ export default function DashboardPage() {
 
         </header>
 
-
-        {/* HERO */}
-
         <section className="hero">
 
           <h1>
@@ -876,9 +833,6 @@ export default function DashboardPage() {
           </p>
 
         </section>
-
-
-        {/* 6 CARDS */}
 
         <section className="cards-container">
 
@@ -920,9 +874,6 @@ export default function DashboardPage() {
 
         </section>
 
-
-        {/* RODAPÉ */}
-
         <footer className="footer">
 
           <div className="footer-inner">
@@ -939,10 +890,7 @@ export default function DashboardPage() {
 
             </div>
 
-
             <div className="footer-columns">
-
-              {/* PRODUTO */}
 
               <div className="footer-column">
 
@@ -976,9 +924,6 @@ export default function DashboardPage() {
 
               </div>
 
-
-              {/* SUPORTE */}
-
               <div className="footer-column">
 
                 <h3>
@@ -999,9 +944,6 @@ export default function DashboardPage() {
 
               </div>
 
-
-              {/* LEGAL — REEMBOLSO REMOVIDO */}
-
               <div className="footer-column">
 
                 <h3>
@@ -1020,12 +962,9 @@ export default function DashboardPage() {
 
             </div>
 
-
             <div className="footer-bottom">
-
               © 2026 CIEL IA STUDIO.
               Todos os direitos reservados.
-
             </div>
 
           </div>
