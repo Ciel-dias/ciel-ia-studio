@@ -117,6 +117,10 @@ export default function TextoImagemPage() {
           overflow-x: hidden;
         }
 
+        /* =========================
+           TOPO
+        ========================= */
+
         .topbar {
           width: 100%;
           min-height: 74px;
@@ -125,13 +129,12 @@ export default function TextoImagemPage() {
           align-items: center;
           justify-content: space-between;
 
-          gap: 20px;
           padding: 0 42px;
 
-          background: rgba(4, 12, 24, 0.88);
+          background: rgba(4, 12, 24, 0.92);
 
-          border-bottom:
-            1px solid rgba(100, 180, 255, 0.18);
+          border-bottom: 1px solid
+            rgba(100, 180, 255, 0.18);
 
           backdrop-filter: blur(12px);
         }
@@ -146,23 +149,44 @@ export default function TextoImagemPage() {
 
         .brand-icon {
           font-size: 28px;
+
+          filter: drop-shadow(
+            0 0 10px rgba(75, 199, 255, 0.8)
+          );
         }
 
         .brand-name {
           font-size: 20px;
-          font-weight: 700;
-          letter-spacing: 0.4px;
+          font-weight: 800;
+          letter-spacing: 0.5px;
         }
 
         .back {
-          color: #e8eef7;
+          color: #7bd8ff;
+
           text-decoration: none;
-          font-size: 15px;
+
+          font-size: 17px;
+          font-weight: 700;
+
+          transition:
+            color 0.2s ease,
+            text-shadow 0.2s ease,
+            transform 0.2s ease;
         }
 
         .back:hover {
-          color: #72d5ff;
+          color: #b4ecff;
+
+          text-shadow:
+            0 0 12px rgba(75, 199, 255, 0.8);
+
+          transform: translateX(-2px);
         }
+
+        /* =========================
+           CONTEÚDO
+        ========================= */
 
         .content {
           width: min(1180px, calc(100% - 48px));
@@ -543,6 +567,10 @@ export default function TextoImagemPage() {
           white-space: pre-wrap;
         }
 
+        /* =========================
+           FOOTER
+        ========================= */
+
         .footer {
           border-top:
             1px solid rgba(100, 180, 255, 0.18);
@@ -628,6 +656,10 @@ export default function TextoImagemPage() {
 
           font-size: 13px;
         }
+
+        /* =========================
+           RESPONSIVO
+        ========================= */
 
         @media (max-width: 850px) {
           .topbar {
@@ -719,9 +751,14 @@ export default function TextoImagemPage() {
 
       <main className="page">
 
+        {/* =========================
+            CABEÇALHO
+        ========================= */}
+
         <header className="topbar">
 
           <div className="brand">
+
             <span className="brand-icon">
               ✨
             </span>
@@ -729,6 +766,7 @@ export default function TextoImagemPage() {
             <span className="brand-name">
               CIEL IA STUDIO
             </span>
+
           </div>
 
           <a
@@ -740,6 +778,9 @@ export default function TextoImagemPage() {
 
         </header>
 
+        {/* =========================
+            CONTEÚDO
+        ========================= */}
 
         <section className="content">
 
@@ -755,7 +796,6 @@ export default function TextoImagemPage() {
             </p>
 
           </div>
-
 
           <div className="workspace">
 
@@ -777,7 +817,6 @@ export default function TextoImagemPage() {
                 }
                 placeholder="Exemplo: Uma cidade futurista brasileira ao pôr do sol, extremamente detalhada, cinematográfica..."
               />
-
 
               <label className="label">
                 Proporção
@@ -801,7 +840,6 @@ export default function TextoImagemPage() {
                   9:16 — Vertical
                 </option>
               </select>
-
 
               <label className="label">
                 Estilo
@@ -834,14 +872,12 @@ export default function TextoImagemPage() {
                 </option>
               </select>
 
-
               <div className="credits">
                 💎 Seus créditos:{" "}
                 <strong>
                   30
                 </strong>
               </div>
-
 
               <button
                 className={`generate ${
@@ -856,7 +892,6 @@ export default function TextoImagemPage() {
               </button>
 
             </section>
-
 
             <section className="panel">
 
@@ -882,7 +917,6 @@ export default function TextoImagemPage() {
                       : "🖼️"}
                   </div>
 
-
                   <h3>
 
                     {loading
@@ -895,7 +929,6 @@ export default function TextoImagemPage() {
 
                   </h3>
 
-
                   <p>
 
                     {loading
@@ -907,7 +940,6 @@ export default function TextoImagemPage() {
                       : "Escreva um prompt ao lado e clique em “Gerar Imagem” para começar."}
 
                   </p>
-
 
                   {result?.taskId && (
                     <div className="task-box">
@@ -922,7 +954,6 @@ export default function TextoImagemPage() {
 
                     </div>
                   )}
-
 
                   {errorData && (
                     <div className="error-box">
@@ -981,6 +1012,9 @@ export default function TextoImagemPage() {
 
         </section>
 
+        {/* =========================
+            FOOTER
+        ========================= */}
 
         <footer className="footer">
 
@@ -997,7 +1031,6 @@ export default function TextoImagemPage() {
               </p>
 
             </div>
-
 
             <div className="footer-columns">
 
@@ -1033,7 +1066,6 @@ export default function TextoImagemPage() {
 
               </div>
 
-
               <div className="footer-column">
 
                 <h3>
@@ -1053,7 +1085,6 @@ export default function TextoImagemPage() {
                 </a>
 
               </div>
-
 
               <div className="footer-column">
 
@@ -1076,7 +1107,6 @@ export default function TextoImagemPage() {
               </div>
 
             </div>
-
 
             <div className="footer-bottom">
               © 2026 CIEL IA STUDIO. Todos os direitos reservados.
