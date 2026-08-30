@@ -84,6 +84,8 @@ export default function TermosPage() {
           gap: 10px;
 
           white-space: nowrap;
+
+          flex-shrink: 0;
         }
 
         .brand-icon {
@@ -99,11 +101,15 @@ export default function TermosPage() {
         }
 
         .back {
-          color: #e8eef7;
+          color: #72d5ff;
 
           text-decoration: none;
 
           font-size: 15px;
+
+          font-weight: 700;
+
+          white-space: nowrap;
 
           transition:
             color 0.2s ease,
@@ -111,7 +117,7 @@ export default function TermosPage() {
         }
 
         .back:hover {
-          color: #72d5ff;
+          color: #a4e9ff;
 
           text-shadow:
             0 0 12px rgba(75, 199, 255, 0.8);
@@ -489,33 +495,43 @@ export default function TermosPage() {
             padding:
               14px 16px;
 
-            flex-wrap: wrap;
+            gap: 12px;
 
-            justify-content: center;
+            flex-wrap: nowrap;
+
+            justify-content: space-between;
           }
 
           .brand {
-            width: 100%;
+            width: auto;
 
-            justify-content: center;
-          }
+            justify-content: flex-start;
 
-          .brand-name {
-            font-size: 16px;
+            gap: 7px;
+
+            min-width: 0;
           }
 
           .brand-icon {
             font-size: 23px;
           }
 
+          .brand-name {
+            font-size: 16px;
+
+            letter-spacing: 0.2px;
+          }
+
           .back {
             font-size: 13px;
+
+            flex-shrink: 0;
           }
 
           .content {
             width:
               min(
-                100% - 32px,
+                calc(100% - 32px),
                 430px
               );
 
@@ -580,6 +596,35 @@ export default function TermosPage() {
             gap: 30px;
           }
         }
+
+        /* =========================
+           CELULARES MUITO PEQUENOS
+        ========================= */
+
+        @media (max-width: 390px) {
+          .topbar {
+            padding:
+              13px 12px;
+
+            gap: 8px;
+          }
+
+          .brand {
+            gap: 5px;
+          }
+
+          .brand-icon {
+            font-size: 20px;
+          }
+
+          .brand-name {
+            font-size: 14px;
+          }
+
+          .back {
+            font-size: 11px;
+          }
+        }
       `}</style>
 
       <main className="terms-page">
@@ -637,9 +682,7 @@ export default function TermosPage() {
 
           <article className="document">
 
-            {/* =========================
-                1
-            ========================= */}
+            {/* 1 */}
 
             <section className="section">
 
@@ -648,10 +691,7 @@ export default function TermosPage() {
               </h2>
 
               <div className="subsection">
-
-                <h3>
-                  1.1.
-                </h3>
+                <h3>1.1.</h3>
 
                 <p>
                   Ao criar uma conta ou utilizar o
@@ -659,28 +699,21 @@ export default function TermosPage() {
                   leu, compreendeu e concorda com estes
                   Termos de Uso.
                 </p>
-
               </div>
 
               <div className="subsection">
-
-                <h3>
-                  1.2.
-                </h3>
+                <h3>1.2.</h3>
 
                 <p>
                   Caso o usuário não concorde com estes
                   Termos, deverá deixar de utilizar os
                   serviços disponibilizados pela plataforma.
                 </p>
-
               </div>
 
             </section>
 
-            {/* =========================
-                2
-            ========================= */}
+            {/* 2 */}
 
             <section className="section">
 
@@ -689,10 +722,7 @@ export default function TermosPage() {
               </h2>
 
               <div className="subsection">
-
-                <h3>
-                  2.1.
-                </h3>
+                <h3>2.1.</h3>
 
                 <p>
                   O CIEL IA STUDIO é uma plataforma
@@ -700,14 +730,10 @@ export default function TermosPage() {
                   de conteúdos utilizando recursos de
                   inteligência artificial.
                 </p>
-
               </div>
 
               <div className="subsection">
-
-                <h3>
-                  2.2.
-                </h3>
+                <h3>2.2.</h3>
 
                 <p>
                   Os recursos disponíveis podem incluir
@@ -715,14 +741,11 @@ export default function TermosPage() {
                   outras ferramentas de criação assistida
                   por inteligência artificial.
                 </p>
-
               </div>
 
             </section>
 
-            {/* =========================
-                3
-            ========================= */}
+            {/* 3 */}
 
             <section className="section">
 
@@ -731,10 +754,7 @@ export default function TermosPage() {
               </h2>
 
               <div className="subsection">
-
-                <h3>
-                  3.1.
-                </h3>
+                <h3>3.1.</h3>
 
                 <p>
                   Para utilizar determinados recursos,
@@ -742,14 +762,10 @@ export default function TermosPage() {
                   fornecendo informações verdadeiras e
                   atualizadas.
                 </p>
-
               </div>
 
               <div className="subsection">
-
-                <h3>
-                  3.2.
-                </h3>
+                <h3>3.2.</h3>
 
                 <p>
                   O usuário é responsável por manter a
@@ -757,27 +773,20 @@ export default function TermosPage() {
                   e por todas as atividades realizadas
                   mediante sua conta.
                 </p>
-
               </div>
 
               <div className="subsection">
-
-                <h3>
-                  3.3.
-                </h3>
+                <h3>3.3.</h3>
 
                 <p>
                   O usuário não deverá compartilhar suas
                   credenciais de acesso com terceiros.
                 </p>
-
               </div>
 
             </section>
 
-            {/* =========================
-                4
-            ========================= */}
+            {/* 4 */}
 
             <section className="section">
 
@@ -786,10 +795,7 @@ export default function TermosPage() {
               </h2>
 
               <div className="subsection">
-
-                <h3>
-                  4.1.
-                </h3>
+                <h3>4.1.</h3>
 
                 <p>
                   Os recursos de inteligência artificial
@@ -797,14 +803,10 @@ export default function TermosPage() {
                   usuário na criação e transformação de
                   conteúdos.
                 </p>
-
               </div>
 
               <div className="subsection">
-
-                <h3>
-                  4.2.
-                </h3>
+                <h3>4.2.</h3>
 
                 <p>
                   Os resultados produzidos por sistemas
@@ -813,14 +815,10 @@ export default function TermosPage() {
                   gerações atenderão exatamente às
                   expectativas do usuário.
                 </p>
-
               </div>
 
               <div className="subsection">
-
-                <h3>
-                  4.3.
-                </h3>
+                <h3>4.3.</h3>
 
                 <p>
                   O usuário é responsável por analisar
@@ -828,14 +826,11 @@ export default function TermosPage() {
                   gerados antes de publicá-los ou
                   utilizá-los em qualquer finalidade.
                 </p>
-
               </div>
 
             </section>
 
-            {/* =========================
-                5
-            ========================= */}
+            {/* 5 */}
 
             <section className="section">
 
@@ -844,10 +839,7 @@ export default function TermosPage() {
               </h2>
 
               <div className="subsection">
-
-                <h3>
-                  5.1.
-                </h3>
+                <h3>5.1.</h3>
 
                 <p>
                   O usuário é responsável pelos textos,
@@ -855,14 +847,10 @@ export default function TermosPage() {
                   conteúdos que enviar ou utilizar na
                   plataforma.
                 </p>
-
               </div>
 
               <div className="subsection">
-
-                <h3>
-                  5.2.
-                </h3>
+                <h3>5.2.</h3>
 
                 <p>
                   O usuário declara possuir os direitos,
@@ -871,14 +859,11 @@ export default function TermosPage() {
                   que eventualmente sejam enviados à
                   plataforma.
                 </p>
-
               </div>
 
             </section>
 
-            {/* =========================
-                6
-            ========================= */}
+            {/* 6 */}
 
             <section className="section">
 
@@ -942,9 +927,7 @@ export default function TermosPage() {
 
             </section>
 
-            {/* =========================
-                7
-            ========================= */}
+            {/* 7 */}
 
             <section className="section">
 
@@ -953,38 +936,28 @@ export default function TermosPage() {
               </h2>
 
               <div className="subsection">
-
-                <h3>
-                  7.1.
-                </h3>
+                <h3>7.1.</h3>
 
                 <p>
                   Alguns recursos do CIEL IA STUDIO
                   poderão utilizar um sistema de créditos
                   ou limites de utilização.
                 </p>
-
               </div>
 
               <div className="subsection">
-
-                <h3>
-                  7.2.
-                </h3>
+                <h3>7.2.</h3>
 
                 <p>
                   As regras relacionadas a créditos,
                   limites, planos e recursos poderão
                   ser apresentadas na própria plataforma.
                 </p>
-
               </div>
 
             </section>
 
-            {/* =========================
-                8
-            ========================= */}
+            {/* 8 */}
 
             <section className="section">
 
@@ -993,10 +966,7 @@ export default function TermosPage() {
               </h2>
 
               <div className="subsection">
-
-                <h3>
-                  8.1.
-                </h3>
+                <h3>8.1.</h3>
 
                 <p>
                   A identidade visual, marca, código,
@@ -1005,14 +975,10 @@ export default function TermosPage() {
                   pertencem aos seus respectivos titulares
                   e são protegidos pela legislação aplicável.
                 </p>
-
               </div>
 
               <div className="subsection">
-
-                <h3>
-                  8.2.
-                </h3>
+                <h3>8.2.</h3>
 
                 <p>
                   É proibida a reprodução, cópia,
@@ -1020,14 +986,11 @@ export default function TermosPage() {
                   dos elementos protegidos da plataforma
                   sem autorização.
                 </p>
-
               </div>
 
             </section>
 
-            {/* =========================
-                9
-            ========================= */}
+            {/* 9 */}
 
             <section className="section">
 
@@ -1036,10 +999,7 @@ export default function TermosPage() {
               </h2>
 
               <div className="subsection">
-
-                <h3>
-                  9.1.
-                </h3>
+                <h3>9.1.</h3>
 
                 <p>
                   O CIEL IA STUDIO busca manter seus
@@ -1049,28 +1009,21 @@ export default function TermosPage() {
                   atualizações, falhas técnicas ou
                   interrupções.
                 </p>
-
               </div>
 
               <div className="subsection">
-
-                <h3>
-                  9.2.
-                </h3>
+                <h3>9.2.</h3>
 
                 <p>
                   A plataforma poderá realizar alterações,
                   atualizações ou melhorias nos recursos
                   disponibilizados.
                 </p>
-
               </div>
 
             </section>
 
-            {/* =========================
-                10
-            ========================= */}
+            {/* 10 */}
 
             <section className="section">
 
@@ -1079,10 +1032,7 @@ export default function TermosPage() {
               </h2>
 
               <div className="subsection">
-
-                <h3>
-                  10.1.
-                </h3>
+                <h3>10.1.</h3>
 
                 <p>
                   O CIEL IA STUDIO poderá suspender ou
@@ -1092,14 +1042,10 @@ export default function TermosPage() {
                   ou outras situações que justifiquem a
                   medida.
                 </p>
-
               </div>
 
               <div className="subsection">
-
-                <h3>
-                  10.2.
-                </h3>
+                <h3>10.2.</h3>
 
                 <p>
                   Quando apropriado e permitido pela
@@ -1107,14 +1053,11 @@ export default function TermosPage() {
                   medidas antes do encerramento definitivo
                   da conta.
                 </p>
-
               </div>
 
             </section>
 
-            {/* =========================
-                11
-            ========================= */}
+            {/* 11 */}
 
             <section className="section">
 
@@ -1123,38 +1066,28 @@ export default function TermosPage() {
               </h2>
 
               <div className="subsection">
-
-                <h3>
-                  11.1.
-                </h3>
+                <h3>11.1.</h3>
 
                 <p>
                   O usuário é responsável pela utilização
                   que fizer da plataforma e pelos conteúdos
                   que criar, enviar, publicar ou distribuir.
                 </p>
-
               </div>
 
               <div className="subsection">
-
-                <h3>
-                  11.2.
-                </h3>
+                <h3>11.2.</h3>
 
                 <p>
                   O usuário deverá respeitar a legislação
                   brasileira e os direitos de outras pessoas
                   durante a utilização do CIEL IA STUDIO.
                 </p>
-
               </div>
 
             </section>
 
-            {/* =========================
-                12
-            ========================= */}
+            {/* 12 */}
 
             <section className="section">
 
@@ -1163,10 +1096,7 @@ export default function TermosPage() {
               </h2>
 
               <div className="subsection">
-
-                <h3>
-                  12.1.
-                </h3>
+                <h3>12.1.</h3>
 
                 <p>
                   Estes Termos de Uso poderão ser atualizados
@@ -1174,28 +1104,21 @@ export default function TermosPage() {
                   nos recursos disponibilizados ou na
                   legislação aplicável.
                 </p>
-
               </div>
 
               <div className="subsection">
-
-                <h3>
-                  12.2.
-                </h3>
+                <h3>12.2.</h3>
 
                 <p>
                   A versão mais recente estará disponível
                   nesta página e indicará a respectiva
                   data de atualização.
                 </p>
-
               </div>
 
             </section>
 
-            {/* =========================
-                13
-            ========================= */}
+            {/* 13 */}
 
             <section className="section">
 
@@ -1204,10 +1127,7 @@ export default function TermosPage() {
               </h2>
 
               <div className="subsection">
-
-                <h3>
-                  13.1.
-                </h3>
+                <h3>13.1.</h3>
 
                 <p>
                   Estes Termos são interpretados de acordo
@@ -1216,14 +1136,11 @@ export default function TermosPage() {
                   direitos assegurados aos usuários pela
                   legislação vigente.
                 </p>
-
               </div>
 
             </section>
 
-            {/* =========================
-                14
-            ========================= */}
+            {/* 14 */}
 
             <section className="section">
 
@@ -1232,10 +1149,7 @@ export default function TermosPage() {
               </h2>
 
               <div className="subsection">
-
-                <h3>
-                  14.1.
-                </h3>
+                <h3>14.1.</h3>
 
                 <p>
                   Para dúvidas, solicitações ou assuntos
@@ -1244,7 +1158,6 @@ export default function TermosPage() {
                   oficiais de contato disponibilizados
                   pelo CIEL IA STUDIO.
                 </p>
-
               </div>
 
             </section>
