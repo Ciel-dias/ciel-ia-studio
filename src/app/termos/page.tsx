@@ -1,52 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
-
-type Theme = "dark" | "light";
 
 export default function TermosPage() {
-  const [theme, setTheme] = useState<Theme>("dark");
-
-  useEffect(() => {
-    const savedTheme = localStorage.getItem("ciel-theme");
-
-    const initialTheme: Theme =
-      savedTheme === "light" ? "light" : "dark";
-
-    setTheme(initialTheme);
-
-    document.documentElement.setAttribute(
-      "data-theme",
-      initialTheme
-    );
-
-    document.body.setAttribute(
-      "data-theme",
-      initialTheme
-    );
-  }, []);
-
-  useEffect(() => {
-    localStorage.setItem("ciel-theme", theme);
-
-    document.documentElement.setAttribute(
-      "data-theme",
-      theme
-    );
-
-    document.body.setAttribute(
-      "data-theme",
-      theme
-    );
-  }, [theme]);
-
-  function toggleTheme() {
-    setTheme((current) =>
-      current === "dark" ? "light" : "dark"
-    );
-  }
-
   return (
     <>
       <style jsx global>{`
@@ -62,77 +18,39 @@ export default function TermosPage() {
         }
 
         body {
-          font-family:
-            Arial,
-            Helvetica,
-            sans-serif;
-
-          transition:
-            background 0.35s ease,
-            color 0.35s ease;
+          font-family: Arial, Helvetica, sans-serif;
+          background: #07111f;
+          color: #ffffff;
         }
 
-        a,
-        button {
+        a {
           -webkit-tap-highlight-color: transparent;
         }
-
-        /* =========================
-           PÁGINA
-        ========================= */
 
         .terms-page {
           min-height: 100vh;
 
-          color:
-            ${theme === "dark"
-              ? "#ffffff"
-              : "#101827"};
-
           background:
-            ${theme === "dark"
-              ? `
-                radial-gradient(
-                  circle at 78% 8%,
-                  rgba(20, 119, 190, 0.28),
-                  transparent 32%
-                ),
-                radial-gradient(
-                  circle at 10% 55%,
-                  rgba(15, 76, 125, 0.20),
-                  transparent 38%
-                ),
-                linear-gradient(
-                  135deg,
-                  #06101e 0%,
-                  #081a30 48%,
-                  #0b3556 100%
-                )
-              `
-              : `
-                radial-gradient(
-                  circle at 80% 10%,
-                  rgba(91, 190, 255, 0.20),
-                  transparent 32%
-                ),
-                radial-gradient(
-                  circle at 10% 65%,
-                  rgba(80, 150, 220, 0.12),
-                  transparent 38%
-                ),
-                linear-gradient(
-                  135deg,
-                  #eef8ff 0%,
-                  #e6f3fc 48%,
-                  #d8edf9 100%
-                )
-              `};
+            radial-gradient(
+              circle at 75% 20%,
+              rgba(20, 119, 190, 0.42),
+              transparent 38%
+            ),
+            radial-gradient(
+              circle at 15% 65%,
+              rgba(15, 76, 125, 0.32),
+              transparent 40%
+            ),
+            linear-gradient(
+              135deg,
+              #06101e 0%,
+              #081a30 48%,
+              #0b3556 100%
+            );
+
+          color: #ffffff;
 
           overflow-x: hidden;
-
-          transition:
-            background 0.35s ease,
-            color 0.35s ease;
         }
 
         /* =========================
@@ -151,22 +69,12 @@ export default function TermosPage() {
 
           padding: 0 42px;
 
-          background:
-            ${theme === "dark"
-              ? "rgba(4, 12, 24, 0.88)"
-              : "rgba(255, 255, 255, 0.88)"};
+          background: rgba(4, 12, 24, 0.88);
 
           border-bottom:
-            1px solid
-            ${theme === "dark"
-              ? "rgba(100, 180, 255, 0.18)"
-              : "rgba(40, 110, 160, 0.18)"};
+            1px solid rgba(100, 180, 255, 0.18);
 
           backdrop-filter: blur(12px);
-
-          transition:
-            background 0.35s ease,
-            border-color 0.35s ease;
         }
 
         .brand {
@@ -179,7 +87,7 @@ export default function TermosPage() {
         }
 
         .brand-icon {
-          font-size: 27px;
+          font-size: 28px;
         }
 
         .brand-name {
@@ -190,106 +98,48 @@ export default function TermosPage() {
           letter-spacing: 0.4px;
         }
 
-        .top-actions {
-          display: flex;
-          align-items: center;
-
-          gap: 14px;
-        }
-
-        .back-button {
-          color:
-            ${theme === "dark"
-              ? "#e8eef7"
-              : "#172333"};
+        .back {
+          color: #e8eef7;
 
           text-decoration: none;
 
-          font-size: 14px;
+          font-size: 15px;
 
           transition:
             color 0.2s ease,
             text-shadow 0.2s ease;
         }
 
-        .back-button:hover {
-          color: #159ddd;
+        .back:hover {
+          color: #72d5ff;
 
           text-shadow:
-            0 0 12px
-            rgba(75, 199, 255, 0.6);
-        }
-
-        .theme-button {
-          width: 38px;
-          height: 38px;
-
-          display: flex;
-          align-items: center;
-          justify-content: center;
-
-          border-radius: 50%;
-
-          border:
-            1px solid
-            ${theme === "dark"
-              ? "rgba(104, 207, 255, 0.45)"
-              : "rgba(30, 130, 190, 0.35)"};
-
-          background:
-            ${theme === "dark"
-              ? "rgba(20, 100, 150, 0.18)"
-              : "rgba(255, 255, 255, 0.70)"};
-
-          color:
-            ${theme === "dark"
-              ? "#ffffff"
-              : "#172333"};
-
-          font-size: 18px;
-
-          cursor: pointer;
-
-          box-shadow:
-            ${theme === "dark"
-              ? "0 0 12px rgba(70, 199, 255, 0.18)"
-              : "0 0 12px rgba(70, 160, 220, 0.14)"};
-
-          transition:
-            transform 0.2s ease,
-            box-shadow 0.2s ease,
-            background 0.2s ease;
-        }
-
-        .theme-button:hover {
-          transform: scale(1.06);
+            0 0 12px rgba(75, 199, 255, 0.8);
         }
 
         /* =========================
-           CABEÇALHO
+           CONTEÚDO
         ========================= */
 
-        .hero {
-          width:
-            min(900px, calc(100% - 40px));
+        .content {
+          width: min(
+            1000px,
+            calc(100% - 48px)
+          );
 
           margin: 0 auto;
 
+          padding:
+            60px 0 80px;
+        }
+
+        .title-area {
           text-align: center;
 
-          padding:
-            64px 0 42px;
+          margin-bottom: 42px;
         }
 
-        .hero-icon {
-          font-size: 48px;
-
-          line-height: 1;
-
-          margin-bottom: 18px;
-        }
-
-        .hero h1 {
+        .title-area h1 {
           margin: 0;
 
           font-size:
@@ -299,35 +149,29 @@ export default function TermosPage() {
 
           font-weight: 700;
 
-          letter-spacing: 0.4px;
+          letter-spacing: 0.5px;
 
           text-transform: uppercase;
         }
 
-        .hero p {
-          max-width: 680px;
+        .title-area p {
+          max-width: 720px;
 
           margin:
             18px auto 0;
 
-          color:
-            ${theme === "dark"
-              ? "#b9c5d4"
-              : "#536579"};
+          color: #b9c5d4;
 
           font-size:
             clamp(16px, 2vw, 19px);
 
-          line-height: 1.55;
+          line-height: 1.6;
         }
 
         .updated {
-          margin-top: 16px;
+          margin-top: 14px;
 
-          color:
-            ${theme === "dark"
-              ? "#7f91a5"
-              : "#687b8d"};
+          color: #7f91a5;
 
           font-size: 13px;
         }
@@ -336,225 +180,181 @@ export default function TermosPage() {
            DOCUMENTO
         ========================= */
 
-        .content {
-          width:
-            min(920px, calc(100% - 40px));
-
-          margin: 0 auto;
-
-          padding-bottom: 80px;
-        }
-
         .document {
-          padding:
-            42px 46px;
+          width: 100%;
+
+          padding: 38px;
 
           border-radius: 22px;
 
           background:
-            ${theme === "dark"
-              ? `
-                linear-gradient(
-                  145deg,
-                  rgba(20, 34, 52, 0.96),
-                  rgba(10, 22, 37, 0.98)
-                )
-              `
-              : `
-                linear-gradient(
-                  145deg,
-                  rgba(255, 255, 255, 0.98),
-                  rgba(235, 246, 252, 0.98)
-                )
-              `};
+            linear-gradient(
+              145deg,
+              rgba(35, 47, 65, 0.96),
+              rgba(14, 25, 40, 0.98)
+            );
 
           border:
-            1px solid
-            ${theme === "dark"
-              ? "rgba(88, 201, 255, 0.28)"
-              : "rgba(59, 184, 237, 0.35)"};
+            2px solid #58c9ff;
 
           box-shadow:
-            ${theme === "dark"
-              ? `
-                0 0 18px rgba(43, 167, 255, 0.12),
-                inset 0 0 25px rgba(56, 174, 255, 0.025)
-              `
-              : `
-                0 8px 30px rgba(30, 100, 150, 0.08)
-              `};
-
-          transition:
-            background 0.35s ease,
-            border-color 0.35s ease,
-            box-shadow 0.35s ease;
-        }
-
-        .intro {
-          padding-bottom: 28px;
-
-          margin-bottom: 30px;
-
-          border-bottom:
-            1px solid
-            ${theme === "dark"
-              ? "rgba(100, 180, 255, 0.14)"
-              : "rgba(40, 110, 160, 0.14)"};
-        }
-
-        .intro p {
-          margin: 0;
-
-          color:
-            ${theme === "dark"
-              ? "#c5d0dc"
-              : "#536577"};
-
-          font-size: 15px;
-
-          line-height: 1.75;
+            0 0 8px rgba(70, 199, 255, 0.75),
+            0 0 22px rgba(43, 167, 255, 0.35),
+            inset 0 0 22px rgba(56, 174, 255, 0.06);
         }
 
         .section {
-          margin-top: 34px;
+          margin-bottom: 38px;
         }
 
-        .section:first-of-type {
-          margin-top: 0;
+        .section:last-child {
+          margin-bottom: 0;
         }
 
         .section h2 {
           margin:
-            0 0 15px;
+            0 0 16px;
 
-          color:
-            ${theme === "dark"
-              ? "#ffffff"
-              : "#142132"};
+          color: #ffffff;
 
-          font-size: 20px;
+          font-size: 22px;
 
           line-height: 1.35;
-
-          font-weight: 700;
         }
 
-        .section p {
+        .subsection {
           margin:
-            0 0 13px;
+            0 0 14px;
 
-          color:
-            ${theme === "dark"
-              ? "#b9c7d5"
-              : "#526577"};
+          padding-left: 4px;
+        }
+
+        .subsection h3 {
+          margin:
+            0 0 7px;
+
+          color: #68d2ff;
+
+          font-size: 16px;
+
+          line-height: 1.4;
+        }
+
+        .subsection p,
+        .section > p {
+          margin:
+            0 0 12px;
+
+          color: #c0cad6;
 
           font-size: 15px;
 
           line-height: 1.75;
         }
 
-        .section p:last-child {
+        .subsection p:last-child {
           margin-bottom: 0;
         }
 
-        .subsection {
+        .highlight {
           margin:
-            13px 0 0;
+            18px 0;
 
-          padding-left: 18px;
+          padding: 18px 20px;
 
           border-left:
-            2px solid
-            ${theme === "dark"
-              ? "rgba(88, 201, 255, 0.24)"
-              : "rgba(59, 184, 237, 0.28)"};
-        }
+            3px solid #58c9ff;
 
-        .subsection p {
-          margin-bottom: 12px;
-        }
-
-        .warning {
-          margin-top: 18px;
-
-          padding: 18px 20px;
-
-          border-radius: 14px;
+          border-radius: 10px;
 
           background:
-            ${theme === "dark"
-              ? "rgba(180, 75, 75, 0.08)"
-              : "rgba(220, 90, 90, 0.07)"};
+            rgba(20, 119, 190, 0.12);
 
-          border:
-            1px solid
-            ${theme === "dark"
-              ? "rgba(255, 120, 120, 0.25)"
-              : "rgba(200, 80, 80, 0.22)"};
+          color: #dce8f4;
+
+          font-size: 15px;
+
+          line-height: 1.7;
         }
 
-        .warning p {
-          color:
-            ${theme === "dark"
-              ? "#d9c8c8"
-              : "#6d4f4f"};
+        .list {
+          margin:
+            10px 0 0;
 
-          margin: 0;
+          padding-left: 24px;
 
-          font-size: 14px;
+          color: #c0cad6;
 
-          line-height: 1.65;
+          font-size: 15px;
+
+          line-height: 1.8;
         }
 
-        .important {
-          margin-top: 18px;
-
-          padding: 18px 20px;
-
-          border-radius: 14px;
-
-          background:
-            ${theme === "dark"
-              ? "rgba(35, 160, 210, 0.08)"
-              : "rgba(50, 160, 210, 0.07)"};
-
-          border:
-            1px solid
-            ${theme === "dark"
-              ? "rgba(88, 201, 255, 0.22)"
-              : "rgba(59, 184, 237, 0.25)"};
-        }
-
-        .important p {
-          margin: 0;
-
-          color:
-            ${theme === "dark"
-              ? "#c7d7e5"
-              : "#4e6578"};
-
-          font-size: 14px;
-
-          line-height: 1.65;
+        .list li {
+          margin-bottom: 7px;
         }
 
         /* =========================
-           LINKS
+           NAVEGAÇÃO
         ========================= */
 
-        .document-link {
-          color:
-            ${theme === "dark"
-              ? "#62d0ff"
-              : "#159ddd"};
+        .document-navigation {
+          display: flex;
+
+          justify-content: space-between;
+
+          gap: 16px;
+
+          margin-top: 34px;
+
+          padding-top: 28px;
+
+          border-top:
+            1px solid rgba(100, 180, 255, 0.16);
+        }
+
+        .document-navigation a {
+          display: inline-flex;
+
+          align-items: center;
+
+          justify-content: center;
+
+          min-height: 44px;
+
+          padding:
+            0 18px;
+
+          border-radius: 11px;
+
+          color: #ffffff;
+
+          background:
+            rgba(29, 112, 157, 0.2);
+
+          border:
+            1px solid rgba(94, 203, 255, 0.4);
 
           text-decoration: none;
 
-          font-weight: 600;
+          font-size: 14px;
+
+          font-weight: 700;
+
+          transition:
+            background 0.2s ease,
+            box-shadow 0.2s ease,
+            transform 0.2s ease;
         }
 
-        .document-link:hover {
-          text-decoration: underline;
+        .document-navigation a:hover {
+          background:
+            rgba(29, 130, 180, 0.35);
+
+          box-shadow:
+            0 0 15px rgba(70, 199, 255, 0.25);
+
+          transform: translateY(-1px);
         }
 
         /* =========================
@@ -563,63 +363,45 @@ export default function TermosPage() {
 
         .footer {
           border-top:
-            1px solid
-            ${theme === "dark"
-              ? "rgba(100, 180, 255, 0.18)"
-              : "rgba(40, 110, 160, 0.18)"};
+            1px solid rgba(100, 180, 255, 0.18);
 
           background:
-            ${theme === "dark"
-              ? `
-                linear-gradient(
-                  180deg,
-                  rgba(4, 15, 29, 0.96),
-                  rgba(3, 11, 22, 1)
-                )
-              `
-              : `
-                linear-gradient(
-                  180deg,
-                  rgba(239, 248, 253, 0.98),
-                  rgba(218, 237, 247, 1)
-                )
-              `};
+            linear-gradient(
+              180deg,
+              rgba(4, 15, 29, 0.96),
+              rgba(3, 11, 22, 1)
+            );
 
           padding:
-            48px 42px 24px;
-
-          transition:
-            background 0.35s ease,
-            border-color 0.35s ease;
+            52px 42px 24px;
         }
 
         .footer-inner {
-          width:
-            min(1180px, 100%);
+          width: min(
+            1180px,
+            100%
+          );
 
           margin: 0 auto;
         }
 
         .footer-brand {
-          margin-bottom: 38px;
+          margin-bottom: 42px;
         }
 
         .footer-brand h2 {
           margin:
             0 0 8px;
 
-          font-size: 23px;
+          font-size: 24px;
         }
 
         .footer-brand p {
           margin: 0;
 
-          color:
-            ${theme === "dark"
-              ? "#9eacbd"
-              : "#5d7082"};
+          color: #9eacbd;
 
-          font-size: 14px;
+          font-size: 15px;
         }
 
         .footer-columns {
@@ -633,9 +415,9 @@ export default function TermosPage() {
 
         .footer-column h3 {
           margin:
-            0 0 17px;
+            0 0 18px;
 
-          font-size: 15px;
+          font-size: 16px;
         }
 
         .footer-column a {
@@ -643,12 +425,9 @@ export default function TermosPage() {
 
           width: fit-content;
 
-          margin-bottom: 11px;
+          margin-bottom: 12px;
 
-          color:
-            ${theme === "dark"
-              ? "#aebaca"
-              : "#536577"};
+          color: #aebaca;
 
           text-decoration: none;
 
@@ -659,26 +438,20 @@ export default function TermosPage() {
         }
 
         .footer-column a:hover {
-          color: #159ddd;
+          color: #68d2ff;
         }
 
         .footer-bottom {
-          margin-top: 34px;
+          margin-top: 36px;
 
-          padding-top: 20px;
+          padding-top: 22px;
 
           border-top:
-            1px solid
-            ${theme === "dark"
-              ? "rgba(100, 180, 255, 0.16)"
-              : "rgba(40, 110, 160, 0.16)"};
+            1px solid rgba(100, 180, 255, 0.16);
 
           text-align: center;
 
-          color:
-            ${theme === "dark"
-              ? "#8997a9"
-              : "#65788a"};
+          color: #8997a9;
 
           font-size: 13px;
         }
@@ -687,19 +460,21 @@ export default function TermosPage() {
            TABLET
         ========================= */
 
-        @media (max-width: 800px) {
+        @media (max-width: 900px) {
           .topbar {
-            padding:
-              0 24px;
+            padding: 0 24px;
+          }
+
+          .content {
+            width:
+              min(
+                760px,
+                calc(100% - 40px)
+              );
           }
 
           .document {
-            padding:
-              36px 32px;
-          }
-
-          .footer-columns {
-            gap: 30px;
+            padding: 30px;
           }
         }
 
@@ -733,62 +508,65 @@ export default function TermosPage() {
             font-size: 23px;
           }
 
-          .top-actions {
-            width: 100%;
-
-            justify-content: center;
-
-            gap: 18px;
-          }
-
-          .hero {
-            width:
-              min(100% - 32px, 500px);
-
-            padding:
-              44px 0 30px;
-          }
-
-          .hero-icon {
-            font-size: 42px;
-          }
-
-          .hero h1 {
-            font-size: 34px;
-          }
-
-          .hero p {
-            font-size: 16px;
+          .back {
+            font-size: 13px;
           }
 
           .content {
             width:
-              min(100% - 32px, 500px);
+              min(
+                100% - 32px,
+                430px
+              );
+
+            padding:
+              42px 0 55px;
+          }
+
+          .title-area {
+            margin-bottom: 30px;
+          }
+
+          .title-area h1 {
+            font-size: 34px;
+          }
+
+          .title-area p {
+            font-size: 16px;
           }
 
           .document {
-            padding:
-              28px 22px;
+            padding: 23px;
 
-            border-radius: 18px;
+            border-radius: 19px;
           }
 
           .section {
-            margin-top: 30px;
+            margin-bottom: 32px;
           }
 
           .section h2 {
-            font-size: 19px;
+            font-size: 20px;
           }
 
-          .section p {
+          .subsection h3 {
+            font-size: 15px;
+          }
+
+          .subsection p,
+          .section > p,
+          .list {
             font-size: 14px;
 
             line-height: 1.7;
           }
 
-          .subsection {
-            padding-left: 14px;
+          .document-navigation {
+            flex-direction: column;
+          }
+
+          .document-navigation a {
+            width: 100%;
           }
 
           .footer {
@@ -799,7 +577,7 @@ export default function TermosPage() {
           .footer-columns {
             grid-template-columns: 1fr;
 
-            gap: 28px;
+            gap: 30px;
           }
         }
       `}</style>
@@ -807,7 +585,7 @@ export default function TermosPage() {
       <main className="terms-page">
 
         {/* =========================
-            TOPO
+            CABEÇALHO
         ========================= */}
 
         <header className="topbar">
@@ -824,88 +602,44 @@ export default function TermosPage() {
 
           </div>
 
-          <div className="top-actions">
-
-            <Link
-              href="/dashboard"
-              className="back-button"
-            >
-              ← Voltar ao Dashboard
-            </Link>
-
-            <button
-              className="theme-button"
-              onClick={toggleTheme}
-              title={
-                theme === "dark"
-                  ? "Mudar para tema claro"
-                  : "Mudar para tema escuro"
-              }
-              aria-label={
-                theme === "dark"
-                  ? "Mudar para tema claro"
-                  : "Mudar para tema escuro"
-              }
-            >
-              {theme === "dark"
-                ? "☀️"
-                : "🌙"}
-            </button>
-
-          </div>
+          <Link
+            href="/dashboard"
+            className="back"
+          >
+            ← Voltar ao Dashboard
+          </Link>
 
         </header>
 
-
         {/* =========================
-            CABEÇALHO
-        ========================= */}
-
-        <section className="hero">
-
-          <div className="hero-icon">
-            📄
-          </div>
-
-          <h1>
-            Termos de Uso
-          </h1>
-
-          <p>
-            Conheça as regras e condições para
-            utilização do CIEL IA STUDIO.
-          </p>
-
-          <div className="updated">
-            Última atualização: 30 de agosto de 2026
-          </div>
-
-        </section>
-
-
-        {/* =========================
-            DOCUMENTO
+            CONTEÚDO
         ========================= */}
 
         <section className="content">
 
-          <article className="document">
+          <div className="title-area">
 
-            <div className="intro">
+            <h1>
+              TERMOS DE USO
+            </h1>
 
-              <p>
-                Estes Termos de Uso estabelecem as
-                condições para acesso e utilização do
-                CIEL IA STUDIO. Ao criar uma conta,
-                acessar ou utilizar a Plataforma, o
-                usuário declara que leu, compreendeu e
-                concorda com estes Termos.
-              </p>
+            <p>
+              Leia atentamente as condições para
+              utilização dos serviços e recursos
+              disponibilizados pelo CIEL IA STUDIO.
+            </p>
 
+            <div className="updated">
+              Última atualização: 30 de agosto de 2026
             </div>
 
+          </div>
 
-            {/* 1 */}
+          <article className="document">
+
+            {/* =========================
+                1
+            ========================= */}
 
             <section className="section">
 
@@ -915,34 +649,38 @@ export default function TermosPage() {
 
               <div className="subsection">
 
+                <h3>
+                  1.1.
+                </h3>
+
                 <p>
-                  <strong>1.1.</strong> O acesso e a
-                  utilização do CIEL IA STUDIO estão
-                  condicionados à aceitação destes
+                  Ao criar uma conta ou utilizar o
+                  CIEL IA STUDIO, o usuário declara que
+                  leu, compreendeu e concorda com estes
                   Termos de Uso.
                 </p>
 
-                <p>
-                  <strong>1.2.</strong> Caso o usuário não
-                  concorde com qualquer disposição destes
-                  Termos, deverá deixar de utilizar a
-                  Plataforma.
-                </p>
+              </div>
+
+              <div className="subsection">
+
+                <h3>
+                  1.2.
+                </h3>
 
                 <p>
-                  <strong>1.3.</strong> Ao utilizar o
-                  CIEL IA STUDIO, o usuário declara possuir
-                  capacidade legal para aceitar estes
-                  Termos, observadas as regras aplicáveis
-                  a menores de idade.
+                  Caso o usuário não concorde com estes
+                  Termos, deverá deixar de utilizar os
+                  serviços disponibilizados pela plataforma.
                 </p>
 
               </div>
 
             </section>
 
-
-            {/* 2 */}
+            {/* =========================
+                2
+            ========================= */}
 
             <section className="section">
 
@@ -952,652 +690,558 @@ export default function TermosPage() {
 
               <div className="subsection">
 
+                <h3>
+                  2.1.
+                </h3>
+
                 <p>
-                  <strong>2.1.</strong> O CIEL IA STUDIO
-                  é uma plataforma destinada à criação,
-                  transformação e gerenciamento de
-                  conteúdos utilizando recursos de
+                  O CIEL IA STUDIO é uma plataforma
+                  destinada à criação e transformação
+                  de conteúdos utilizando recursos de
                   inteligência artificial.
                 </p>
 
-                <p>
-                  <strong>2.2.</strong> Entre os recursos
-                  disponibilizados poderão estar incluídas
-                  ferramentas para criação de prompts,
-                  imagens, vídeos e outras funcionalidades
-                  relacionadas à inteligência artificial.
-                </p>
+              </div>
+
+              <div className="subsection">
+
+                <h3>
+                  2.2.
+                </h3>
 
                 <p>
-                  <strong>2.3.</strong> Os recursos
-                  disponíveis poderão ser modificados,
-                  atualizados, ampliados ou descontinuados
-                  para evolução da Plataforma.
+                  Os recursos disponíveis podem incluir
+                  criação de prompts, imagens, vídeos e
+                  outras ferramentas de criação assistida
+                  por inteligência artificial.
                 </p>
 
               </div>
 
             </section>
 
-
-            {/* 3 */}
+            {/* =========================
+                3
+            ========================= */}
 
             <section className="section">
 
               <h2>
-                3. Cadastro e Conta do Usuário
+                3. Cadastro e Conta
               </h2>
 
               <div className="subsection">
 
-                <p>
-                  <strong>3.1.</strong> Para utilizar
-                  determinados recursos, o usuário poderá
-                  precisar criar uma conta.
-                </p>
+                <h3>
+                  3.1.
+                </h3>
 
                 <p>
-                  <strong>3.2.</strong> O usuário é
-                  responsável pela veracidade das
-                  informações fornecidas durante o cadastro.
+                  Para utilizar determinados recursos,
+                  poderá ser necessário criar uma conta
+                  fornecendo informações verdadeiras e
+                  atualizadas.
                 </p>
 
-                <p>
-                  <strong>3.3.</strong> O usuário deve
-                  manter suas credenciais de acesso em
-                  segurança e não compartilhar sua senha
-                  com terceiros.
-                </p>
+              </div>
+
+              <div className="subsection">
+
+                <h3>
+                  3.2.
+                </h3>
 
                 <p>
-                  <strong>3.4.</strong> O usuário deverá
-                  comunicar ao CIEL IA STUDIO qualquer
-                  utilização não autorizada de sua conta
-                  quando tiver conhecimento do ocorrido.
+                  O usuário é responsável por manter a
+                  segurança de suas credenciais de acesso
+                  e por todas as atividades realizadas
+                  mediante sua conta.
+                </p>
+
+              </div>
+
+              <div className="subsection">
+
+                <h3>
+                  3.3.
+                </h3>
+
+                <p>
+                  O usuário não deverá compartilhar suas
+                  credenciais de acesso com terceiros.
                 </p>
 
               </div>
 
             </section>
 
-
-            {/* 4 */}
+            {/* =========================
+                4
+            ========================= */}
 
             <section className="section">
 
               <h2>
-                4. Uso da Plataforma
+                4. Uso dos Recursos de Inteligência Artificial
               </h2>
 
               <div className="subsection">
 
-                <p>
-                  <strong>4.1.</strong> A Plataforma deverá
-                  ser utilizada de maneira lícita,
-                  responsável e compatível com estes Termos.
-                </p>
+                <h3>
+                  4.1.
+                </h3>
 
                 <p>
-                  <strong>4.2.</strong> O usuário não deverá
-                  utilizar o CIEL IA STUDIO para prejudicar
-                  outras pessoas, sistemas, serviços ou a
-                  própria Plataforma.
+                  Os recursos de inteligência artificial
+                  são disponibilizados para auxiliar o
+                  usuário na criação e transformação de
+                  conteúdos.
                 </p>
 
-                <p>
-                  <strong>4.3.</strong> É proibida a
-                  utilização da Plataforma para atividades
-                  fraudulentas, ilegais ou que violem
-                  direitos de terceiros.
-                </p>
+              </div>
+
+              <div className="subsection">
+
+                <h3>
+                  4.2.
+                </h3>
 
                 <p>
-                  <strong>4.4.</strong> O usuário não deverá
-                  tentar explorar vulnerabilidades,
-                  contornar mecanismos de segurança ou
-                  interferir no funcionamento normal da
-                  Plataforma.
+                  Os resultados produzidos por sistemas
+                  de inteligência artificial podem variar
+                  e não há garantia de que todas as
+                  gerações atenderão exatamente às
+                  expectativas do usuário.
+                </p>
+
+              </div>
+
+              <div className="subsection">
+
+                <h3>
+                  4.3.
+                </h3>
+
+                <p>
+                  O usuário é responsável por analisar
+                  e utilizar adequadamente os conteúdos
+                  gerados antes de publicá-los ou
+                  utilizá-los em qualquer finalidade.
                 </p>
 
               </div>
 
             </section>
 
-
-            {/* 5 */}
+            {/* =========================
+                5
+            ========================= */}
 
             <section className="section">
 
               <h2>
-                5. Créditos e Gerações
+                5. Conteúdo do Usuário
               </h2>
 
               <div className="subsection">
 
-                <p>
-                  <strong>5.1.</strong> Determinadas
-                  funcionalidades do CIEL IA STUDIO poderão
-                  utilizar um sistema de créditos para
-                  realizar gerações ou outras operações.
-                </p>
+                <h3>
+                  5.1.
+                </h3>
 
                 <p>
-                  <strong>5.2.</strong> A quantidade de
-                  créditos necessária poderá variar de
-                  acordo com o recurso utilizado.
+                  O usuário é responsável pelos textos,
+                  prompts, imagens, vídeos e demais
+                  conteúdos que enviar ou utilizar na
+                  plataforma.
                 </p>
 
-                <p>
-                  <strong>5.3.</strong> Créditos não
-                  utilizados poderão estar sujeitos às
-                  regras apresentadas no momento de sua
-                  disponibilização ou aquisição.
-                </p>
+              </div>
+
+              <div className="subsection">
+
+                <h3>
+                  5.2.
+                </h3>
 
                 <p>
-                  <strong>5.4.</strong> O usuário não poderá
-                  tentar obter, multiplicar, transferir ou
-                  utilizar créditos de maneira fraudulenta.
+                  O usuário declara possuir os direitos,
+                  autorizações ou permissões necessárias
+                  para utilizar conteúdos de terceiros
+                  que eventualmente sejam enviados à
+                  plataforma.
                 </p>
 
               </div>
 
             </section>
 
-
-            {/* 6 */}
+            {/* =========================
+                6
+            ========================= */}
 
             <section className="section">
 
               <h2>
-                6. Conteúdo do Usuário
+                6. Conteúdo Proibido
+              </h2>
+
+              <p>
+                É proibida a utilização do CIEL IA STUDIO
+                para criar, enviar, solicitar, armazenar
+                ou distribuir conteúdos que violem a
+                legislação aplicável ou estes Termos.
+              </p>
+
+              <ul className="list">
+
+                <li>
+                  conteúdo sexual explícito ou pornográfico;
+                </li>
+
+                <li>
+                  conteúdo íntimo envolvendo pessoas sem
+                  autorização;
+                </li>
+
+                <li>
+                  conteúdo sexual envolvendo menores de
+                  idade, em qualquer circunstância;
+                </li>
+
+                <li>
+                  conteúdo destinado à exploração ou abuso
+                  sexual;
+                </li>
+
+                <li>
+                  conteúdo que incentive violência,
+                  exploração, abuso ou atividades criminosas;
+                </li>
+
+                <li>
+                  conteúdo que viole direitos autorais,
+                  marcas, imagem, privacidade ou outros
+                  direitos de terceiros;
+                </li>
+
+                <li>
+                  qualquer outro conteúdo proibido pela
+                  legislação aplicável ou pelas regras
+                  da plataforma.
+                </li>
+
+              </ul>
+
+              <div className="highlight">
+                O CIEL IA STUDIO poderá adotar medidas
+                técnicas e administrativas para impedir,
+                limitar ou remover conteúdos que violem
+                estes Termos ou a legislação aplicável.
+              </div>
+
+            </section>
+
+            {/* =========================
+                7
+            ========================= */}
+
+            <section className="section">
+
+              <h2>
+                7. Créditos e Recursos
               </h2>
 
               <div className="subsection">
 
-                <p>
-                  <strong>6.1.</strong> O usuário poderá
-                  fornecer textos, prompts, imagens,
-                  vídeos ou outros materiais para utilização
-                  dos recursos da Plataforma.
-                </p>
+                <h3>
+                  7.1.
+                </h3>
 
                 <p>
-                  <strong>6.2.</strong> O usuário declara
-                  possuir os direitos ou autorizações
-                  necessários para utilizar os materiais
-                  que enviar ao CIEL IA STUDIO.
+                  Alguns recursos do CIEL IA STUDIO
+                  poderão utilizar um sistema de créditos
+                  ou limites de utilização.
                 </p>
 
-                <p>
-                  <strong>6.3.</strong> O usuário é
-                  responsável pelo conteúdo que fornecer à
-                  Plataforma e pelas consequências decorrentes
-                  de sua utilização.
-                </p>
+              </div>
+
+              <div className="subsection">
+
+                <h3>
+                  7.2.
+                </h3>
 
                 <p>
-                  <strong>6.4.</strong> O usuário não deverá
-                  enviar conteúdo que viole direitos autorais,
-                  direitos de imagem, privacidade ou outros
-                  direitos de terceiros.
+                  As regras relacionadas a créditos,
+                  limites, planos e recursos poderão
+                  ser apresentadas na própria plataforma.
                 </p>
 
               </div>
 
             </section>
 
-
-            {/* 7 */}
+            {/* =========================
+                8
+            ========================= */}
 
             <section className="section">
 
               <h2>
-                7. Conteúdo Gerado por Inteligência Artificial
+                8. Propriedade Intelectual
               </h2>
 
               <div className="subsection">
 
-                <p>
-                  <strong>7.1.</strong> Os resultados
-                  produzidos pela Plataforma são gerados
-                  mediante recursos de inteligência artificial
-                  e podem apresentar limitações, imprecisões
-                  ou resultados inesperados.
-                </p>
+                <h3>
+                  8.1.
+                </h3>
 
                 <p>
-                  <strong>7.2.</strong> O usuário é responsável
-                  por revisar e avaliar os conteúdos gerados
-                  antes de utilizá-los, publicar ou
-                  distribuí-los.
+                  A identidade visual, marca, código,
+                  estrutura, textos, elementos gráficos
+                  e demais componentes do CIEL IA STUDIO
+                  pertencem aos seus respectivos titulares
+                  e são protegidos pela legislação aplicável.
                 </p>
 
-                <p>
-                  <strong>7.3.</strong> O CIEL IA STUDIO não
-                  garante que todo resultado gerado será
-                  exclusivo, perfeito ou adequado a uma
-                  finalidade específica.
-                </p>
+              </div>
+
+              <div className="subsection">
+
+                <h3>
+                  8.2.
+                </h3>
 
                 <p>
-                  <strong>7.4.</strong> O usuário deve
-                  verificar se a utilização do conteúdo
-                  gerado respeita direitos autorais, direitos
-                  de imagem, marcas, leis e demais direitos
-                  aplicáveis.
+                  É proibida a reprodução, cópia,
+                  modificação ou exploração indevida
+                  dos elementos protegidos da plataforma
+                  sem autorização.
                 </p>
 
               </div>
 
             </section>
 
-
-            {/* 8 */}
+            {/* =========================
+                9
+            ========================= */}
 
             <section className="section">
 
               <h2>
-                8. Conteúdo Proibido e Segurança
+                9. Disponibilidade do Serviço
               </h2>
 
               <div className="subsection">
 
-                <p>
-                  <strong>8.1.</strong> É proibida a criação,
-                  solicitação, edição, transformação ou
-                  distribuição de conteúdo pornográfico ou
-                  sexualmente explícito por meio do CIEL IA
-                  STUDIO.
-                </p>
+                <h3>
+                  9.1.
+                </h3>
 
                 <p>
-                  <strong>8.2.</strong> É proibida a criação
-                  ou manipulação de imagens ou vídeos íntimos
-                  de pessoas reais sem autorização da pessoa
-                  retratada.
-                </p>
-
-                <p>
-                  <strong>8.3.</strong> É proibida a criação
-                  de conteúdo íntimo falso, manipulado ou
-                  gerado por inteligência artificial envolvendo
-                  pessoas reais sem sua autorização.
-                </p>
-
-                <p>
-                  <strong>8.4.</strong> É absolutamente
-                  proibido qualquer conteúdo sexual envolvendo
-                  crianças ou adolescentes, seja real,
-                  fictício, manipulado ou gerado por
-                  inteligência artificial.
-                </p>
-
-                <p>
-                  <strong>8.5.</strong> É proibido utilizar a
-                  Plataforma para exploração sexual, abuso,
-                  aliciamento, exploração de menores ou
-                  qualquer atividade relacionada à exploração
-                  sexual.
-                </p>
-
-                <p>
-                  <strong>8.6.</strong> É proibida a criação
-                  de conteúdo destinado a fraudes, golpes,
-                  falsificação de identidade ou outras
-                  atividades ilícitas.
-                </p>
-
-                <p>
-                  <strong>8.7.</strong> É proibida a tentativa
-                  de contornar filtros, sistemas de segurança
-                  ou mecanismos de moderação utilizados pela
-                  Plataforma.
-                </p>
-
-                <p>
-                  <strong>8.8.</strong> Solicitações que
-                  apresentem risco de violação destes Termos
-                  poderão ser recusadas ou bloqueadas.
-                </p>
-
-                <p>
-                  <strong>8.9.</strong> O CIEL IA STUDIO
-                  poderá adotar medidas de segurança e
-                  moderação necessárias para proteger a
-                  Plataforma, seus usuários e terceiros.
+                  O CIEL IA STUDIO busca manter seus
+                  serviços disponíveis e funcionando
+                  adequadamente, mas podem ocorrer
+                  indisponibilidades, manutenções,
+                  atualizações, falhas técnicas ou
+                  interrupções.
                 </p>
 
               </div>
 
-              <div className="warning">
+              <div className="subsection">
+
+                <h3>
+                  9.2.
+                </h3>
 
                 <p>
-                  <strong>Importante:</strong> qualquer
-                  utilização envolvendo conteúdo sexual
-                  explícito, conteúdo íntimo não autorizado
-                  ou conteúdo sexual envolvendo menores é
-                  expressamente proibida.
+                  A plataforma poderá realizar alterações,
+                  atualizações ou melhorias nos recursos
+                  disponibilizados.
                 </p>
 
               </div>
 
             </section>
 
-
-            {/* 9 */}
+            {/* =========================
+                10
+            ========================= */}
 
             <section className="section">
 
               <h2>
-                9. Direitos Autorais e Propriedade Intelectual
+                10. Suspensão ou Encerramento de Conta
               </h2>
 
               <div className="subsection">
 
-                <p>
-                  <strong>9.1.</strong> O usuário deve
-                  respeitar os direitos autorais, marcas,
-                  direitos de imagem e demais direitos de
-                  propriedade intelectual de terceiros.
-                </p>
+                <h3>
+                  10.1.
+                </h3>
 
                 <p>
-                  <strong>9.2.</strong> O envio de material
-                  protegido por direitos de terceiros não
-                  transfere esses direitos ao CIEL IA STUDIO.
+                  O CIEL IA STUDIO poderá suspender ou
+                  encerrar uma conta quando houver violação
+                  destes Termos, uso ilegal da plataforma,
+                  tentativa de fraude, abuso dos recursos
+                  ou outras situações que justifiquem a
+                  medida.
                 </p>
 
-                <p>
-                  <strong>9.3.</strong> O usuário é
-                  responsável por verificar se possui
-                  autorização para utilizar materiais de
-                  terceiros.
-                </p>
+              </div>
+
+              <div className="subsection">
+
+                <h3>
+                  10.2.
+                </h3>
 
                 <p>
-                  <strong>9.4.</strong> O uso comercial de
-                  conteúdos gerados deverá observar as leis
-                  aplicáveis e as condições específicas dos
-                  recursos utilizados.
+                  Quando apropriado e permitido pela
+                  legislação aplicável, poderão ser adotadas
+                  medidas antes do encerramento definitivo
+                  da conta.
                 </p>
 
               </div>
 
             </section>
 
-
-            {/* 10 */}
+            {/* =========================
+                11
+            ========================= */}
 
             <section className="section">
 
               <h2>
-                10. Responsabilidades do Usuário
+                11. Responsabilidade do Usuário
               </h2>
 
               <div className="subsection">
 
-                <p>
-                  <strong>10.1.</strong> O usuário é
-                  responsável pelas informações, comandos,
-                  arquivos e conteúdos que inserir na
-                  Plataforma.
-                </p>
+                <h3>
+                  11.1.
+                </h3>
 
                 <p>
-                  <strong>10.2.</strong> O usuário deve
-                  utilizar o CIEL IA STUDIO de acordo com
-                  a legislação aplicável e estes Termos.
+                  O usuário é responsável pela utilização
+                  que fizer da plataforma e pelos conteúdos
+                  que criar, enviar, publicar ou distribuir.
                 </p>
 
+              </div>
+
+              <div className="subsection">
+
+                <h3>
+                  11.2.
+                </h3>
+
                 <p>
-                  <strong>10.3.</strong> O usuário não deve
-                  utilizar a Plataforma para causar danos a
-                  terceiros ou obter vantagens ilícitas.
+                  O usuário deverá respeitar a legislação
+                  brasileira e os direitos de outras pessoas
+                  durante a utilização do CIEL IA STUDIO.
                 </p>
 
               </div>
 
             </section>
 
-
-            {/* 11 */}
+            {/* =========================
+                12
+            ========================= */}
 
             <section className="section">
 
               <h2>
-                11. Privacidade e Proteção de Dados
+                12. Alterações dos Termos
               </h2>
 
               <div className="subsection">
 
-                <p>
-                  <strong>11.1.</strong> O tratamento de
-                  dados pessoais realizado pelo CIEL IA
-                  STUDIO será explicado de forma específica
-                  em sua Política de Privacidade.
-                </p>
+                <h3>
+                  12.1.
+                </h3>
 
                 <p>
-                  <strong>11.2.</strong> A utilização da
-                  Plataforma poderá envolver o tratamento de
-                  informações necessárias para criação e
-                  gerenciamento de contas, funcionamento dos
-                  recursos, segurança, suporte e demais
-                  finalidades informadas ao usuário.
+                  Estes Termos de Uso poderão ser atualizados
+                  para refletir alterações na plataforma,
+                  nos recursos disponibilizados ou na
+                  legislação aplicável.
                 </p>
 
-                <p>
-                  <strong>11.3.</strong> O tratamento de
-                  dados pessoais será realizado de acordo
-                  com a legislação aplicável.
-                </p>
+              </div>
+
+              <div className="subsection">
+
+                <h3>
+                  12.2.
+                </h3>
 
                 <p>
-                  <strong>11.4.</strong> Para conhecer os
-                  detalhes sobre coleta, utilização,
-                  armazenamento, segurança e direitos do
-                  titular, consulte a
-                  {" "}
-                  <Link
-                    href="/privacidade"
-                    className="document-link"
-                  >
-                    Política de Privacidade
-                  </Link>.
+                  A versão mais recente estará disponível
+                  nesta página e indicará a respectiva
+                  data de atualização.
                 </p>
 
               </div>
 
             </section>
 
-
-            {/* 12 */}
+            {/* =========================
+                13
+            ========================= */}
 
             <section className="section">
 
               <h2>
-                12. Disponibilidade da Plataforma
+                13. Lei Aplicável
               </h2>
 
               <div className="subsection">
 
-                <p>
-                  <strong>12.1.</strong> O CIEL IA STUDIO
-                  buscará manter seus serviços disponíveis
-                  e funcionando adequadamente.
-                </p>
+                <h3>
+                  13.1.
+                </h3>
 
                 <p>
-                  <strong>12.2.</strong> Entretanto, podem
-                  ocorrer interrupções temporárias para
-                  manutenção, atualização, segurança ou
-                  motivos técnicos.
-                </p>
-
-                <p>
-                  <strong>12.3.</strong> Recursos específicos
-                  poderão sofrer alterações para melhoria,
-                  segurança ou evolução da Plataforma.
+                  Estes Termos são interpretados de acordo
+                  com a legislação aplicável da República
+                  Federativa do Brasil, sem prejuízo dos
+                  direitos assegurados aos usuários pela
+                  legislação vigente.
                 </p>
 
               </div>
 
             </section>
 
-
-            {/* 13 */}
-
-            <section className="section">
-
-              <h2>
-                13. Suspensão e Encerramento da Conta
-              </h2>
-
-              <div className="subsection">
-
-                <p>
-                  <strong>13.1.</strong> O CIEL IA STUDIO
-                  poderá restringir ou suspender uma conta
-                  quando houver indícios de violação destes
-                  Termos, fraude, abuso ou utilização
-                  inadequada da Plataforma.
-                </p>
-
-                <p>
-                  <strong>13.2.</strong> Medidas de segurança
-                  poderão ser adotadas para proteger usuários,
-                  terceiros e a própria Plataforma.
-                </p>
-
-                <p>
-                  <strong>13.3.</strong> O usuário poderá
-                  solicitar o encerramento de sua conta,
-                  observadas as condições aplicáveis.
-                </p>
-
-              </div>
-
-            </section>
-
-
-            {/* 14 */}
+            {/* =========================
+                14
+            ========================= */}
 
             <section className="section">
 
               <h2>
-                14. Créditos, Pagamentos e Reembolsos
+                14. Contato
               </h2>
 
               <div className="subsection">
 
-                <p>
-                  <strong>14.1.</strong> Quando houver
-                  aquisição de créditos ou outros recursos
-                  pagos, as condições aplicáveis serão
-                  apresentadas antes da contratação.
-                </p>
+                <h3>
+                  14.1.
+                </h3>
 
                 <p>
-                  <strong>14.2.</strong> O usuário não poderá
-                  utilizar mecanismos fraudulentos para obter
-                  créditos, pagamentos ou benefícios.
-                </p>
-
-                <p>
-                  <strong>14.3.</strong> As condições de
-                  reembolso serão estabelecidas de acordo
-                  com a legislação aplicável e com a
-                  Política de Reembolso do CIEL IA STUDIO.
-                </p>
-
-                <p>
-                  <strong>14.4.</strong> Quando aplicável,
-                  informações sobre preços, créditos,
-                  validade e condições de utilização serão
-                  apresentadas de forma clara ao usuário.
-                </p>
-
-              </div>
-
-            </section>
-
-
-            {/* 15 */}
-
-            <section className="section">
-
-              <h2>
-                15. Alterações dos Termos
-              </h2>
-
-              <div className="subsection">
-
-                <p>
-                  <strong>15.1.</strong> Estes Termos poderão
-                  ser atualizados para acompanhar alterações
-                  legais, técnicas ou funcionais da Plataforma.
-                </p>
-
-                <p>
-                  <strong>15.2.</strong> A versão atualizada
-                  será disponibilizada nesta página.
-                </p>
-
-                <p>
-                  <strong>15.3.</strong> A continuidade de
-                  utilização da Plataforma após alterações
-                  relevantes poderá estar condicionada à
-                  aceitação da nova versão dos Termos.
-                </p>
-
-              </div>
-
-            </section>
-
-
-            {/* 16 */}
-
-            <section className="section">
-
-              <h2>
-                16. Legislação Aplicável
-              </h2>
-
-              <div className="subsection">
-
-                <p>
-                  <strong>16.1.</strong> Estes Termos serão
-                  interpretados de acordo com a legislação
-                  aplicável no Brasil.
-                </p>
-
-                <p>
-                  <strong>16.2.</strong> As disposições destes
-                  Termos não afastam direitos assegurados ao
-                  consumidor pela legislação aplicável.
-                </p>
-
-              </div>
-
-            </section>
-
-
-            {/* 17 */}
-
-            <section className="section">
-
-              <h2>
-                17. Contato
-              </h2>
-
-              <div className="subsection">
-
-                <p>
-                  <strong>17.1.</strong> Para dúvidas,
-                  solicitações ou assuntos relacionados aos
-                  presentes Termos, o usuário poderá utilizar
-                  os canais oficiais de contato disponibilizados
+                  Para dúvidas, solicitações ou assuntos
+                  relacionados a estes Termos de Uso,
+                  o usuário poderá utilizar os canais
+                  oficiais de contato disponibilizados
                   pelo CIEL IA STUDIO.
                 </p>
 
@@ -1605,43 +1249,25 @@ export default function TermosPage() {
 
             </section>
 
+            {/* =========================
+                NAVEGAÇÃO FINAL
+            ========================= */}
 
-            {/* 18 */}
+            <div className="document-navigation">
 
-            <section className="section">
+              <Link href="/dashboard">
+                ← Voltar ao Dashboard
+              </Link>
 
-              <h2>
-                18. Última Atualização
-              </h2>
-
-              <div className="subsection">
-
-                <p>
-                  <strong>18.1.</strong> Estes Termos de Uso
-                  foram atualizados em 30 de agosto de 2026.
-                </p>
-
-              </div>
-
-            </section>
-
-
-            <div className="important">
-
-              <p>
-                O CIEL IA STUDIO busca oferecer uma
-                experiência segura, responsável e
-                transparente. Ao utilizar a Plataforma,
-                contribua para manter um ambiente seguro
-                e respeitoso para todos.
-              </p>
+              <Link href="/privacidade">
+                Política de Privacidade →
+              </Link>
 
             </div>
 
           </article>
 
         </section>
-
 
         {/* =========================
             RODAPÉ
@@ -1662,7 +1288,6 @@ export default function TermosPage() {
               </p>
 
             </div>
-
 
             <div className="footer-columns">
 
@@ -1698,7 +1323,6 @@ export default function TermosPage() {
 
               </div>
 
-
               <div className="footer-column">
 
                 <h3>
@@ -1718,7 +1342,6 @@ export default function TermosPage() {
                 </Link>
 
               </div>
-
 
               <div className="footer-column">
 
@@ -1742,12 +1365,9 @@ export default function TermosPage() {
 
             </div>
 
-
             <div className="footer-bottom">
-
               © 2026 CIEL IA STUDIO.
               Todos os direitos reservados.
-
             </div>
 
           </div>
