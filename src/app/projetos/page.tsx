@@ -5,7 +5,8 @@ import { useState } from "react";
 type FilterType = "Todos" | "Imagens" | "Vídeos" | "Prompts";
 
 export default function ProjetosPage() {
-  const [filtro, setFiltro] = useState<FilterType>("Todos");
+  const [filtro, setFiltro] =
+    useState<FilterType>("Todos");
 
   const projetos = [
     {
@@ -319,7 +320,7 @@ export default function ProjetosPage() {
         }
 
         /* =========================
-           PROJETOS
+           CARDS DOS PROJETOS
         ========================= */
 
         .projects-grid {
@@ -470,7 +471,7 @@ export default function ProjetosPage() {
         }
 
         /* =========================
-           ÁREA VAZIA
+           SUAS CRIAÇÕES
         ========================= */
 
         .empty {
@@ -491,12 +492,21 @@ export default function ProjetosPage() {
             24,
             0.48
           );
+
+          box-shadow:
+            inset 0 0 25px
+              rgba(43, 167, 255, 0.04);
         }
 
         .empty-icon {
           font-size: 55px;
 
           margin-bottom: 15px;
+
+          filter: drop-shadow(
+            0 0 12px
+              rgba(75, 199, 255, 0.55)
+          );
         }
 
         .empty h2 {
@@ -545,7 +555,9 @@ export default function ProjetosPage() {
             0 0 22px
               rgba(43, 167, 255, 0.3);
 
-          transition: 0.2s ease;
+          transition:
+            transform 0.2s ease,
+            box-shadow 0.2s ease;
         }
 
         .create-button:hover {
@@ -765,6 +777,13 @@ export default function ProjetosPage() {
             white-space: nowrap;
           }
 
+          .content {
+            width: min(
+              calc(100% - 24px),
+              430px
+            );
+          }
+
           .title-area h1 {
             font-size: 34px;
           }
@@ -779,6 +798,10 @@ export default function ProjetosPage() {
 
           .filter {
             flex: 1;
+          }
+
+          .empty {
+            padding: 45px 18px;
           }
         }
       `}</style>
@@ -844,14 +867,12 @@ export default function ProjetosPage() {
 
             <div className="filters">
 
-              {(
-                [
-                  "Todos",
-                  "Imagens",
-                  "Vídeos",
-                  "Prompts",
-                ] as FilterType[]
-              ).map((item) => (
+              {[
+                "Todos",
+                "Imagens",
+                "Vídeos",
+                "Prompts",
+              ].map((item) => (
 
                 <button
                   key={item}
@@ -862,7 +883,9 @@ export default function ProjetosPage() {
                       : ""
                   }`}
                   onClick={() =>
-                    setFiltro(item)
+                    setFiltro(
+                      item as FilterType
+                    )
                   }
                 >
                   {item}
@@ -875,7 +898,7 @@ export default function ProjetosPage() {
           </div>
 
           {/* =========================
-              PROJETOS
+              CARDS
           ========================= */}
 
           <div className="projects-grid">
@@ -916,7 +939,7 @@ export default function ProjetosPage() {
           </div>
 
           {/* =========================
-              ÁREA VAZIA
+              SUAS CRIAÇÕES
           ========================= */}
 
           <div className="empty">
