@@ -28,12 +28,6 @@ export default function ImagemImagemPage() {
   const [errorMessage, setErrorMessage] =
     useState("");
 
-  /*
-   * =====================================================
-   * SELEÇÃO DAS IMAGENS
-   * =====================================================
-   */
-
   function handleImageChange(
     event: React.ChangeEvent<HTMLInputElement>,
     number: 1 | 2
@@ -81,12 +75,6 @@ export default function ImagemImagemPage() {
     setResultImageUrl("");
   }
 
-  /*
-   * =====================================================
-   * PREPARAR IMAGEM
-   * =====================================================
-   */
-
   async function prepareImage(
     file: File
   ): Promise<string> {
@@ -106,11 +94,8 @@ export default function ImagemImagemPage() {
 
             const MAX_SIZE = 1600;
 
-            let width =
-              img.naturalWidth;
-
-            let height =
-              img.naturalHeight;
+            let width = img.naturalWidth;
+            let height = img.naturalHeight;
 
             if (!width || !height) {
               reject(
@@ -118,7 +103,6 @@ export default function ImagemImagemPage() {
                   "Não foi possível identificar as dimensões da imagem."
                 )
               );
-
               return;
             }
 
@@ -154,11 +138,8 @@ export default function ImagemImagemPage() {
                 "canvas"
               );
 
-            canvas.width =
-              width;
-
-            canvas.height =
-              height;
+            canvas.width = width;
+            canvas.height = height;
 
             const context =
               canvas.getContext(
@@ -171,7 +152,6 @@ export default function ImagemImagemPage() {
                   "Não foi possível preparar a imagem no navegador."
                 )
               );
-
               return;
             }
 
@@ -299,7 +279,6 @@ export default function ImagemImagemPage() {
                   "Não foi possível reduzir a imagem o suficiente. Escolha uma foto menor."
                 )
               );
-
               return;
             }
 
@@ -343,18 +322,11 @@ export default function ImagemImagemPage() {
     );
   }
 
-  /*
-   * =====================================================
-   * GERAR IMAGEM
-   * =====================================================
-   */
-
   async function handleGenerate() {
     if (!image1) {
       setErrorMessage(
         "Selecione pelo menos uma imagem de referência."
       );
-
       return;
     }
 
@@ -362,7 +334,6 @@ export default function ImagemImagemPage() {
       setErrorMessage(
         "Descreva o que deseja criar na imagem."
       );
-
       return;
     }
 
@@ -373,18 +344,10 @@ export default function ImagemImagemPage() {
     setResultImageUrl("");
 
     try {
-      /*
-       * IMAGEM 1
-       */
-
       const image1Base64 =
         await prepareImage(
           image1
         );
-
-      /*
-       * IMAGEM 2
-       */
 
       let image2Base64 = "";
 
@@ -394,10 +357,6 @@ export default function ImagemImagemPage() {
             image2
           );
       }
-
-      /*
-       * ENVIO PARA A ROTA EXISTENTE
-       */
 
       const response =
         await fetch(
@@ -443,10 +402,6 @@ export default function ImagemImagemPage() {
         data = null;
       }
 
-      /*
-       * ERRO
-       */
-
       if (
         !response.ok ||
         data?.status === "error"
@@ -463,19 +418,11 @@ export default function ImagemImagemPage() {
         return;
       }
 
-      /*
-       * TASK ID
-       */
-
       const returnedTaskId =
         data?.taskId ||
         data?.data?.task_id ||
         data?.data?.taskId ||
         "";
-
-      /*
-       * URL DA IMAGEM
-       */
 
       const returnedImageUrl =
         data?.imageUrl ||
@@ -483,17 +430,13 @@ export default function ImagemImagemPage() {
         data?.data?.imageUrl ||
         "";
 
-      if (
-        returnedTaskId
-      ) {
+      if (returnedTaskId) {
         setTaskId(
           returnedTaskId
         );
       }
 
-      if (
-        returnedImageUrl
-      ) {
+      if (returnedImageUrl) {
         setResultImageUrl(
           returnedImageUrl
         );
@@ -523,7 +466,6 @@ export default function ImagemImagemPage() {
   return (
     <>
       <style jsx global>{`
-
         * {
           box-sizing: border-box;
         }
@@ -536,26 +478,15 @@ export default function ImagemImagemPage() {
         }
 
         body {
-          font-family:
-            Arial,
-            Helvetica,
-            sans-serif;
+          font-family: Arial, Helvetica, sans-serif;
         }
 
         a {
-          -webkit-tap-highlight-color:
-            transparent;
+          -webkit-tap-highlight-color: transparent;
         }
-
-        /*
-         * =================================================
-         * PÁGINA
-         * =================================================
-         */
 
         .page {
           min-height: 100vh;
-
           color: #fff;
 
           background:
@@ -582,78 +513,32 @@ export default function ImagemImagemPage() {
         /*
          * =================================================
          * CABEÇALHO
+         * CIEL IA STUDIO = ESQUERDA / COR PADRÃO
+         * VOLTAR = DIREITA / AZUL CLARO
          * =================================================
          */
 
         .topbar {
           min-height: 74px;
-
-          padding:
-            0 42px;
+          padding: 0 42px;
 
           display: flex;
-
           align-items: center;
-
-          justify-content:
-            space-between;
+          justify-content: space-between;
 
           background:
-            rgba(
-              4,
-              12,
-              24,
-              0.9
-            );
+            rgba(4, 12, 24, 0.9);
 
           border-bottom:
             1px solid
-            rgba(
-              100,
-              180,
-              255,
-              0.18
-            );
+            rgba(100, 180, 255, 0.18);
 
-          backdrop-filter:
-            blur(12px);
-        }
-
-        .back {
-          order: 1;
-
-          color: #bfeaff;
-
-          text-decoration: none;
-
-          font-size: 14px;
-
-          font-weight: 600;
-
-          transition:
-            0.2s ease;
-        }
-
-        .back:hover {
-          color: #6ed7ff;
-
-          text-shadow:
-            0 0 12px
-            rgba(
-              75,
-              199,
-              255,
-              0.8
-            );
+          backdrop-filter: blur(12px);
         }
 
         .brand {
-          order: 2;
-
           display: flex;
-
           align-items: center;
-
           gap: 10px;
         }
 
@@ -662,30 +547,27 @@ export default function ImagemImagemPage() {
         }
 
         .brand-name {
+          color: #ffffff;
           font-size: 20px;
-
           font-weight: 700;
-
-          letter-spacing:
-            0.4px;
-
-          color: #bfeaff;
-
-          text-shadow:
-            0 0 10px
-            rgba(
-              75,
-              199,
-              255,
-              0.35
-            );
+          letter-spacing: 0.4px;
         }
 
-        /*
-         * =================================================
-         * CONTEÚDO
-         * =================================================
-         */
+        .back {
+          color: #bfeaff;
+          text-decoration: none;
+          font-size: 14px;
+          font-weight: 600;
+          transition: 0.2s ease;
+        }
+
+        .back:hover {
+          color: #6ed7ff;
+
+          text-shadow:
+            0 0 12px
+            rgba(75, 199, 255, 0.8);
+        }
 
         .content {
           width:
@@ -694,8 +576,7 @@ export default function ImagemImagemPage() {
               calc(100% - 40px)
             );
 
-          margin:
-            0 auto;
+          margin: 0 auto;
 
           padding:
             55px 0 70px;
@@ -703,7 +584,6 @@ export default function ImagemImagemPage() {
 
         .title-area {
           text-align: center;
-
           margin-bottom: 38px;
         }
 
@@ -717,8 +597,7 @@ export default function ImagemImagemPage() {
               52px
             );
 
-          text-transform:
-            uppercase;
+          text-transform: uppercase;
         }
 
         .title-area p {
@@ -733,12 +612,6 @@ export default function ImagemImagemPage() {
 
           line-height: 1.5;
         }
-
-        /*
-         * =================================================
-         * WORKSPACE
-         * =================================================
-         */
 
         .workspace {
           display: grid;
@@ -759,46 +632,20 @@ export default function ImagemImagemPage() {
           background:
             linear-gradient(
               145deg,
-              rgba(
-                35,
-                47,
-                65,
-                0.95
-              ),
-              rgba(
-                14,
-                25,
-                40,
-                0.97
-              )
+              rgba(35, 47, 65, 0.95),
+              rgba(14, 25, 40, 0.97)
             );
 
           border:
-            2px solid
-            #58c9ff;
+            2px solid #58c9ff;
 
           box-shadow:
             0 0 8px
-              rgba(
-                70,
-                199,
-                255,
-                0.8
-              ),
+              rgba(70, 199, 255, 0.8),
             0 0 22px
-              rgba(
-                43,
-                167,
-                255,
-                0.35
-              ),
+              rgba(43, 167, 255, 0.35),
             inset 0 0 22px
-              rgba(
-                56,
-                174,
-                255,
-                0.07
-              );
+              rgba(56, 174, 255, 0.07);
         }
 
         .panel h2 {
@@ -807,12 +654,6 @@ export default function ImagemImagemPage() {
 
           font-size: 21px;
         }
-
-        /*
-         * =================================================
-         * LABELS
-         * =================================================
-         */
 
         .label {
           display: block;
@@ -830,12 +671,6 @@ export default function ImagemImagemPage() {
         .images-label {
           margin-bottom: 12px;
         }
-
-        /*
-         * =================================================
-         * IMAGENS
-         * =================================================
-         */
 
         .images-container {
           display: grid;
@@ -855,35 +690,19 @@ export default function ImagemImagemPage() {
 
           border:
             1px dashed
-            rgba(
-              104,
-              207,
-              255,
-              0.55
-            );
+            rgba(104, 207, 255, 0.55);
 
           background:
             radial-gradient(
               circle,
-              rgba(
-                43,
-                167,
-                255,
-                0.08
-              ),
+              rgba(43, 167, 255, 0.08),
               transparent 60%
             ),
-            rgba(
-              3,
-              13,
-              25,
-              0.72
-            );
+            rgba(3, 13, 25, 0.72);
 
           display: flex;
 
           align-items: center;
-
           justify-content: center;
 
           overflow: hidden;
@@ -895,20 +714,17 @@ export default function ImagemImagemPage() {
 
         .image-preview {
           width: 100%;
-
           height: 100%;
 
           object-fit: contain;
 
           display: block;
 
-          background:
-            #020c18;
+          background: #020c18;
         }
 
         .image-box-content {
           text-align: center;
-
           padding: 10px;
         }
 
@@ -916,7 +732,6 @@ export default function ImagemImagemPage() {
           position: absolute;
 
           top: 9px;
-
           left: 10px;
 
           padding:
@@ -925,12 +740,7 @@ export default function ImagemImagemPage() {
           border-radius: 8px;
 
           background:
-            rgba(
-              3,
-              13,
-              25,
-              0.82
-            );
+            rgba(3, 13, 25, 0.82);
 
           color: #bfeaff;
 
@@ -943,7 +753,6 @@ export default function ImagemImagemPage() {
 
         .plus {
           width: 54px;
-
           height: 54px;
 
           margin:
@@ -954,7 +763,6 @@ export default function ImagemImagemPage() {
           display: flex;
 
           align-items: center;
-
           justify-content: center;
 
           color: #04101b;
@@ -970,19 +778,9 @@ export default function ImagemImagemPage() {
 
           box-shadow:
             0 0 10px
-              rgba(
-                70,
-                199,
-                255,
-                0.7
-              ),
+              rgba(70, 199, 255, 0.7),
             0 0 22px
-              rgba(
-                43,
-                167,
-                255,
-                0.3
-              );
+              rgba(43, 167, 255, 0.3);
         }
 
         .image-box-title {
@@ -1005,7 +803,6 @@ export default function ImagemImagemPage() {
         .upload-button,
         .change-image {
           cursor: pointer;
-
           font-weight: 700;
         }
 
@@ -1020,21 +817,11 @@ export default function ImagemImagemPage() {
           border-radius: 9px;
 
           background:
-            rgba(
-              94,
-              210,
-              255,
-              0.16
-            );
+            rgba(94, 210, 255, 0.16);
 
           border:
             1px solid
-            rgba(
-              94,
-              210,
-              255,
-              0.4
-            );
+            rgba(94, 210, 255, 0.4);
 
           color: #bfeaff;
 
@@ -1045,7 +832,6 @@ export default function ImagemImagemPage() {
           position: absolute;
 
           bottom: 9px;
-
           right: 9px;
 
           z-index: 2;
@@ -1060,12 +846,7 @@ export default function ImagemImagemPage() {
           color: #04101b;
 
           background:
-            rgba(
-              117,
-              224,
-              255,
-              0.95
-            );
+            rgba(117, 224, 255, 0.95);
 
           font-size: 11px;
         }
@@ -1073,12 +854,6 @@ export default function ImagemImagemPage() {
         .hidden-input {
           display: none;
         }
-
-        /*
-         * =================================================
-         * PROMPT
-         * =================================================
-         */
 
         .prompt {
           width: 100%;
@@ -1091,24 +866,14 @@ export default function ImagemImagemPage() {
 
           border:
             1px solid
-            rgba(
-              94,
-              203,
-              255,
-              0.45
-            );
+            rgba(94, 203, 255, 0.45);
 
           border-radius: 14px;
 
           outline: none;
 
           background:
-            rgba(
-              3,
-              13,
-              25,
-              0.8
-            );
+            rgba(3, 13, 25, 0.8);
 
           color: #fff;
 
@@ -1131,19 +896,8 @@ export default function ImagemImagemPage() {
 
           box-shadow:
             0 0 15px
-            rgba(
-              70,
-              199,
-              255,
-              0.25
-            );
+            rgba(70, 199, 255, 0.25);
         }
-
-        /*
-         * =================================================
-         * OPÇÕES
-         * =================================================
-         */
 
         .options {
           display: grid;
@@ -1163,28 +917,16 @@ export default function ImagemImagemPage() {
 
           border:
             1px solid
-            rgba(
-              94,
-              203,
-              255,
-              0.35
-            );
+            rgba(94, 203, 255, 0.35);
 
           outline: none;
 
-          background:
-            #0a192b;
+          background: #0a192b;
 
           color: #fff;
 
           font-size: 14px;
         }
-
-        /*
-         * =================================================
-         * CRÉDITOS
-         * =================================================
-         */
 
         .credits {
           margin-top: 20px;
@@ -1195,32 +937,16 @@ export default function ImagemImagemPage() {
           border-radius: 12px;
 
           background:
-            rgba(
-              29,
-              112,
-              157,
-              0.16
-            );
+            rgba(29, 112, 157, 0.16);
 
           border:
             1px solid
-            rgba(
-              94,
-              203,
-              255,
-              0.25
-            );
+            rgba(94, 203, 255, 0.25);
 
           color: #bfeaff;
 
           font-size: 14px;
         }
-
-        /*
-         * =================================================
-         * BOTÃO
-         * =================================================
-         */
 
         .generate {
           width: 100%;
@@ -1250,32 +976,15 @@ export default function ImagemImagemPage() {
 
           box-shadow:
             0 0 10px
-              rgba(
-                70,
-                199,
-                255,
-                0.7
-              ),
+              rgba(70, 199, 255, 0.7),
             0 0 24px
-              rgba(
-                43,
-                167,
-                255,
-                0.35
-              );
+              rgba(43, 167, 255, 0.35);
         }
 
         .generate:disabled {
           cursor: wait;
-
           opacity: 0.65;
         }
-
-        /*
-         * =================================================
-         * RESULTADO
-         * =================================================
-         */
 
         .preview {
           min-height: 500px;
@@ -1283,7 +992,6 @@ export default function ImagemImagemPage() {
           display: flex;
 
           align-items: center;
-
           justify-content: center;
 
           text-align: center;
@@ -1292,30 +1000,15 @@ export default function ImagemImagemPage() {
 
           border:
             1px dashed
-            rgba(
-              104,
-              207,
-              255,
-              0.35
-            );
+            rgba(104, 207, 255, 0.35);
 
           background:
             radial-gradient(
               circle,
-              rgba(
-                43,
-                167,
-                255,
-                0.08
-              ),
+              rgba(43, 167, 255, 0.08),
               transparent 55%
             ),
-            rgba(
-              2,
-              12,
-              24,
-              0.55
-            );
+            rgba(2, 12, 24, 0.55);
 
           overflow: hidden;
 
@@ -1355,12 +1048,6 @@ export default function ImagemImagemPage() {
           line-height: 1.5;
         }
 
-        /*
-         * =================================================
-         * MENSAGENS
-         * =================================================
-         */
-
         .success-message,
         .error-message,
         .task-id {
@@ -1381,74 +1068,38 @@ export default function ImagemImagemPage() {
 
         .success-message {
           background:
-            rgba(
-              35,
-              170,
-              115,
-              0.12
-            );
+            rgba(35, 170, 115, 0.12);
 
           border:
             1px solid
-            rgba(
-              65,
-              220,
-              160,
-              0.3
-            );
+            rgba(65, 220, 160, 0.3);
 
           color: #8ff0c6;
         }
 
         .error-message {
           background:
-            rgba(
-              220,
-              70,
-              70,
-              0.12
-            );
+            rgba(220, 70, 70, 0.12);
 
           border:
             1px solid
-            rgba(
-              255,
-              100,
-              100,
-              0.3
-            );
+            rgba(255, 100, 100, 0.3);
 
           color: #ffb0b0;
         }
 
         .task-id {
           background:
-            rgba(
-              94,
-              203,
-              255,
-              0.08
-            );
+            rgba(94, 203, 255, 0.08);
 
           border:
             1px solid
-            rgba(
-              94,
-              203,
-              255,
-              0.2
-            );
+            rgba(94, 203, 255, 0.2);
 
           color: #9fdfff;
 
           word-break: break-all;
         }
-
-        /*
-         * =================================================
-         * LOADING
-         * =================================================
-         */
 
         .loading {
           animation:
@@ -1466,37 +1117,16 @@ export default function ImagemImagemPage() {
           }
         }
 
-        /*
-         * =================================================
-         * FOOTER
-         * =================================================
-         */
-
         .footer {
           border-top:
             1px solid
-            rgba(
-              100,
-              180,
-              255,
-              0.18
-            );
+            rgba(100, 180, 255, 0.18);
 
           background:
             linear-gradient(
               180deg,
-              rgba(
-                4,
-                15,
-                29,
-                0.96
-              ),
-              rgba(
-                3,
-                11,
-                22,
-                1
-              )
+              rgba(4, 15, 29, 0.96),
+              rgba(3, 11, 22, 1)
             );
 
           padding:
@@ -1505,13 +1135,9 @@ export default function ImagemImagemPage() {
 
         .footer-inner {
           width:
-            min(
-              1180px,
-              100%
-            );
+            min(1180px, 100%);
 
-          margin:
-            0 auto;
+          margin: 0 auto;
         }
 
         .footer-brand {
@@ -1537,10 +1163,7 @@ export default function ImagemImagemPage() {
           display: grid;
 
           grid-template-columns:
-            repeat(
-              3,
-              1fr
-            );
+            repeat(3, 1fr);
 
           gap: 50px;
         }
@@ -1577,12 +1200,7 @@ export default function ImagemImagemPage() {
 
           border-top:
             1px solid
-            rgba(
-              100,
-              180,
-              255,
-              0.16
-            );
+            rgba(100, 180, 255, 0.16);
 
           text-align: center;
 
@@ -1591,22 +1209,13 @@ export default function ImagemImagemPage() {
           font-size: 13px;
         }
 
-        /*
-         * =================================================
-         * TABLET
-         * =================================================
-         */
-
         @media (max-width: 850px) {
-
           .topbar {
-            padding:
-              0 22px;
+            padding: 0 22px;
           }
 
           .workspace {
-            grid-template-columns:
-              1fr;
+            grid-template-columns: 1fr;
           }
 
           .preview {
@@ -1614,27 +1223,15 @@ export default function ImagemImagemPage() {
           }
         }
 
-        /*
-         * =================================================
-         * CELULAR
-         * =================================================
-         */
-
         @media (max-width: 650px) {
-
           .topbar {
             min-height: 68px;
 
-            padding:
-              0 16px;
+            padding: 0 16px;
           }
 
           .brand-name {
             font-size: 16px;
-          }
-
-          .back {
-            font-size: 13px;
           }
 
           .content {
@@ -1654,8 +1251,7 @@ export default function ImagemImagemPage() {
           }
 
           .options {
-            grid-template-columns:
-              1fr;
+            grid-template-columns: 1fr;
           }
 
           .images-container {
@@ -1676,47 +1272,30 @@ export default function ImagemImagemPage() {
           }
 
           .footer-columns {
-            grid-template-columns:
-              1fr;
+            grid-template-columns: 1fr;
 
             gap: 30px;
           }
         }
 
-        /*
-         * =================================================
-         * CELULARES PEQUENOS
-         * =================================================
-         */
-
         @media (max-width: 430px) {
-
           .topbar {
-            min-height: 68px;
+            flex-wrap: wrap;
+
+            justify-content: space-between;
 
             padding:
-              12px 14px;
-
-            flex-wrap: nowrap;
+              14px 10px;
           }
 
           .brand {
             width: auto;
 
-            justify-content:
-              flex-end;
-          }
-
-          .brand-name {
-            font-size: 15px;
-          }
-
-          .brand-icon {
-            font-size: 22px;
+            justify-content: flex-start;
           }
 
           .back {
-            font-size: 12px;
+            margin-top: 0;
           }
 
           .title-area h1 {
@@ -1733,29 +1312,16 @@ export default function ImagemImagemPage() {
 
           .plus {
             width: 48px;
-
             height: 48px;
 
             font-size: 29px;
           }
         }
-
       `}</style>
 
       <main className="page">
 
-        {/* =================================================
-            CABEÇALHO
-            ================================================= */}
-
         <header className="topbar">
-
-          <Link
-            href="/dashboard"
-            className="back"
-          >
-            ← Voltar ao Dashboard
-          </Link>
 
           <div className="brand">
 
@@ -1769,11 +1335,14 @@ export default function ImagemImagemPage() {
 
           </div>
 
-        </header>
+          <Link
+            href="/dashboard"
+            className="back"
+          >
+            ← Voltar para Dashboard
+          </Link>
 
-        {/* =================================================
-            CONTEÚDO
-            ================================================= */}
+        </header>
 
         <section className="content">
 
@@ -1792,10 +1361,6 @@ export default function ImagemImagemPage() {
 
           <div className="workspace">
 
-            {/* =================================================
-                PAINEL ESQUERDO
-                ================================================= */}
-
             <section className="panel">
 
               <h2>
@@ -1807,8 +1372,6 @@ export default function ImagemImagemPage() {
               </label>
 
               <div className="images-container">
-
-                {/* IMAGEM 1 */}
 
                 <div
                   className={`image-box ${
@@ -1885,11 +1448,10 @@ export default function ImagemImagemPage() {
                       </label>
 
                     </div>
+
                   )}
 
                 </div>
-
-                {/* IMAGEM 2 */}
 
                 <div
                   className={`image-box ${
@@ -1966,6 +1528,7 @@ export default function ImagemImagemPage() {
                       </label>
 
                     </div>
+
                   )}
 
                 </div>
@@ -2087,10 +1650,6 @@ export default function ImagemImagemPage() {
 
             </section>
 
-            {/* =================================================
-                PAINEL DIREITO
-                ================================================= */}
-
             <section className="panel">
 
               <h2>
@@ -2160,6 +1719,7 @@ export default function ImagemImagemPage() {
                         )}
 
                     </>
+
                   )}
 
                   {resultMessage && (
@@ -2203,10 +1763,6 @@ export default function ImagemImagemPage() {
           </div>
 
         </section>
-
-        {/* =================================================
-            RODAPÉ
-            ================================================= */}
 
         <footer className="footer">
 
