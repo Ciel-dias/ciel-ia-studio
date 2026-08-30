@@ -1,39 +1,63 @@
 import { NextRequest, NextResponse } from "next/server";
 
+export const runtime = "nodejs";
+
 const KLING_API_URL =
   "https://api-singapore.klingai.com";
 
-type KlingCreateResponse = {
-  code?: number;
-  message?: string;
-  request_id?: string;
-  data?: {
-    task_id?: string;
-    task_status?: string;
-    task_status_msg?: string;
-  };
-};
+const KLING_ENDPOINT =
+  `${KLING_API_URL}/v1/videos/text2video`;
+
+export async function GET() {
+  const apiKey = process.env.KLING_API_KEY;
+
+  return NextResponse.json({
+    status: "ok",
+    routeVersion: "text-to-video-api-key-v1",
+    runtime: "nodejs",
+    klingConfigured: Boolean(apiKey),
+    apiKeyExists: Boolean(apiKey),
+    apiKeyLength: apiKey ? apiKey.length : 0,
+    apiUrl: KLING_API_URL,
+    endpoint: KLING_ENDPOINT,
+    generationTest: false,
+  });
+}
 
 export async function POST(
   request: NextRequest
 ) {
+  const apiKey = process.env.KLING_API_KEY;
+
+  /*
+   * MESMA CREDENCIAL DA ROTA QUE JÁ FUNCIONA:
+   * KLING_API_KEY
+   */
+
+  if (!apiKey) {
+    return NextResponse.json(
+      {
+        status: "error",
+        message:
+          "KLING_API_KEY não está configurada na Vercel.",
+      },
+      { status: 500 }
+    );
+  }
+
   try {
     const body = await request.json();
 
-    const {
-      prompt,
-      negative_prompt,
-      aspect_ratio = "9:16",
-      duration = "5",
-      model_name = "kling-v3",
-      mode = "std",
-    } = body;
+    /*
+     * PROMPT
+     */
 
-    if (
-      !prompt ||
-      typeof prompt !== "string" ||
-      !prompt.trim()
-    ) {
+    const prompt =
+      typeof body?.prompt === "string"
+        ? body.prompt.trim()
+        : "";
+
+    if (!prompt) {
       return NextResponse.json(
         {
           status: "error",
@@ -44,156 +68,298 @@ export async function POST(
       );
     }
 
-    const accessKey =
-      process.env.KLING_ACCESS_KEY;
+    /*
+     * DURAÇÃO
+     */
 
-    const secretKey =
-      process.env.KLING_SECRET_KEY;
+    const duration =
+      body?.duration === "10" ||
+      body?.duration === 10
+        ? "10"
+        : "5";
 
-    if (!accessKey || !secretKey) {
-      return NextResponse.json(
+    /*
+     * PROPORÇÃO
+     */
+
+    const aspectRatio =
+      typeof body?.aspect_ratio === "string"
+        ? body.aspect_ratio
+        : "9:16";
+
+    /*
+     * ESTILO
+     */
+
+    const style =
+      typeof body?.style === "string"
+        ? body.style.trim()
+        : "";
+
+    /*
+     * Prompt final.
+     */
+
+    const finalPrompt =
+      style &&
+      style !== "Realista"
+        ? `${prompt} Estilo visual: ${style}.`
+        : prompt;
+
+    /*
+     * CORPO ENVIADO PARA A KLING
+     *
+     * IMPORTANTE:
+     * Aqui NÃO existe imagem.
+     * É TEXT → VIDEO.
+     */
+
+    const klingBody: Record<
+      string,
+      unknown
+    > = {
+      model_name: "kling-v2-6",
+
+      prompt: finalPrompt,
+
+      negative_prompt:
+        "baixa qualidade, deformações, artefatos, imagem distorcida, movimentos artificiais",
+
+      duration,
+
+      aspect_ratio: aspectRatio,
+
+      mode: "std",
+    };
+
+    /*
+     * CHAMADA PARA A KLING
+     */
+
+    const klingResponse =
+      await fetch(
+        KLING_ENDPOINT,
         {
-          status: "error",
-          message:
-            "As credenciais da Kling não estão configuradas na Vercel.",
-        },
-        { status: 500 }
+          method: "POST",
+
+          headers: {
+            Authorization:
+              `Bearer ${apiKey}`,
+
+            "Content-Type":
+              "application/json",
+          },
+
+          body: JSON.stringify(
+            klingBody
+          ),
+        }
       );
+
+    /*
+     * Lê a resposta como texto primeiro.
+     */
+
+    const responseText =
+      await klingResponse.text();
+
+    let klingData: any = null;
+
+    try {
+      klingData =
+        responseText
+          ? JSON.parse(
+              responseText
+            )
+          : null;
+    } catch {
+      klingData = null;
     }
 
     /*
-     * IMPORTANTE:
-     * A Kling utiliza autenticação JWT.
-     *
-     * As chaves ficam somente no servidor.
+     * Se a Kling retornar HTML,
+     * texto ou resposta inválida.
      */
 
-    const jwt = await createKlingJWT(
-      accessKey,
-      secretKey
-    );
-
-    const response = await fetch(
-      `${KLING_API_URL}/v1/videos/text2video`,
-      {
-        method: "POST",
-
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${jwt}`,
-        },
-
-        body: JSON.stringify({
-          model_name,
-
-          prompt: prompt.trim(),
-
-          ...(negative_prompt &&
-          typeof negative_prompt === "string"
-            ? {
-                negative_prompt:
-                  negative_prompt.trim(),
-              }
-            : {}),
-
-          aspect_ratio,
-
-          duration,
-
-          mode,
-        }),
-      }
-    );
-
-    const responseText =
-      await response.text();
-
-    let data: KlingCreateResponse;
-
-    try {
-      data = JSON.parse(
-        responseText
-      ) as KlingCreateResponse;
-    } catch {
-      console.error(
-        "Kling retornou resposta não JSON:",
-        responseText
-      );
-
-      return NextResponse.json(
-        {
-          status: "error",
-          message:
-            "A Kling retornou uma resposta inválida.",
-          klingStatus:
-            response.status,
-          rawResponse:
-            responseText.substring(
-              0,
-              1000
-            ),
-        },
-        {
-          status:
-            response.status >= 400
-              ? response.status
-              : 502,
-        }
-      );
-    }
-
-    console.log(
-      "CIEL IA STUDIO - Kling Texto → Vídeo:",
-      data
-    );
-
     if (
-      !response.ok ||
-      data.code !== 0
+      !klingData &&
+      responseText
     ) {
       return NextResponse.json(
         {
           status: "error",
 
           message:
-            data.message ||
-            "A Kling recusou a solicitação.",
+            "A Kling retornou uma resposta inválida.",
 
           klingStatus:
-            response.status,
+            klingResponse.status,
 
-          klingResponse:
-            data,
+          rawResponse:
+            responseText.substring(
+              0,
+              1000
+            ),
+
+          routeVersion:
+            "text-to-video-api-key-v1",
         },
         {
           status:
-            response.status >= 400
-              ? response.status
-              : 400,
+            klingResponse.status ||
+            500,
         }
       );
     }
 
+    /*
+     * ERRO HTTP
+     */
+
+    if (!klingResponse.ok) {
+      const klingMessage =
+        klingData?.message ||
+        klingData?.error ||
+        responseText ||
+        "A Kling retornou um erro.";
+
+      /*
+       * SALDO INSUFICIENTE
+       */
+
+      if (
+        String(
+          klingMessage
+        )
+          .toLowerCase()
+          .includes(
+            "account balance not enough"
+          )
+      ) {
+        return NextResponse.json(
+          {
+            status: "error",
+
+            message:
+              "Saldo insuficiente na Kling para gerar este vídeo.",
+
+            klingStatus:
+              klingResponse.status,
+
+            klingResponse:
+              klingData,
+
+            routeVersion:
+              "text-to-video-api-key-v1",
+          },
+          {
+            status:
+              klingResponse.status,
+          }
+        );
+      }
+
+      return NextResponse.json(
+        {
+          status: "error",
+
+          message:
+            klingMessage,
+
+          klingStatus:
+            klingResponse.status,
+
+          klingResponse:
+            klingData,
+
+          routeVersion:
+            "text-to-video-api-key-v1",
+        },
+        {
+          status:
+            klingResponse.status,
+        }
+      );
+    }
+
+    /*
+     * CÓDIGO INTERNO DA KLING
+     *
+     * HTTP 200 pode existir mesmo
+     * quando a Kling retorna code diferente de 0.
+     */
+
+    if (
+      klingData &&
+      typeof klingData.code !==
+        "undefined" &&
+      Number(
+        klingData.code
+      ) !== 0
+    ) {
+      return NextResponse.json(
+        {
+          status: "error",
+
+          message:
+            klingData.message ||
+            "A Kling recusou a solicitação.",
+
+          klingStatus:
+            klingResponse.status,
+
+          klingResponse:
+            klingData,
+
+          routeVersion:
+            "text-to-video-api-key-v1",
+        },
+        {
+          status:
+            klingResponse.status ||
+            400,
+        }
+      );
+    }
+
+    /*
+     * TASK ID
+     */
+
     const taskId =
-      data.data?.task_id || null;
+      klingData?.data?.task_id ??
+      klingData?.task_id ??
+      null;
 
-    return NextResponse.json({
-      status: "success",
+    /*
+     * SUCESSO
+     */
 
-      message:
-        "Tarefa enviada para a Kling com sucesso!",
+    return NextResponse.json(
+      {
+        status: "success",
 
-      taskId,
+        message:
+          "Sua tarefa de Texto → Vídeo foi enviada para a Kling com sucesso.",
 
-      klingStatus:
-        response.status,
+        taskId,
 
-      klingResponse:
-        data,
-    });
+        klingStatus:
+          klingResponse.status,
+
+        klingResponse:
+          klingData,
+
+        routeVersion:
+          "text-to-video-api-key-v1",
+      },
+      {
+        status: 200,
+      }
+    );
   } catch (error) {
     console.error(
-      "Erro na rota /api/kling-text-to-video:",
+      "Erro em /api/kling-text-to-video:",
       error
     );
 
@@ -204,121 +370,14 @@ export async function POST(
         message:
           error instanceof Error
             ? error.message
-            : "Não foi possível conectar à API Kling.",
+            : "Erro interno ao conectar com a Kling.",
+
+        routeVersion:
+          "text-to-video-api-key-v1",
       },
       {
         status: 500,
       }
     );
   }
-}
-
-/* =====================================================
-   JWT DA KLING
-===================================================== */
-
-async function createKlingJWT(
-  accessKey: string,
-  secretKey: string
-): Promise<string> {
-  const encoder =
-    new TextEncoder();
-
-  const header = {
-    alg: "HS256",
-    typ: "JWT",
-  };
-
-  const payload = {
-    iss: accessKey,
-
-    exp:
-      Math.floor(
-        Date.now() / 1000
-      ) + 1800,
-
-    nbf:
-      Math.floor(
-        Date.now() / 1000
-      ) - 5,
-  };
-
-  const encodedHeader =
-    base64UrlEncode(
-      JSON.stringify(header)
-    );
-
-  const encodedPayload =
-    base64UrlEncode(
-      JSON.stringify(payload)
-    );
-
-  const unsignedToken =
-    `${encodedHeader}.${encodedPayload}`;
-
-  const key =
-    await crypto.subtle.importKey(
-      "raw",
-      encoder.encode(secretKey),
-      {
-        name: "HMAC",
-        hash: "SHA-256",
-      },
-      false,
-      ["sign"]
-    );
-
-  const signature =
-    await crypto.subtle.sign(
-      "HMAC",
-      key,
-      encoder.encode(
-        unsignedToken
-      )
-    );
-
-  const encodedSignature =
-    base64UrlEncode(
-      new Uint8Array(signature)
-    );
-
-  return `${unsignedToken}.${encodedSignature}`;
-}
-
-/* =====================================================
-   BASE64 URL
-===================================================== */
-
-function base64UrlEncode(
-  value:
-    | string
-    | Uint8Array
-): string {
-  let binary = "";
-
-  if (typeof value === "string") {
-    binary = btoa(value);
-  } else {
-    const bytes =
-      value;
-
-    let result = "";
-
-    for (
-      let i = 0;
-      i < bytes.length;
-      i++
-    ) {
-      result += String.fromCharCode(
-        bytes[i]
-      );
-    }
-
-    binary = btoa(result);
-  }
-
-  return binary
-    .replace(/\+/g, "-")
-    .replace(/\//g, "_")
-    .replace(/=+$/g, "");
 }
