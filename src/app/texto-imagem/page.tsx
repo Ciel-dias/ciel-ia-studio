@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useState } from "react";
 
 export default function TextoImagemPage() {
@@ -118,7 +119,7 @@ export default function TextoImagemPage() {
         }
 
         /* =========================
-           TOPO
+           CABEÇALHO
         ========================= */
 
         .topbar {
@@ -232,6 +233,10 @@ export default function TextoImagemPage() {
           line-height: 1.5;
         }
 
+        /* =========================
+           ÁREA DE TRABALHO
+        ========================= */
+
         .workspace {
           display: grid;
 
@@ -242,6 +247,10 @@ export default function TextoImagemPage() {
 
           align-items: stretch;
         }
+
+        /* =========================
+           PAINÉIS
+        ========================= */
 
         .panel {
           min-width: 0;
@@ -273,6 +282,10 @@ export default function TextoImagemPage() {
           font-size: 21px;
         }
 
+        /* =========================
+           LABEL
+        ========================= */
+
         .label {
           display: block;
 
@@ -285,6 +298,10 @@ export default function TextoImagemPage() {
 
           font-weight: 700;
         }
+
+        /* =========================
+           PROMPT
+        ========================= */
 
         .prompt {
           width: 100%;
@@ -328,6 +345,10 @@ export default function TextoImagemPage() {
             0 0 15px rgba(70, 199, 255, 0.25);
         }
 
+        /* =========================
+           SELECT
+        ========================= */
+
         select {
           width: 100%;
 
@@ -347,6 +368,10 @@ export default function TextoImagemPage() {
           font-size: 14px;
         }
 
+        /* =========================
+           CRÉDITOS
+        ========================= */
+
         .credits {
           margin-top: 20px;
 
@@ -364,6 +389,10 @@ export default function TextoImagemPage() {
 
           font-size: 14px;
         }
+
+        /* =========================
+           BOTÃO GERAR
+        ========================= */
 
         .generate {
           width: 100%;
@@ -401,6 +430,10 @@ export default function TextoImagemPage() {
 
           opacity: 0.65;
         }
+
+        /* =========================
+           PREVIEW
+        ========================= */
 
         .preview {
           min-height: 500px;
@@ -452,6 +485,10 @@ export default function TextoImagemPage() {
           line-height: 1.5;
         }
 
+        /* =========================
+           LOADING
+        ========================= */
+
         .loading {
           animation:
             pulse 1.1s infinite;
@@ -467,6 +504,10 @@ export default function TextoImagemPage() {
             opacity: 1;
           }
         }
+
+        /* =========================
+           TASK BOX
+        ========================= */
 
         .task-box {
           margin-top: 22px;
@@ -501,6 +542,10 @@ export default function TextoImagemPage() {
 
           line-height: 1.5;
         }
+
+        /* =========================
+           ERRO
+        ========================= */
 
         .error-box {
           margin-top: 22px;
@@ -681,21 +726,33 @@ export default function TextoImagemPage() {
             min-height: 68px;
 
             padding:
-              14px 16px;
+              14px 15px;
 
-            flex-wrap: wrap;
+            display: flex;
 
-            justify-content: center;
+            align-items: center;
+
+            justify-content: space-between;
+
+            flex-wrap: nowrap;
+
+            gap: 10px;
           }
 
           .brand {
-            width: 100%;
+            width: auto;
 
-            justify-content: center;
+            display: flex;
+
+            align-items: center;
+
+            justify-content: flex-start;
+
+            gap: 7px;
           }
 
           .brand-name {
-            font-size: 16px;
+            font-size: 15px;
           }
 
           .brand-icon {
@@ -704,6 +761,8 @@ export default function TextoImagemPage() {
 
           .back {
             font-size: 13px;
+
+            white-space: nowrap;
           }
 
           .content {
@@ -769,12 +828,12 @@ export default function TextoImagemPage() {
 
           </div>
 
-          <a
+          <Link
             href="/dashboard"
             className="back"
           >
             ← Voltar ao Dashboard
-          </a>
+          </Link>
 
         </header>
 
@@ -797,7 +856,15 @@ export default function TextoImagemPage() {
 
           </div>
 
+          {/* =========================
+              ÁREA DE TRABALHO
+          ========================= */}
+
           <div className="workspace">
+
+            {/* =========================
+                PAINEL DE CRIAÇÃO
+            ========================= */}
 
             <section className="panel">
 
@@ -892,6 +959,10 @@ export default function TextoImagemPage() {
               </button>
 
             </section>
+
+            {/* =========================
+                PAINEL DE RESULTADO
+            ========================= */}
 
             <section className="panel">
 
