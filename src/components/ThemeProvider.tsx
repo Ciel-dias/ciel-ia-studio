@@ -20,13 +20,22 @@ const ThemeContext = createContext<ThemeContextType | undefined>(
   undefined
 );
 
+function getInitialTheme(): Theme {
+  if (typeof window === "undefined") {
+    return "dark";
+  }
+
+  const savedTheme = localStorage.getItem("ciel-theme");
+
+  return savedTheme === "light" ? "light" : "dark";
+}
+
 export function ThemeProvider({
   children,
 }: {
   children: ReactNode;
 }) {
-  const [theme, setThemeState] = useState<Theme>("dark");
-  const [mounted, setMounted] = useState(false);
+  const [theme, setThemeState] = useState<Theme>(getInitialTheme);
 
   useEffect(() => {
     const savedTheme = localStorage.getItem("ciel-theme");
@@ -35,20 +44,14 @@ export function ThemeProvider({
       savedTheme === "light" ? "light" : "dark";
 
     setThemeState(initialTheme);
-    document.documentElement.dataset.theme = initialTheme;
-    document.body.dataset.theme = initialTheme;
-
-    setMounted(true);
   }, []);
 
   useEffect(() => {
-    if (!mounted) return;
-
-    localStorage.setItem("ciel-theme", theme);
-
     document.documentElement.dataset.theme = theme;
     document.body.dataset.theme = theme;
-  }, [theme, mounted]);
+
+    localStorage.setItem("ciel-theme", theme);
+  }, [theme]);
 
   function setTheme(theme: Theme) {
     setThemeState(theme);
