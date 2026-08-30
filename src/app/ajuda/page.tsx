@@ -459,7 +459,11 @@ export default function AjudaPage() {
 
         <header className="topbar">
 
-          <Link href="/" className="brand">
+          {/* CORRIGIDO: Dashboard verdadeiro */}
+          <Link
+            href="/dashboard"
+            className="brand"
+          >
             <span className="brand-icon">
               ✨
             </span>
@@ -469,8 +473,9 @@ export default function AjudaPage() {
             </span>
           </Link>
 
+          {/* CORRIGIDO: Dashboard verdadeiro */}
           <Link
-            href="/"
+            href="/dashboard"
             className="back-link"
           >
             ← Voltar ao Dashboard
