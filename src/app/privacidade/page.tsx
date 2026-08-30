@@ -99,11 +99,15 @@ export default function PrivacidadePage() {
         }
 
         .back {
-          color: #e8eef7;
+          color: #8fdcff;
 
           text-decoration: none;
 
           font-size: 15px;
+
+          font-weight: 700;
+
+          white-space: nowrap;
 
           transition:
             color 0.2s ease,
@@ -505,17 +509,21 @@ export default function PrivacidadePage() {
             min-height: 68px;
 
             padding:
-              14px 16px;
+              0 16px;
 
-            flex-wrap: wrap;
+            gap: 12px;
 
-            justify-content: center;
+            flex-wrap: nowrap;
           }
 
           .brand {
-            width: 100%;
+            flex: 1;
 
-            justify-content: center;
+            min-width: 0;
+
+            justify-content: flex-start;
+
+            gap: 7px;
           }
 
           .brand-name {
@@ -527,6 +535,8 @@ export default function PrivacidadePage() {
           }
 
           .back {
+            flex-shrink: 0;
+
             font-size: 13px;
           }
 
@@ -598,6 +608,31 @@ export default function PrivacidadePage() {
             gap: 30px;
           }
         }
+
+        /* =========================
+           CELULAR PEQUENO
+        ========================= */
+
+        @media (max-width: 390px) {
+          .topbar {
+            padding:
+              0 12px;
+
+            gap: 8px;
+          }
+
+          .brand-name {
+            font-size: 14px;
+          }
+
+          .brand-icon {
+            font-size: 21px;
+          }
+
+          .back {
+            font-size: 12px;
+          }
+        }
       `}</style>
 
       <main className="privacy-page">
@@ -656,10 +691,6 @@ export default function PrivacidadePage() {
 
           <article className="document">
 
-            {/* =========================
-                1
-            ========================= */}
-
             <section className="section">
 
               <h2>
@@ -698,10 +729,6 @@ export default function PrivacidadePage() {
               </div>
 
             </section>
-
-            {/* =========================
-                2
-            ========================= */}
 
             <section className="section">
 
@@ -757,10 +784,6 @@ export default function PrivacidadePage() {
 
             </section>
 
-            {/* =========================
-                3
-            ========================= */}
-
             <section className="section">
 
               <h2>
@@ -809,10 +832,6 @@ export default function PrivacidadePage() {
               </div>
 
             </section>
-
-            {/* =========================
-                4
-            ========================= */}
 
             <section className="section">
 
@@ -869,10 +888,6 @@ export default function PrivacidadePage() {
 
             </section>
 
-            {/* =========================
-                5
-            ========================= */}
-
             <section className="section">
 
               <h2>
@@ -908,10 +923,6 @@ export default function PrivacidadePage() {
               </div>
 
             </section>
-
-            {/* =========================
-                6
-            ========================= */}
 
             <section className="section">
 
@@ -950,10 +961,6 @@ export default function PrivacidadePage() {
               </div>
 
             </section>
-
-            {/* =========================
-                7
-            ========================= */}
 
             <section className="section">
 
@@ -1008,10 +1015,6 @@ export default function PrivacidadePage() {
 
             </section>
 
-            {/* =========================
-                8
-            ========================= */}
-
             <section className="section">
 
               <h2>
@@ -1051,10 +1054,6 @@ export default function PrivacidadePage() {
               </div>
 
             </section>
-
-            {/* =========================
-                9
-            ========================= */}
 
             <section className="section">
 
@@ -1103,10 +1102,6 @@ export default function PrivacidadePage() {
 
             </section>
 
-            {/* =========================
-                10
-            ========================= */}
-
             <section className="section">
 
               <h2>
@@ -1146,10 +1141,6 @@ export default function PrivacidadePage() {
 
             </section>
 
-            {/* =========================
-                11
-            ========================= */}
-
             <section className="section">
 
               <h2>
@@ -1186,10 +1177,6 @@ export default function PrivacidadePage() {
               </div>
 
             </section>
-
-            {/* =========================
-                12
-            ========================= */}
 
             <section className="section">
 
@@ -1229,10 +1216,6 @@ export default function PrivacidadePage() {
 
             </section>
 
-            {/* =========================
-                13
-            ========================= */}
-
             <section className="section">
 
               <h2>
@@ -1257,6 +1240,7 @@ export default function PrivacidadePage() {
               </div>
 
               <div className="email-box">
+
                 <strong>
                   Canal de contato:
                 </strong>
@@ -1265,6 +1249,7 @@ export default function PrivacidadePage() {
 
                 Entre em contato pelo endereço de e-mail
                 oficial disponibilizado pelo CIEL IA STUDIO.
+
               </div>
 
             </section>
