@@ -4,34 +4,39 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { createClient } from "@supabase/supabase-js";
 
+export const dynamic = "force-dynamic";
+
 const supabaseUrl =
-  process.env.NEXT_PUBLIC_SUPABASE_URL!;
+  process.env.NEXT_PUBLIC_SUPABASE_URL || "";
 
 const supabaseAnonKey =
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "";
 
-const supabase = createClient(
-  supabaseUrl,
-  supabaseAnonKey
-);
+const supabase =
+  supabaseUrl && supabaseAnonKey
+    ? createClient(
+        supabaseUrl,
+        supabaseAnonKey
+      )
+    : null;
 
 export default function MinhaContaPage() {
   const [email, setEmail] = useState("");
   const [userId, setUserId] = useState("");
   const [createdAt, setCreatedAt] = useState("");
 
-  const [credits, setCredits] = useState(30);
+  const [credits] = useState(30);
 
   const [loading, setLoading] = useState(true);
-
-  const [changingPassword, setChangingPassword] =
-    useState(false);
 
   const [newPassword, setNewPassword] =
     useState("");
 
   const [confirmPassword, setConfirmPassword] =
     useState("");
+
+  const [changingPassword, setChangingPassword] =
+    useState(false);
 
   const [message, setMessage] =
     useState("");
@@ -46,53 +51,39 @@ export default function MinhaContaPage() {
   async function loadAccount() {
     try {
       setLoading(true);
+      setError("");
 
-      const {
-        data: {
-          user,
-        },
-      } = await supabase.auth.getUser();
-
-      if (!user) {
-        window.location.href =
-          "/login";
-
+      if (!supabase) {
+        setError(
+          "Configuração do Supabase não encontrada."
+        );
         return;
       }
 
-      setEmail(
-        user.email || ""
-      );
+      const {
+        data: { user },
+        error: userError,
+      } = await supabase.auth.getUser();
 
-      setUserId(
-        user.id || ""
-      );
-
-      if (user.created_at) {
-        const date =
-          new Date(
-            user.created_at
-          );
-
-        setCreatedAt(
-          date.toLocaleDateString(
-            "pt-BR"
-          )
-        );
+      if (userError) {
+        throw userError;
       }
 
-      /*
-       * =================================================
-       * CRÉDITOS
-       *
-       * Por enquanto usamos 30 como saldo inicial.
-       *
-       * Depois podemos conectar diretamente
-       * à tabela de créditos do Supabase.
-       * =================================================
-       */
+      if (!user) {
+        window.location.replace("/login");
+        return;
+      }
 
-      setCredits(30);
+      setEmail(user.email || "");
+      setUserId(user.id || "");
+
+      if (user.created_at) {
+        setCreatedAt(
+          new Date(
+            user.created_at
+          ).toLocaleDateString("pt-BR")
+        );
+      }
     } catch (err) {
       console.error(
         "Erro ao carregar conta:",
@@ -115,7 +106,6 @@ export default function MinhaContaPage() {
       setError(
         "Digite uma nova senha."
       );
-
       return;
     }
 
@@ -123,7 +113,6 @@ export default function MinhaContaPage() {
       setError(
         "A senha precisa ter pelo menos 6 caracteres."
       );
-
       return;
     }
 
@@ -134,25 +123,26 @@ export default function MinhaContaPage() {
       setError(
         "As senhas não coincidem."
       );
+      return;
+    }
 
+    if (!supabase) {
+      setError(
+        "Supabase não configurado."
+      );
       return;
     }
 
     try {
       setChangingPassword(true);
 
-      const {
-        error: updateError,
-      } =
-        await supabase.auth.updateUser(
-          {
-            password:
-              newPassword,
-          }
-        );
+      const { error } =
+        await supabase.auth.updateUser({
+          password: newPassword,
+        });
 
-      if (updateError) {
-        throw updateError;
+      if (error) {
+        throw error;
       }
 
       setMessage(
@@ -179,10 +169,11 @@ export default function MinhaContaPage() {
 
   async function handleLogout() {
     try {
-      await supabase.auth.signOut();
+      if (supabase) {
+        await supabase.auth.signOut();
+      }
 
-      window.location.href =
-        "/login";
+      window.location.replace("/login");
     } catch (err) {
       console.error(
         "Erro ao sair:",
@@ -217,34 +208,22 @@ export default function MinhaContaPage() {
         }
 
         a {
-          -webkit-tap-highlight-color:
-            transparent;
+          -webkit-tap-highlight-color: transparent;
         }
 
         .page {
           min-height: 100vh;
-
-          color: #ffffff;
+          color: #fff;
 
           background:
             radial-gradient(
               circle at 80% 15%,
-              rgba(
-                20,
-                119,
-                190,
-                0.4
-              ),
+              rgba(20, 119, 190, 0.4),
               transparent 38%
             ),
             radial-gradient(
               circle at 15% 70%,
-              rgba(
-                15,
-                76,
-                125,
-                0.28
-              ),
+              rgba(15, 76, 125, 0.28),
               transparent 40%
             ),
             linear-gradient(
@@ -257,51 +236,31 @@ export default function MinhaContaPage() {
           overflow-x: hidden;
         }
 
-        /*
-         * =================================================
-         * CABEÇALHO
-         * =================================================
-         */
+        /* ================================
+           CABEÇALHO
+        ================================= */
 
         .topbar {
           min-height: 74px;
-
-          padding:
-            0 42px;
+          padding: 0 42px;
 
           display: flex;
-
           align-items: center;
-
-          justify-content:
-            space-between;
+          justify-content: space-between;
 
           background:
-            rgba(
-              4,
-              12,
-              24,
-              0.9
-            );
+            rgba(4, 12, 24, 0.9);
 
           border-bottom:
             1px solid
-            rgba(
-              100,
-              180,
-              255,
-              0.18
-            );
+            rgba(100, 180, 255, 0.18);
 
-          backdrop-filter:
-            blur(12px);
+          backdrop-filter: blur(12px);
         }
 
         .brand {
           display: flex;
-
           align-items: center;
-
           gap: 10px;
         }
 
@@ -311,42 +270,29 @@ export default function MinhaContaPage() {
 
         .brand-name {
           font-size: 20px;
-
           font-weight: 700;
-
-          letter-spacing:
-            0.4px;
+          letter-spacing: 0.4px;
+          color: #ffffff;
         }
 
         .back {
           color: #bfeaff;
-
           text-decoration: none;
-
           font-size: 14px;
-
-          transition:
-            0.2s ease;
+          font-weight: 600;
+          transition: 0.2s ease;
         }
 
         .back:hover {
           color: #6ed7ff;
-
           text-shadow:
             0 0 12px
-            rgba(
-              75,
-              199,
-              255,
-              0.8
-            );
+            rgba(75, 199, 255, 0.8);
         }
 
-        /*
-         * =================================================
-         * CONTEÚDO
-         * =================================================
-         */
+        /* ================================
+           CONTEÚDO
+        ================================= */
 
         .content {
           width:
@@ -356,14 +302,11 @@ export default function MinhaContaPage() {
             );
 
           margin: 0 auto;
-
-          padding:
-            55px 0 70px;
+          padding: 55px 0 70px;
         }
 
         .title-area {
           text-align: center;
-
           margin-bottom: 38px;
         }
 
@@ -387,15 +330,12 @@ export default function MinhaContaPage() {
           color: #b7c5d5;
 
           font-size: 17px;
-
           line-height: 1.5;
         }
 
-        /*
-         * =================================================
-         * GRID
-         * =================================================
-         */
+        /* ================================
+           GRID
+        ================================= */
 
         .account-grid {
           display: grid;
@@ -406,60 +346,31 @@ export default function MinhaContaPage() {
           gap: 24px;
         }
 
-        /*
-         * =================================================
-         * CARD
-         * =================================================
-         */
+        /* ================================
+           CARDS
+        ================================= */
 
         .card {
           border-radius: 22px;
-
           padding: 28px;
 
           background:
             linear-gradient(
               145deg,
-              rgba(
-                35,
-                47,
-                65,
-                0.95
-              ),
-              rgba(
-                14,
-                25,
-                40,
-                0.97
-              )
+              rgba(35, 47, 65, 0.95),
+              rgba(14, 25, 40, 0.97)
             );
 
           border:
-            2px solid
-            #58c9ff;
+            2px solid #58c9ff;
 
           box-shadow:
             0 0 8px
-            rgba(
-              70,
-              199,
-              255,
-              0.8
-            ),
+              rgba(70, 199, 255, 0.8),
             0 0 22px
-            rgba(
-              43,
-              167,
-              255,
-              0.35
-            ),
+              rgba(43, 167, 255, 0.35),
             inset 0 0 22px
-            rgba(
-              56,
-              174,
-              255,
-              0.07
-            );
+              rgba(56, 174, 255, 0.07);
         }
 
         .card h2 {
@@ -469,17 +380,13 @@ export default function MinhaContaPage() {
           font-size: 21px;
         }
 
-        /*
-         * =================================================
-         * PERFIL
-         * =================================================
-         */
+        /* ================================
+           PERFIL
+        ================================= */
 
         .profile {
           text-align: center;
-
-          padding:
-            10px 0 18px;
+          padding: 10px 0 18px;
         }
 
         .avatar {
@@ -492,9 +399,7 @@ export default function MinhaContaPage() {
           border-radius: 50%;
 
           display: flex;
-
           align-items: center;
-
           justify-content: center;
 
           background:
@@ -510,19 +415,9 @@ export default function MinhaContaPage() {
 
           box-shadow:
             0 0 15px
-            rgba(
-              70,
-              199,
-              255,
-              0.75
-            ),
+              rgba(70, 199, 255, 0.75),
             0 0 35px
-            rgba(
-              43,
-              167,
-              255,
-              0.3
-            );
+              rgba(43, 167, 255, 0.3);
         }
 
         .profile h2 {
@@ -543,17 +438,13 @@ export default function MinhaContaPage() {
             break-word;
         }
 
-        /*
-         * =================================================
-         * INFORMAÇÕES
-         * =================================================
-         */
+        /* ================================
+           INFORMAÇÕES
+        ================================= */
 
         .info-list {
           display: flex;
-
           flex-direction: column;
-
           gap: 13px;
         }
 
@@ -561,9 +452,7 @@ export default function MinhaContaPage() {
           display: flex;
 
           align-items: center;
-
-          justify-content:
-            space-between;
+          justify-content: space-between;
 
           gap: 20px;
 
@@ -573,60 +462,40 @@ export default function MinhaContaPage() {
           border-radius: 12px;
 
           background:
-            rgba(
-              3,
-              13,
-              25,
-              0.62
-            );
+            rgba(3, 13, 25, 0.62);
 
           border:
             1px solid
-            rgba(
-              94,
-              203,
-              255,
-              0.18
-            );
+            rgba(94, 203, 255, 0.18);
         }
 
         .info-label {
           color: #91a4b7;
-
           font-size: 13px;
         }
 
         .info-value {
           color: #dcefff;
-
           font-size: 14px;
-
           font-weight: 700;
 
           text-align: right;
-
-          word-break:
-            break-word;
+          word-break: break-word;
         }
 
-        /*
-         * =================================================
-         * CRÉDITOS
-         * =================================================
-         */
+        /* ================================
+           CRÉDITOS
+        ================================= */
 
         .credits-card {
-          grid-column:
-            span 2;
+          grid-column: span 2;
         }
 
         .credits-box {
           display: flex;
 
           align-items: center;
-
-          justify-content:
-            space-between;
+          justify-content: space-between;
 
           gap: 20px;
 
@@ -637,44 +506,25 @@ export default function MinhaContaPage() {
           background:
             linear-gradient(
               135deg,
-              rgba(
-                30,
-                125,
-                170,
-                0.2
-              ),
-              rgba(
-                3,
-                22,
-                40,
-                0.65
-              )
+              rgba(30, 125, 170, 0.2),
+              rgba(3, 22, 40, 0.65)
             );
 
           border:
             1px solid
-            rgba(
-              94,
-              203,
-              255,
-              0.3
-            );
+            rgba(94, 203, 255, 0.3);
         }
 
         .credits-title {
           color: #b9c9d9;
-
           font-size: 14px;
-
           margin-bottom: 7px;
         }
 
         .credits-number {
           font-size: 38px;
-
           font-weight: 800;
-
-          color: #ffffff;
+          color: #fff;
         }
 
         .credits-number span {
@@ -687,24 +537,16 @@ export default function MinhaContaPage() {
           filter:
             drop-shadow(
               0 0 10px
-              rgba(
-                100,
-                220,
-                255,
-                0.7
-              )
+              rgba(100, 220, 255, 0.7)
             );
         }
 
-        /*
-         * =================================================
-         * SENHA
-         * =================================================
-         */
+        /* ================================
+           SENHA
+        ================================= */
 
         .password-card {
-          grid-column:
-            span 2;
+          grid-column: span 2;
         }
 
         .password-fields {
@@ -724,7 +566,6 @@ export default function MinhaContaPage() {
           color: #b7c7d8;
 
           font-size: 13px;
-
           font-weight: 700;
         }
 
@@ -737,40 +578,24 @@ export default function MinhaContaPage() {
 
           border:
             1px solid
-            rgba(
-              94,
-              203,
-              255,
-              0.3
-            );
+            rgba(94, 203, 255, 0.3);
 
           outline: none;
 
           background:
-            rgba(
-              3,
-              13,
-              25,
-              0.8
-            );
+            rgba(3, 13, 25, 0.8);
 
-          color: #ffffff;
+          color: #fff;
 
           font-size: 14px;
         }
 
         .input:focus {
-          border-color:
-            #63d3ff;
+          border-color: #63d3ff;
 
           box-shadow:
             0 0 15px
-            rgba(
-              70,
-              199,
-              255,
-              0.2
-            );
+            rgba(70, 199, 255, 0.2);
         }
 
         .password-button {
@@ -781,7 +606,6 @@ export default function MinhaContaPage() {
           padding: 14px;
 
           border: none;
-
           border-radius: 12px;
 
           cursor: pointer;
@@ -796,30 +620,21 @@ export default function MinhaContaPage() {
             );
 
           font-size: 15px;
-
           font-weight: 800;
 
           box-shadow:
             0 0 10px
-            rgba(
-              70,
-              199,
-              255,
-              0.6
-            );
+            rgba(70, 199, 255, 0.6);
         }
 
         .password-button:disabled {
           opacity: 0.6;
-
           cursor: wait;
         }
 
-        /*
-         * =================================================
-         * MENSAGENS
-         * =================================================
-         */
+        /* ================================
+           MENSAGENS
+        ================================= */
 
         .message,
         .error {
@@ -831,57 +646,34 @@ export default function MinhaContaPage() {
           border-radius: 11px;
 
           font-size: 13px;
-
           line-height: 1.5;
         }
 
         .message {
           background:
-            rgba(
-              35,
-              170,
-              115,
-              0.12
-            );
+            rgba(35, 170, 115, 0.12);
 
           border:
             1px solid
-            rgba(
-              65,
-              220,
-              160,
-              0.3
-            );
+            rgba(65, 220, 160, 0.3);
 
           color: #8ff0c6;
         }
 
         .error {
           background:
-            rgba(
-              220,
-              70,
-              70,
-              0.12
-            );
+            rgba(220, 70, 70, 0.12);
 
           border:
             1px solid
-            rgba(
-              255,
-              100,
-              100,
-              0.3
-            );
+            rgba(255, 100, 100, 0.3);
 
           color: #ffb0b0;
         }
 
-        /*
-         * =================================================
-         * AÇÕES
-         * =================================================
-         */
+        /* ================================
+           AÇÕES
+        ================================= */
 
         .actions {
           display: grid;
@@ -898,7 +690,6 @@ export default function MinhaContaPage() {
           display: flex;
 
           align-items: center;
-
           justify-content: center;
 
           min-height: 48px;
@@ -910,11 +701,9 @@ export default function MinhaContaPage() {
           text-decoration: none;
 
           font-size: 14px;
-
           font-weight: 700;
 
-          transition:
-            0.2s ease;
+          transition: 0.2s ease;
         }
 
         .action-primary {
@@ -932,21 +721,11 @@ export default function MinhaContaPage() {
           color: #bfeaff;
 
           background:
-            rgba(
-              94,
-              203,
-              255,
-              0.08
-            );
+            rgba(94, 203, 255, 0.08);
 
           border:
             1px solid
-            rgba(
-              94,
-              203,
-              255,
-              0.3
-            );
+            rgba(94, 203, 255, 0.3);
         }
 
         .action-button:hover {
@@ -968,32 +747,19 @@ export default function MinhaContaPage() {
           color: #ffb0b0;
 
           background:
-            rgba(
-              220,
-              70,
-              70,
-              0.08
-            );
+            rgba(220, 70, 70, 0.08);
 
           border:
             1px solid
-            rgba(
-              255,
-              100,
-              100,
-              0.25
-            );
+            rgba(255, 100, 100, 0.25);
 
           font-size: 14px;
-
           font-weight: 700;
         }
 
-        /*
-         * =================================================
-         * LOADING
-         * =================================================
-         */
+        /* ================================
+           LOADING
+        ================================= */
 
         .loading {
           text-align: center;
@@ -1019,37 +785,20 @@ export default function MinhaContaPage() {
           }
         }
 
-        /*
-         * =================================================
-         * FOOTER
-         * =================================================
-         */
+        /* ================================
+           FOOTER
+        ================================= */
 
         .footer {
           border-top:
             1px solid
-            rgba(
-              100,
-              180,
-              255,
-              0.18
-            );
+            rgba(100, 180, 255, 0.18);
 
           background:
             linear-gradient(
               180deg,
-              rgba(
-                4,
-                15,
-                29,
-                0.96
-              ),
-              rgba(
-                3,
-                11,
-                22,
-                1
-              )
+              rgba(4, 15, 29, 0.96),
+              rgba(3, 11, 22, 1)
             );
 
           padding:
@@ -1058,10 +807,7 @@ export default function MinhaContaPage() {
 
         .footer-inner {
           width:
-            min(
-              1180px,
-              100%
-            );
+            min(1180px, 100%);
 
           margin: 0 auto;
         }
@@ -1126,12 +872,7 @@ export default function MinhaContaPage() {
 
           border-top:
             1px solid
-            rgba(
-              100,
-              180,
-              255,
-              0.16
-            );
+            rgba(100, 180, 255, 0.16);
 
           text-align: center;
 
@@ -1140,42 +881,33 @@ export default function MinhaContaPage() {
           font-size: 13px;
         }
 
-        /*
-         * =================================================
-         * TABLET
-         * =================================================
-         */
+        /* ================================
+           TABLET
+        ================================= */
 
         @media (max-width: 850px) {
           .topbar {
-            padding:
-              0 22px;
+            padding: 0 22px;
           }
 
           .account-grid {
-            grid-template-columns:
-              1fr;
+            grid-template-columns: 1fr;
           }
 
           .credits-card,
           .password-card {
-            grid-column:
-              span 1;
+            grid-column: span 1;
           }
         }
 
-        /*
-         * =================================================
-         * MOBILE
-         * =================================================
-         */
+        /* ================================
+           MOBILE
+        ================================= */
 
         @media (max-width: 650px) {
           .topbar {
             min-height: 68px;
-
-            padding:
-              0 16px;
+            padding: 0 16px;
           }
 
           .brand-name {
@@ -1194,18 +926,15 @@ export default function MinhaContaPage() {
 
           .card {
             padding: 21px;
-
             border-radius: 18px;
           }
 
           .password-fields {
-            grid-template-columns:
-              1fr;
+            grid-template-columns: 1fr;
           }
 
           .actions {
-            grid-template-columns:
-              1fr;
+            grid-template-columns: 1fr;
           }
 
           .credits-box {
@@ -1226,9 +955,7 @@ export default function MinhaContaPage() {
           }
 
           .footer-columns {
-            grid-template-columns:
-              1fr;
-
+            grid-template-columns: 1fr;
             gap: 30px;
           }
         }
@@ -1237,8 +964,7 @@ export default function MinhaContaPage() {
           .topbar {
             flex-wrap: wrap;
 
-            justify-content:
-              center;
+            justify-content: center;
 
             padding:
               14px 10px;
@@ -1246,9 +972,7 @@ export default function MinhaContaPage() {
 
           .brand {
             width: 100%;
-
-            justify-content:
-              center;
+            justify-content: center;
           }
 
           .back {
@@ -1264,12 +988,8 @@ export default function MinhaContaPage() {
           }
 
           .info-row {
-            align-items:
-              flex-start;
-
-            flex-direction:
-              column;
-
+            align-items: flex-start;
+            flex-direction: column;
             gap: 5px;
           }
 
@@ -1281,9 +1001,7 @@ export default function MinhaContaPage() {
 
       <main className="page">
 
-        {/* =================================================
-            CABEÇALHO
-        ================================================= */}
+        {/* CABEÇALHO */}
 
         <header className="topbar">
 
@@ -1308,10 +1026,7 @@ export default function MinhaContaPage() {
 
         </header>
 
-
-        {/* =================================================
-            CONTEÚDO
-        ================================================= */}
+        {/* CONTEÚDO */}
 
         <section className="content">
 
@@ -1330,23 +1045,18 @@ export default function MinhaContaPage() {
 
           </div>
 
-
           {loading ? (
 
             <div className="card loading">
-
-              ✨ Carregando dados
-              da sua conta...
-
+              ✨ Carregando dados da
+              sua conta...
             </div>
 
           ) : (
 
             <div className="account-grid">
 
-              {/* =========================================
-                  PERFIL
-              ========================================= */}
+              {/* PERFIL */}
 
               <section className="card">
 
@@ -1369,10 +1079,7 @@ export default function MinhaContaPage() {
 
               </section>
 
-
-              {/* =========================================
-                  INFORMAÇÕES
-              ========================================= */}
+              {/* INFORMAÇÕES */}
 
               <section className="card">
 
@@ -1427,10 +1134,7 @@ export default function MinhaContaPage() {
 
               </section>
 
-
-              {/* =========================================
-                  CRÉDITOS
-              ========================================= */}
+              {/* CRÉDITOS */}
 
               <section className="card credits-card">
 
@@ -1463,10 +1167,7 @@ export default function MinhaContaPage() {
 
               </section>
 
-
-              {/* =========================================
-                  ALTERAR SENHA
-              ========================================= */}
+              {/* ALTERAR SENHA */}
 
               <section className="card password-card">
 
@@ -1485,9 +1186,7 @@ export default function MinhaContaPage() {
                     <input
                       type="password"
                       className="input"
-                      value={
-                        newPassword
-                      }
+                      value={newPassword}
                       onChange={(e) =>
                         setNewPassword(
                           e.target.value
@@ -1498,7 +1197,6 @@ export default function MinhaContaPage() {
 
                   </div>
 
-
                   <div className="input-group">
 
                     <label>
@@ -1508,9 +1206,7 @@ export default function MinhaContaPage() {
                     <input
                       type="password"
                       className="input"
-                      value={
-                        confirmPassword
-                      }
+                      value={confirmPassword}
                       onChange={(e) =>
                         setConfirmPassword(
                           e.target.value
@@ -1523,7 +1219,6 @@ export default function MinhaContaPage() {
 
                 </div>
 
-
                 <button
                   className="password-button"
                   onClick={
@@ -1533,37 +1228,26 @@ export default function MinhaContaPage() {
                     changingPassword
                   }
                 >
-
                   {changingPassword
                     ? "Alterando senha..."
                     : "🔐 Alterar senha"}
-
                 </button>
 
-
                 {message && (
-
                   <div className="message">
                     {message}
                   </div>
-
                 )}
 
-
                 {error && (
-
                   <div className="error">
                     {error}
                   </div>
-
                 )}
 
               </section>
 
-
-              {/* =========================================
-                  AÇÕES
-              ========================================= */}
+              {/* AÇÕES */}
 
               <section className="card">
 
@@ -1589,7 +1273,6 @@ export default function MinhaContaPage() {
 
                 </div>
 
-
                 <button
                   className="logout"
                   onClick={
@@ -1607,10 +1290,7 @@ export default function MinhaContaPage() {
 
         </section>
 
-
-        {/* =================================================
-            RODAPÉ
-        ================================================= */}
+        {/* RODAPÉ */}
 
         <footer className="footer">
 
@@ -1623,11 +1303,11 @@ export default function MinhaContaPage() {
               </h2>
 
               <p>
-                Crie. Transforme. Inove com IA.
+                Crie. Transforme. Inove
+                com IA.
               </p>
 
             </div>
-
 
             <div className="footer-columns">
 
@@ -1663,7 +1343,6 @@ export default function MinhaContaPage() {
 
               </div>
 
-
               <div className="footer-column">
 
                 <h3>
@@ -1684,7 +1363,6 @@ export default function MinhaContaPage() {
 
               </div>
 
-
               <div className="footer-column">
 
                 <h3>
@@ -1703,12 +1381,9 @@ export default function MinhaContaPage() {
 
             </div>
 
-
             <div className="footer-bottom">
-
               © 2026 CIEL IA STUDIO.
               Todos os direitos reservados.
-
             </div>
 
           </div>
