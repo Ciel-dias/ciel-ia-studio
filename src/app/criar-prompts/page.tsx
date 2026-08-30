@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useState } from "react";
 
 export default function CriarPrompts() {
@@ -68,7 +69,7 @@ Transforme essa ideia em um prompt completo, cinematográfico e bem estruturado.
         body {
           margin: 0;
           padding: 0;
-          background: #07111f;
+          background: #06101e;
         }
 
         body {
@@ -118,13 +119,12 @@ Transforme essa ideia em um prompt completo, cinematográfico e bem estruturado.
           align-items: center;
           justify-content: space-between;
 
-          gap: 20px;
           padding: 0 42px;
 
           background: rgba(4, 12, 24, 0.92);
 
-          border-bottom:
-            1px solid rgba(100, 180, 255, 0.18);
+          border-bottom: 1px solid
+            rgba(100, 180, 255, 0.18);
 
           backdrop-filter: blur(12px);
         }
@@ -151,10 +151,8 @@ Transforme essa ideia em um prompt completo, cinematográfico e bem estruturado.
           letter-spacing: 0.5px;
         }
 
-        .back {
+        .back-link {
           color: #7bd8ff;
-
-          background: transparent;
 
           text-decoration: none;
 
@@ -167,7 +165,7 @@ Transforme essa ideia em um prompt completo, cinematográfico e bem estruturado.
             transform 0.2s ease;
         }
 
-        .back:hover {
+        .back-link:hover {
           color: #b4ecff;
 
           text-shadow:
@@ -679,7 +677,7 @@ Transforme essa ideia em um prompt completo, cinematográfico e bem estruturado.
             font-size: 23px;
           }
 
-          .back {
+          .back-link {
             font-size: 13px;
           }
 
@@ -733,24 +731,29 @@ Transforme essa ideia em um prompt completo, cinematográfico e bem estruturado.
           }
         }
 
-        @media (max-width: 430px) {
+        @media (max-width: 480px) {
           .topbar {
-            flex-wrap: wrap;
+            min-height: 68px;
 
-            justify-content: center;
-
-            padding:
-              14px 10px;
+            padding: 0 15px;
           }
 
           .brand {
-            width: 100%;
+            width: auto;
 
-            justify-content: center;
+            justify-content: flex-start;
           }
 
-          .back {
-            margin-top: 2px;
+          .brand-icon {
+            font-size: 23px;
+          }
+
+          .brand-name {
+            font-size: 15px;
+          }
+
+          .back-link {
+            font-size: 13px;
           }
         }
       `}</style>
@@ -775,12 +778,12 @@ Transforme essa ideia em um prompt completo, cinematográfico e bem estruturado.
 
           </div>
 
-          <a
+          <Link
             href="/dashboard"
-            className="back"
+            className="back-link"
           >
             ← Voltar ao Dashboard
-          </a>
+          </Link>
 
         </header>
 
