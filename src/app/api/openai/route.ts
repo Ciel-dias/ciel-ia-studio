@@ -1,12 +1,27 @@
 import OpenAI from "openai";
 import { NextResponse } from "next/server";
 
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-});
+const apiKey = process.env.OPENAI_API_KEY;
+
+const openai = apiKey
+  ? new OpenAI({
+      apiKey,
+    })
+  : null;
 
 export async function POST(request: Request) {
   try {
+    if (!openai) {
+      return NextResponse.json(
+        {
+          success: false,
+          error:
+            "OPENAI_API_KEY não está configurada nas variáveis de ambiente da Vercel.",
+        },
+        { status: 500 }
+      );
+    }
+
     const body = await request.json();
 
     const prompt = body?.prompt;
@@ -22,34 +37,28 @@ export async function POST(request: Request) {
     }
 
     const response = await openai.responses.create({
-      model: "gpt-5",
+      model: "gpt-5.6-luna",
       input: prompt,
     });
 
-    const result = response.output_text?.trim();
-
-    if (!result) {
-      return NextResponse.json(
-        {
-          success: false,
-          error: "A OpenAI não retornou um resultado.",
-        },
-        { status: 500 }
-      );
-    }
-
     return NextResponse.json({
       success: true,
-      result,
+      response: response.output_text,
     });
-  } catch (error) {
+  } catch (error: unknown) {
     console.error("Erro na API da OpenAI:", error);
+
+    let errorMessage =
+      "Não foi possível processar a solicitação com a OpenAI.";
+
+    if (error instanceof Error) {
+      errorMessage = error.message;
+    }
 
     return NextResponse.json(
       {
         success: false,
-        error:
-          "Não foi possível processar a solicitação com a OpenAI.",
+        error: errorMessage,
       },
       { status: 500 }
     );
