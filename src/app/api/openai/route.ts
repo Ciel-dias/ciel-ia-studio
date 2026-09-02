@@ -11,14 +11,13 @@ const openai = apiKey
   : null;
 
 const PROMPT_COST = 1;
-const TOOL_NAME = "Criar Prompts";
 
 export async function POST(request: Request) {
   const supabase = await createClient();
 
   try {
     /*
-     * 1. Verifica se existe usuário autenticado
+     * 1. Verifica usuário autenticado
      */
     const {
       data: { user },
@@ -29,7 +28,8 @@ export async function POST(request: Request) {
       return NextResponse.json(
         {
           success: false,
-          error: "Você precisa estar conectado para usar o Criar Prompts.",
+          error:
+            "Você precisa estar conectado para usar o Criar Prompts.",
         },
         { status: 401 }
       );
@@ -79,25 +79,24 @@ export async function POST(request: Request) {
     }
 
     /*
-     * 4. Cobra 1 Diamante de forma segura no Supabase
+     * 4. Cobra 1 Diamante
      */
-    const { data: newBalance, error: consumeError } =
-      await supabase.rpc("consume_diamonds", {
-        p_user_id: user.id,
-        p_amount: PROMPT_COST,
-        p_tool: TOOL_NAME,
-      });
+    const {
+      data: diamondResult,
+      error: consumeError,
+    } = await supabase.rpc("use_one_diamond");
 
     if (consumeError) {
       console.error(
-        "Erro ao consumir Diamantes:",
+        "Erro ao consumir Diamante:",
         consumeError
       );
 
-      const errorMessage = consumeError.message || "";
+      const errorMessage =
+        consumeError.message?.toLowerCase() || "";
 
       if (
-        errorMessage.toLowerCase().includes("diamantes insuficientes")
+        errorMessage.includes("saldo insuficiente")
       ) {
         return NextResponse.json(
           {
@@ -111,14 +110,14 @@ export async function POST(request: Request) {
       }
 
       if (
-        errorMessage.toLowerCase().includes("não autorizado")
+        errorMessage.includes("não autenticado")
       ) {
         return NextResponse.json(
           {
             success: false,
-            error: "Usuário não autorizado.",
+            error: "Usuário não autenticado.",
           },
-          { status: 403 }
+          { status: 401 }
         );
       }
 
@@ -133,16 +132,23 @@ export async function POST(request: Request) {
     }
 
     /*
+     * Novo saldo depois da cobrança
+     */
+    const newBalance =
+      diamondResult?.balance;
+
+    /*
      * 5. Chama a OpenAI
      */
     try {
-      const response = await openai.responses.create({
-        model: "gpt-5.6-luna",
-        input: cleanPrompt,
-      });
+      const response =
+        await openai.responses.create({
+          model: "gpt-5.6-luna",
+          input: cleanPrompt,
+        });
 
       /*
-       * 6. Confirma que recebemos uma resposta válida
+       * 6. Confirma resposta válida
        */
       if (!response.output_text) {
         throw new Error(
@@ -166,14 +172,14 @@ export async function POST(request: Request) {
       );
 
       /*
-       * 8. Se a OpenAI falhar, devolve o Diamante
+       * 8. Estorna o Diamante
        */
-      const { error: refundError } =
-        await supabase.rpc("refund_diamonds", {
-          p_user_id: user.id,
-          p_amount: PROMPT_COST,
-          p_tool: TOOL_NAME,
-        });
+      const {
+        data: refundResult,
+        error: refundError,
+      } = await supabase.rpc(
+        "refund_one_diamond"
+      );
 
       if (refundError) {
         console.error(
@@ -186,14 +192,18 @@ export async function POST(request: Request) {
         "Não foi possível processar a solicitação com a OpenAI.";
 
       if (openaiError instanceof Error) {
-        errorMessage = openaiError.message;
+        errorMessage =
+          openaiError.message;
       }
 
       return NextResponse.json(
         {
           success: false,
           error: errorMessage,
-          refunded: !refundError,
+          refunded:
+            !refundError,
+          remainingDiamonds:
+            refundResult?.balance ?? null,
         },
         { status: 500 }
       );
@@ -208,7 +218,8 @@ export async function POST(request: Request) {
       "Não foi possível processar a solicitação.";
 
     if (error instanceof Error) {
-      errorMessage = error.message;
+      errorMessage =
+        error.message;
     }
 
     return NextResponse.json(
