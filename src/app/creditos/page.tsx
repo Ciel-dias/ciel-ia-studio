@@ -13,6 +13,7 @@ export default function CreditosPage() {
 
   const carregarDiamantes = useCallback(async () => {
     try {
+      setLoading(true);
       setError("");
 
       const {
@@ -29,11 +30,12 @@ export default function CreditosPage() {
       const { data, error: creditsError } = await supabase
         .from("créditos")
         .select("equilíbrio")
-        .eq("uuid", user.id)
+        .eq("usuario_id", user.id)
         .maybeSingle();
 
       if (creditsError) {
         console.error("Erro ao buscar Diamantes:", creditsError);
+
         setCredits(0);
         setError("Não foi possível carregar seu saldo.");
         return;
@@ -47,6 +49,7 @@ export default function CreditosPage() {
       setCredits(Number(data["equilíbrio"] ?? 0));
     } catch (err) {
       console.error("Erro inesperado:", err);
+
       setCredits(0);
       setError("Não foi possível carregar seu saldo.");
     } finally {
@@ -105,9 +108,18 @@ export default function CreditosPage() {
               rgba(0, 90, 180, 0.12),
               transparent 40%
             ),
-            linear-gradient(180deg, #06101e 0%, #071b2d 48%, #06101e 100%);
+            linear-gradient(
+              180deg,
+              #06101e 0%,
+              #071b2d 48%,
+              #06101e 100%
+            );
           overflow-x: hidden;
         }
+
+        /* =========================
+           TOPO
+        ========================= */
 
         .topbar {
           width: 100%;
@@ -151,6 +163,10 @@ export default function CreditosPage() {
           color: #ffffff;
           text-shadow: 0 0 12px rgba(80, 190, 255, 0.7);
         }
+
+        /* =========================
+           CONTEÚDO
+        ========================= */
 
         .content {
           width: min(1180px, calc(100% - 48px));
@@ -197,6 +213,10 @@ export default function CreditosPage() {
           font-size: 21px;
           line-height: 1.65;
         }
+
+        /* =========================
+           SALDO
+        ========================= */
 
         .balance-card {
           position: relative;
@@ -246,13 +266,21 @@ export default function CreditosPage() {
         .balance-icon {
           width: 82px;
           height: 82px;
-          object-fit: contain;
+          display: flex;
+          align-items: center;
+          justify-content: center;
           flex-shrink: 0;
+          font-size: 68px;
+          line-height: 1;
           filter:
             drop-shadow(0 0 7px rgba(210, 245, 255, 1))
             drop-shadow(0 0 18px rgba(60, 190, 255, 0.8));
           transform: scaleX(1.08);
         }
+
+        /* =========================
+           GRID
+        ========================= */
 
         .grid {
           display: grid;
@@ -285,6 +313,10 @@ export default function CreditosPage() {
           line-height: 1.65;
         }
 
+        /* =========================
+           PACOTES
+        ========================= */
+
         .packages {
           grid-column: span 3;
         }
@@ -315,7 +347,11 @@ export default function CreditosPage() {
           width: 82px;
           height: 82px;
           margin: 0 auto 15px;
-          object-fit: contain;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-size: 66px;
+          line-height: 1;
           filter:
             drop-shadow(0 0 5px rgba(220, 250, 255, 0.95))
             drop-shadow(0 0 15px rgba(50, 180, 255, 0.75));
@@ -356,6 +392,10 @@ export default function CreditosPage() {
           filter: brightness(1.08);
         }
 
+        /* =========================
+           USO
+        ========================= */
+
         .usage {
           grid-column: span 1;
         }
@@ -384,6 +424,10 @@ export default function CreditosPage() {
           font-weight: 700;
         }
 
+        /* =========================
+           HISTÓRICO
+        ========================= */
+
         .history {
           grid-column: span 1;
         }
@@ -397,6 +441,10 @@ export default function CreditosPage() {
           line-height: 1.65;
           text-align: center;
         }
+
+        /* =========================
+           INFORMAÇÕES
+        ========================= */
 
         .info {
           grid-column: span 1;
@@ -415,6 +463,10 @@ export default function CreditosPage() {
         .info-item > span:first-child {
           flex-shrink: 0;
         }
+
+        /* =========================
+           AÇÕES
+        ========================= */
 
         .actions {
           display: flex;
@@ -435,7 +487,11 @@ export default function CreditosPage() {
 
         .action-primary {
           color: #ffffff;
-          background: linear-gradient(135deg, #008ff0, #00b9ff);
+          background: linear-gradient(
+            135deg,
+            #008ff0,
+            #00b9ff
+          );
           box-shadow: 0 8px 25px rgba(0, 150, 255, 0.16);
         }
 
@@ -445,10 +501,14 @@ export default function CreditosPage() {
           background: rgba(5, 24, 41, 0.7);
         }
 
+        /* =========================
+           RODAPÉ COMPLETO
+        ========================= */
+
         .footer {
           padding: 55px 42px 25px;
           border-top: 1px solid rgba(100, 180, 255, 0.12);
-          background: rgba(3, 12, 23, 0.9);
+          background: rgba(3, 12, 23, 0.96);
         }
 
         .footer-inner {
@@ -456,15 +516,22 @@ export default function CreditosPage() {
           margin: 0 auto;
         }
 
+        .footer-brand {
+          margin-bottom: 10px;
+        }
+
         .footer-brand h2 {
           margin: 0;
           font-size: 22px;
           color: #ffffff;
+          font-weight: 900;
+          letter-spacing: 0.3px;
         }
 
         .footer-brand p {
           margin: 8px 0 30px;
           color: #7992a7;
+          font-size: 14px;
         }
 
         .footer-columns {
@@ -483,16 +550,21 @@ export default function CreditosPage() {
           margin: 0 0 8px;
           color: #ffffff;
           font-size: 16px;
+          font-weight: 800;
         }
 
         .footer-column a {
           color: #7892a7;
           text-decoration: none;
           font-size: 14px;
+          line-height: 1.5;
+          transition: 0.2s ease;
         }
 
         .footer-column a:hover {
           color: #8edbff;
+          transform: translateX(2px);
+          text-shadow: 0 0 10px rgba(60, 190, 255, 0.35);
         }
 
         .footer-bottom {
@@ -503,6 +575,10 @@ export default function CreditosPage() {
           font-size: 13px;
           text-align: center;
         }
+
+        /* =========================
+           ESTADOS
+        ========================= */
 
         .loading-balance {
           display: inline-block;
@@ -528,6 +604,10 @@ export default function CreditosPage() {
           font-size: 13px;
         }
 
+        /* =========================
+           TABLET
+        ========================= */
+
         @media (max-width: 900px) {
           .topbar {
             padding: 0 24px;
@@ -551,6 +631,10 @@ export default function CreditosPage() {
             grid-column: span 1;
           }
         }
+
+        /* =========================
+           MOBILE
+        ========================= */
 
         @media (max-width: 650px) {
           .topbar {
@@ -613,6 +697,7 @@ export default function CreditosPage() {
           .balance-icon {
             width: 65px;
             height: 65px;
+            font-size: 52px;
           }
 
           .balance-number {
@@ -659,6 +744,10 @@ export default function CreditosPage() {
           }
         }
 
+        /* =========================
+           MOBILE PEQUENO
+        ========================= */
+
         @media (max-width: 430px) {
           .topbar {
             min-height: 68px;
@@ -692,6 +781,7 @@ export default function CreditosPage() {
           .balance-icon {
             width: 53px;
             height: 53px;
+            font-size: 43px;
           }
 
           .balance-number {
@@ -710,33 +800,64 @@ export default function CreditosPage() {
             width: 40px;
             height: 40px;
           }
+
+          .footer {
+            padding-left: 18px;
+            padding-right: 18px;
+          }
+
+          .footer-brand h2 {
+            font-size: 19px;
+          }
         }
       `}</style>
 
       <main className="page">
+        {/* =========================
+            TOPO
+        ========================= */}
+
         <header className="topbar">
           <div className="brand">
             <span className="brand-icon">✨</span>
-            <span className="brand-name">CIEL IA STUDIO</span>
+
+            <span className="brand-name">
+              CIEL IA STUDIO
+            </span>
           </div>
 
-          <Link href="/dashboard" className="back-link">
+          <Link
+            href="/dashboard"
+            className="back-link"
+          >
             ← Voltar ao Dashboard
           </Link>
         </header>
+
+        {/* =========================
+            CONTEÚDO
+        ========================= */}
 
         <section className="content">
           <div className="title-area">
             <h1>
               <span>💎</span>
-              <span>DIAMANTES</span>
+
+              <span>
+                DIAMANTES
+              </span>
             </h1>
 
             <p>
-              Gerencie seus Diamantes e acompanhe o uso das ferramentas de
-              inteligência artificial do CIEL IA STUDIO.
+              Gerencie seus Diamantes e acompanhe o uso das
+              ferramentas de inteligência artificial do
+              CIEL IA STUDIO.
             </p>
           </div>
+
+          {/* =========================
+              SALDO
+          ========================= */}
 
           <section className="balance-card">
             <div className="balance-content">
@@ -747,12 +868,17 @@ export default function CreditosPage() {
 
                 <div className="balance-number">
                   {loading ? (
-                    <span className="loading-balance">...</span>
+                    <span className="loading-balance">
+                      ...
+                    </span>
                   ) : (
                     <>
                       {credits ?? 0}{" "}
+
                       <span>
-                        {credits === 1 ? "Diamante" : "Diamantes"}
+                        {credits === 1
+                          ? "Diamante"
+                          : "Diamantes"}
                       </span>
                     </>
                   )}
@@ -771,24 +897,38 @@ export default function CreditosPage() {
             </div>
           </section>
 
+          {/* =========================
+              CARDS
+          ========================= */}
+
           <div className="grid">
+            {/* PACOTES */}
+
             <section className="card packages">
-              <h2>⚡ Adicionar Diamantes</h2>
+              <h2>
+                ⚡ Adicionar Diamantes
+              </h2>
 
               <p className="card-description">
-                Escolha um pacote de Diamantes para utilizar nas ferramentas
-                de criação do CIEL IA STUDIO.
+                Escolha um pacote de Diamantes para utilizar
+                nas ferramentas de criação do CIEL IA STUDIO.
               </p>
 
               <div className="packages-grid">
+                {/* 100 */}
+
                 <div className="package">
                   <div className="package-icon">
                     💎
                   </div>
 
-                  <h3>💎 100 Diamantes</h3>
+                  <h3>
+                    💎 100 Diamantes
+                  </h3>
 
-                  <p>Pacote inicial</p>
+                  <p>
+                    Pacote inicial
+                  </p>
 
                   <button
                     className="buy-button"
@@ -802,14 +942,20 @@ export default function CreditosPage() {
                   </button>
                 </div>
 
+                {/* 500 */}
+
                 <div className="package">
                   <div className="package-icon">
                     💎
                   </div>
 
-                  <h3>💎 500 Diamantes</h3>
+                  <h3>
+                    💎 500 Diamantes
+                  </h3>
 
-                  <p>Pacote popular</p>
+                  <p>
+                    Pacote popular
+                  </p>
 
                   <button
                     className="buy-button"
@@ -823,14 +969,20 @@ export default function CreditosPage() {
                   </button>
                 </div>
 
+                {/* 1000 */}
+
                 <div className="package">
                   <div className="package-icon">
                     💎
                   </div>
 
-                  <h3>💎 1.000 Diamantes</h3>
+                  <h3>
+                    💎 1.000 Diamantes
+                  </h3>
 
-                  <p>Pacote avançado</p>
+                  <p>
+                    Pacote avançado
+                  </p>
 
                   <button
                     className="buy-button"
@@ -846,13 +998,18 @@ export default function CreditosPage() {
               </div>
             </section>
 
+            {/* USO */}
+
             <section className="card usage">
-              <h2>📊 Uso dos Diamantes</h2>
+              <h2>
+                📊 Uso dos Diamantes
+              </h2>
 
               <div className="usage-item">
                 <span className="usage-name">
                   🤖 Criar Prompts
                 </span>
+
                 <span className="usage-value">
                   Em breve
                 </span>
@@ -862,6 +1019,7 @@ export default function CreditosPage() {
                 <span className="usage-name">
                   🖼️ Texto → Imagem
                 </span>
+
                 <span className="usage-value">
                   Em breve
                 </span>
@@ -871,6 +1029,7 @@ export default function CreditosPage() {
                 <span className="usage-name">
                   🎬 Texto → Vídeo
                 </span>
+
                 <span className="usage-value">
                   Em breve
                 </span>
@@ -880,49 +1039,72 @@ export default function CreditosPage() {
                 <span className="usage-name">
                   ✨ Outras ferramentas
                 </span>
+
                 <span className="usage-value">
                   Em breve
                 </span>
               </div>
             </section>
 
+            {/* HISTÓRICO */}
+
             <section className="card history">
-              <h2>🧾 Histórico</h2>
+              <h2>
+                🧾 Histórico
+              </h2>
 
               <div className="history-empty">
                 📋 Nenhuma movimentação registrada ainda.
                 <br />
-                Quando você utilizar ou adicionar Diamantes, seu histórico
-                aparecerá aqui.
+                Quando você utilizar ou adicionar Diamantes,
+                seu histórico aparecerá aqui.
               </div>
             </section>
 
+            {/* INFORMAÇÕES */}
+
             <section className="card info">
-              <h2>💡 Como funcionam os Diamantes</h2>
+              <h2>
+                💡 Como funcionam os Diamantes
+              </h2>
 
               <div className="info-item">
-                <span>💎</span>
                 <span>
-                  Seus Diamantes são utilizados para acessar as ferramentas
-                  de inteligência artificial.
+                  💎
+                </span>
+
+                <span>
+                  Seus Diamantes são utilizados para acessar
+                  as ferramentas de inteligência artificial.
                 </span>
               </div>
 
               <div className="info-item">
-                <span>⚡</span>
                 <span>
-                  Cada ferramenta poderá ter um custo diferente de Diamantes.
+                  ⚡
+                </span>
+
+                <span>
+                  Cada ferramenta poderá ter um custo
+                  diferente de Diamantes.
                 </span>
               </div>
 
               <div className="info-item">
-                <span>🔒</span>
+                <span>
+                  🔒
+                </span>
+
                 <span>
                   Seu saldo fica associado à sua conta.
                 </span>
               </div>
             </section>
           </div>
+
+          {/* =========================
+              AÇÕES
+          ========================= */}
 
           <div className="actions">
             <Link
@@ -941,19 +1123,35 @@ export default function CreditosPage() {
           </div>
         </section>
 
+        {/* ==================================================
+            RODAPÉ COMPLETO DO CIEL IA STUDIO
+        ================================================== */}
+
         <footer className="footer">
           <div className="footer-inner">
+
+            {/* MARCA */}
+
             <div className="footer-brand">
-              <h2>CIEL IA STUDIO</h2>
+              <h2>
+                CIEL IA STUDIO
+              </h2>
 
               <p>
                 Crie. Transforme. Inove com IA.
               </p>
             </div>
 
+            {/* COLUNAS */}
+
             <div className="footer-columns">
+
+              {/* PRODUTO */}
+
               <div className="footer-column">
-                <h3>Produto</h3>
+                <h3>
+                  Produto
+                </h3>
 
                 <Link href="/criar-prompts">
                   Criar Prompts
@@ -984,8 +1182,12 @@ export default function CreditosPage() {
                 </Link>
               </div>
 
+              {/* SUPORTE */}
+
               <div className="footer-column">
-                <h3>Suporte</h3>
+                <h3>
+                  Suporte
+                </h3>
 
                 <Link href="/ajuda">
                   Central de Ajuda
@@ -1000,8 +1202,12 @@ export default function CreditosPage() {
                 </Link>
               </div>
 
+              {/* LEGAL */}
+
               <div className="footer-column">
-                <h3>Legal</h3>
+                <h3>
+                  Legal
+                </h3>
 
                 <Link href="/termos">
                   Termos de Uso
@@ -1011,11 +1217,15 @@ export default function CreditosPage() {
                   Política de Privacidade
                 </Link>
               </div>
+
             </div>
+
+            {/* COPYRIGHT */}
 
             <div className="footer-bottom">
               © 2026 CIEL IA STUDIO. Todos os direitos reservados.
             </div>
+
           </div>
         </footer>
       </main>
