@@ -5,10 +5,14 @@ import { useState } from "react";
 
 /*
   ============================================================
-  DIAMANTE OFICIAL DO CIEL IA STUDIO
+  DIAMANTE OFICIAL — VERSÃO PARA APROVAÇÃO
   ============================================================
-  Este componente será o padrão visual para todos os
-  Diamantes utilizados dentro do sistema.
+  Modelo:
+  - Ligeiramente mais largo/encorpado
+  - Mesmo estilo facetado
+  - Mesmo brilho azul
+  - Mesmo efeito de iluminação
+  - Altura praticamente preservada
 */
 
 function DiamondIcon({
@@ -28,13 +32,13 @@ function DiamondIcon({
       xmlns="http://www.w3.org/2000/svg"
       aria-hidden="true"
     >
-      {/* Brilho externo */}
       <defs>
+        {/* Parte superior */}
         <linearGradient
           id="diamondTop"
-          x1="18"
+          x1="14"
           y1="18"
-          x2="82"
+          x2="86"
           y2="82"
           gradientUnits="userSpaceOnUse"
         >
@@ -43,9 +47,10 @@ function DiamondIcon({
           <stop offset="1" stopColor="#8AC8EA" />
         </linearGradient>
 
+        {/* Lado esquerdo */}
         <linearGradient
           id="diamondLeft"
-          x1="22"
+          x1="18"
           y1="35"
           x2="50"
           y2="83"
@@ -56,11 +61,12 @@ function DiamondIcon({
           <stop offset="1" stopColor="#438FC7" />
         </linearGradient>
 
+        {/* Lado direito */}
         <linearGradient
           id="diamondRight"
-          x1="50"
+          x1="82"
           y1="35"
-          x2="78"
+          x2="50"
           y2="83"
           gradientUnits="userSpaceOnUse"
         >
@@ -69,9 +75,10 @@ function DiamondIcon({
           <stop offset="1" stopColor="#2772B4" />
         </linearGradient>
 
+        {/* Centro */}
         <linearGradient
           id="diamondCenter"
-          x1="38"
+          x1="36"
           y1="34"
           x2="58"
           y2="82"
@@ -82,6 +89,7 @@ function DiamondIcon({
           <stop offset="1" stopColor="#367DBD" />
         </linearGradient>
 
+        {/* Brilho */}
         <filter
           id="diamondGlow"
           x="-50%"
@@ -101,38 +109,53 @@ function DiamondIcon({
         </filter>
       </defs>
 
-      {/* Glow */}
+      {/* ====================================================
+          GLOW EXTERNO
+          ==================================================== */}
+
       <path
-        d="M18 32L31 17H69L82 32L50 86L18 32Z"
+        d="M14 32L29 17H71L86 32L50 86L14 32Z"
         fill="rgba(54, 190, 255, 0.18)"
         filter="url(#diamondGlow)"
       />
 
-      {/* Parte superior */}
+      {/* ====================================================
+          PARTE SUPERIOR
+          ==================================================== */}
+
       <path
-        d="M18 32L31 17H69L82 32L70 36H30L18 32Z"
+        d="M14 32L29 17H71L86 32L70 36H30L14 32Z"
         fill="url(#diamondTop)"
         stroke="#BCEBFF"
         strokeWidth="1.2"
       />
 
-      {/* Faceta esquerda */}
+      {/* ====================================================
+          FACETA ESQUERDA
+          ==================================================== */}
+
       <path
-        d="M18 32L30 36L50 86L18 32Z"
+        d="M14 32L30 36L50 86L14 32Z"
         fill="url(#diamondLeft)"
         stroke="#73C8F0"
         strokeWidth="1"
       />
 
-      {/* Faceta direita */}
+      {/* ====================================================
+          FACETA DIREITA
+          ==================================================== */}
+
       <path
-        d="M82 32L70 36L50 86L82 32Z"
+        d="M86 32L70 36L50 86L86 32Z"
         fill="url(#diamondRight)"
         stroke="#4AA8DE"
         strokeWidth="1"
       />
 
-      {/* Faceta central */}
+      {/* ====================================================
+          FACETA CENTRAL
+          ==================================================== */}
+
       <path
         d="M30 36H70L50 86L30 36Z"
         fill="url(#diamondCenter)"
@@ -140,35 +163,41 @@ function DiamondIcon({
         strokeWidth="1"
       />
 
-      {/* Divisões superiores */}
+      {/* ====================================================
+          DIVISÕES SUPERIORES
+          ==================================================== */}
+
       <path
-        d="M31 17L30 36"
+        d="M29 17L30 36"
         stroke="#B9EDFF"
         strokeWidth="1"
       />
 
       <path
-        d="M69 17L70 36"
+        d="M71 17L70 36"
         stroke="#9EDFFF"
         strokeWidth="1"
       />
 
       <path
-        d="M31 17L50 36L69 17"
+        d="M29 17L50 36L71 17"
         stroke="#D9F6FF"
         strokeWidth="1"
       />
 
       <path
-        d="M18 32L50 36L82 32"
+        d="M14 32L50 36L86 32"
         stroke="#C5F0FF"
         strokeWidth="1"
       />
 
-      {/* Reflexo */}
+      {/* ====================================================
+          REFLEXO
+          ==================================================== */}
+
       <path
-        d="M32 20L43 20L34 29L25 30L32 20Z"
-        fill="rgba(255,255,255,0.75)"
+        d="M30 20L43 20L34 29L22 30L30 20Z"
+        fill="rgba(255,255,255,0.78)"
       />
     </svg>
   );
@@ -225,6 +254,10 @@ export default function CreditosPage() {
           overflow-x: hidden;
         }
 
+        /* ====================================================
+           HEADER
+           ==================================================== */
+
         .topbar {
           width: 100%;
           min-height: 74px;
@@ -254,9 +287,11 @@ export default function CreditosPage() {
         .brand-icon {
           font-size: 27px;
 
-          filter: drop-shadow(
-            0 0 10px rgba(0, 200, 255, 0.55)
-          );
+          filter:
+            drop-shadow(
+              0 0 10px
+              rgba(0, 200, 255, 0.55)
+            );
         }
 
         .brand-name {
@@ -279,32 +314,41 @@ export default function CreditosPage() {
           color: #ffffff;
 
           text-shadow:
-            0 0 12px rgba(0, 200, 255, 0.8);
+            0 0 12px
+            rgba(0, 200, 255, 0.8);
         }
 
+        /* ====================================================
+           CONTEÚDO
+           ==================================================== */
+
         .content {
-          width: min(1180px, calc(100% - 48px));
+          width: min(
+            1180px,
+            calc(100% - 48px)
+          );
 
           margin: 0 auto;
 
           padding: 58px 0 76px;
         }
 
-        /*
-          ======================================================
-          TÍTULO DIAMANTES
-          ======================================================
-        */
+        /* ====================================================
+           TÍTULO DIAMANTES
+           ==================================================== */
 
         .title-area {
           text-align: center;
+
           margin-bottom: 34px;
         }
 
         .title-main {
           display: flex;
+
           align-items: center;
           justify-content: center;
+
           gap: 12px;
 
           margin: 0 0 12px;
@@ -314,14 +358,21 @@ export default function CreditosPage() {
           flex-shrink: 0;
 
           filter:
-            drop-shadow(0 0 7px rgba(70, 205, 255, 0.7))
-            drop-shadow(0 0 16px rgba(0, 150, 255, 0.35));
+            drop-shadow(
+              0 0 7px
+              rgba(70, 205, 255, 0.7)
+            )
+            drop-shadow(
+              0 0 16px
+              rgba(0, 150, 255, 0.35)
+            );
         }
 
         .title-area h1 {
           margin: 0;
 
           font-size: 42px;
+
           font-weight: 900;
 
           letter-spacing: 0.8px;
@@ -341,8 +392,10 @@ export default function CreditosPage() {
           background-clip: text;
 
           text-shadow:
-            0 0 18px rgba(73, 200, 255, 0.32),
-            0 0 35px rgba(0, 140, 255, 0.16);
+            0 0 18px
+            rgba(73, 200, 255, 0.32),
+            0 0 35px
+            rgba(0, 140, 255, 0.16);
         }
 
         .title-area p {
@@ -353,14 +406,13 @@ export default function CreditosPage() {
           color: #9db5c9;
 
           font-size: 17px;
+
           line-height: 1.6;
         }
 
-        /*
-          ======================================================
-          SALDO
-          ======================================================
-        */
+        /* ====================================================
+           SALDO
+           ==================================================== */
 
         .balance-card {
           margin-bottom: 28px;
@@ -381,13 +433,15 @@ export default function CreditosPage() {
             rgba(7, 25, 43, 0.9);
 
           box-shadow:
-            0 0 35px rgba(0, 150, 255, 0.08),
+            0 0 35px
+            rgba(0, 150, 255, 0.08),
             inset 0 1px 0
-              rgba(255, 255, 255, 0.04);
+            rgba(255, 255, 255, 0.04);
         }
 
         .balance-content {
           display: flex;
+
           align-items: center;
           justify-content: space-between;
 
@@ -404,10 +458,13 @@ export default function CreditosPage() {
 
         .balance-number {
           display: flex;
+
           align-items: baseline;
+
           gap: 10px;
 
           font-size: 48px;
+
           line-height: 1;
 
           font-weight: 900;
@@ -417,12 +474,14 @@ export default function CreditosPage() {
 
         .balance-number span {
           font-size: 21px;
+
           font-weight: 700;
 
           color: #8edcff;
 
           text-shadow:
-            0 0 12px rgba(0, 190, 255, 0.3);
+            0 0 12px
+            rgba(0, 190, 255, 0.3);
         }
 
         .balance-diamond {
@@ -430,18 +489,18 @@ export default function CreditosPage() {
 
           filter:
             drop-shadow(
-              0 0 10px rgba(72, 207, 255, 0.7)
+              0 0 10px
+              rgba(72, 207, 255, 0.7)
             )
             drop-shadow(
-              0 0 25px rgba(0, 150, 255, 0.3)
+              0 0 25px
+              rgba(0, 150, 255, 0.3)
             );
         }
 
-        /*
-          ======================================================
-          CARDS
-          ======================================================
-        */
+        /* ====================================================
+           CARDS
+           ==================================================== */
 
         .grid {
           display: grid;
@@ -465,9 +524,10 @@ export default function CreditosPage() {
             rgba(7, 23, 40, 0.78);
 
           box-shadow:
-            0 15px 45px rgba(0, 0, 0, 0.16),
+            0 15px 45px
+            rgba(0, 0, 0, 0.16),
             inset 0 1px 0
-              rgba(255, 255, 255, 0.025);
+            rgba(255, 255, 255, 0.025);
         }
 
         .card h2 {
@@ -488,6 +548,10 @@ export default function CreditosPage() {
           line-height: 1.6;
         }
 
+        /* ====================================================
+           PACOTES
+           ==================================================== */
+
         .packages {
           grid-column: span 3;
         }
@@ -500,12 +564,6 @@ export default function CreditosPage() {
 
           gap: 18px;
         }
-
-        /*
-          ======================================================
-          PACOTES
-          ======================================================
-        */
 
         .package {
           text-align: center;
@@ -532,12 +590,8 @@ export default function CreditosPage() {
 
           box-shadow:
             0 12px 30px
-              rgba(0, 160, 255, 0.08);
+            rgba(0, 160, 255, 0.08);
         }
-
-        /*
-          Diamante oficial dos pacotes
-        */
 
         .package-diamond {
           display: flex;
@@ -549,7 +603,8 @@ export default function CreditosPage() {
 
           filter:
             drop-shadow(
-              0 0 8px rgba(58, 202, 255, 0.55)
+              0 0 8px
+              rgba(58, 202, 255, 0.55)
             );
         }
 
@@ -566,10 +621,6 @@ export default function CreditosPage() {
           font-size: 20px;
 
           color: #ffffff;
-        }
-
-        .package h3 .mini-diamond {
-          display: inline-flex;
         }
 
         .package p {
@@ -606,7 +657,7 @@ export default function CreditosPage() {
 
           box-shadow:
             0 7px 20px
-              rgba(0, 157, 255, 0.2);
+            rgba(0, 157, 255, 0.2);
 
           transition: 0.2s ease;
         }
@@ -616,14 +667,12 @@ export default function CreditosPage() {
 
           box-shadow:
             0 9px 25px
-              rgba(0, 180, 255, 0.32);
+            rgba(0, 180, 255, 0.32);
         }
 
-        /*
-          ======================================================
-          USO
-          ======================================================
-        */
+        /* ====================================================
+           USO
+           ==================================================== */
 
         .usage-item {
           display: flex;
@@ -646,6 +695,7 @@ export default function CreditosPage() {
 
         .usage-name {
           color: #d7e8f5;
+
           font-size: 14px;
         }
 
@@ -657,11 +707,9 @@ export default function CreditosPage() {
           font-weight: 700;
         }
 
-        /*
-          ======================================================
-          HISTÓRICO
-          ======================================================
-        */
+        /* ====================================================
+           HISTÓRICO
+           ==================================================== */
 
         .history-empty {
           padding: 22px 10px;
@@ -675,11 +723,9 @@ export default function CreditosPage() {
           line-height: 1.7;
         }
 
-        /*
-          ======================================================
-          INFORMAÇÕES
-          ======================================================
-        */
+        /* ====================================================
+           INFORMAÇÕES
+           ==================================================== */
 
         .info-item {
           display: flex;
@@ -703,11 +749,9 @@ export default function CreditosPage() {
           flex-shrink: 0;
         }
 
-        /*
-          ======================================================
-          AÇÕES
-          ======================================================
-        */
+        /* ====================================================
+           AÇÕES
+           ==================================================== */
 
         .actions {
           display: flex;
@@ -752,7 +796,7 @@ export default function CreditosPage() {
 
           box-shadow:
             0 8px 24px
-              rgba(0, 157, 255, 0.18);
+            rgba(0, 157, 255, 0.18);
         }
 
         .action-secondary {
@@ -770,11 +814,9 @@ export default function CreditosPage() {
           transform: translateY(-2px);
         }
 
-        /*
-          ======================================================
-          FOOTER
-          ======================================================
-        */
+        /* ====================================================
+           FOOTER
+           ==================================================== */
 
         .footer {
           padding: 52px 42px 24px;
@@ -864,11 +906,9 @@ export default function CreditosPage() {
           font-size: 12px;
         }
 
-        /*
-          ======================================================
-          RESPONSIVO
-          ======================================================
-        */
+        /* ====================================================
+           TABLET
+           ==================================================== */
 
         @media (max-width: 900px) {
           .topbar {
@@ -876,7 +916,8 @@ export default function CreditosPage() {
           }
 
           .grid {
-            grid-template-columns: 1fr 1fr;
+            grid-template-columns:
+              1fr 1fr;
           }
 
           .packages {
@@ -884,9 +925,14 @@ export default function CreditosPage() {
           }
 
           .packages-grid {
-            grid-template-columns: 1fr 1fr;
+            grid-template-columns:
+              1fr 1fr;
           }
         }
+
+        /* ====================================================
+           MOBILE
+           ==================================================== */
 
         @media (max-width: 650px) {
           .topbar {
@@ -918,10 +964,11 @@ export default function CreditosPage() {
           }
 
           .content {
-            width: min(
-              calc(100% - 32px),
-              430px
-            );
+            width:
+              min(
+                calc(100% - 32px),
+                430px
+              );
 
             padding: 42px 0 55px;
           }
@@ -935,8 +982,8 @@ export default function CreditosPage() {
           }
 
           .title-diamond {
-            width: 42px;
-            height: 42px;
+            width: 44px;
+            height: 44px;
           }
 
           .title-area p {
@@ -954,8 +1001,8 @@ export default function CreditosPage() {
           }
 
           .balance-diamond {
-            width: 48px;
-            height: 48px;
+            width: 50px;
+            height: 50px;
           }
 
           .balance-number {
@@ -992,6 +1039,10 @@ export default function CreditosPage() {
             gap: 30px;
           }
         }
+
+        /* ====================================================
+           CELULARES PEQUENOS
+           ==================================================== */
 
         @media (max-width: 430px) {
           .topbar {
@@ -1033,8 +1084,8 @@ export default function CreditosPage() {
           }
 
           .title-diamond {
-            width: 38px;
-            height: 38px;
+            width: 40px;
+            height: 40px;
           }
 
           .balance-content {
@@ -1042,24 +1093,30 @@ export default function CreditosPage() {
           }
 
           .balance-diamond {
-            width: 40px;
-            height: 40px;
+            width: 42px;
+            height: 42px;
           }
         }
       `}</style>
 
       <main className="page">
-        {/* ================================================== */}
-        {/* HEADER                                             */}
-        {/* ================================================== */}
+
+        {/* ==================================================
+            HEADER
+            ================================================== */}
 
         <header className="topbar">
+
           <div className="brand">
-            <span className="brand-icon">✨</span>
+
+            <span className="brand-icon">
+              ✨
+            </span>
 
             <span className="brand-name">
               CIEL IA STUDIO
             </span>
+
           </div>
 
           <Link
@@ -1068,15 +1125,18 @@ export default function CreditosPage() {
           >
             ← Voltar ao Dashboard
           </Link>
+
         </header>
 
-        {/* ================================================== */}
-        {/* CONTEÚDO                                           */}
-        {/* ================================================== */}
+        {/* ==================================================
+            CONTEÚDO
+            ================================================== */}
 
         <section className="content">
 
-          {/* TÍTULO */}
+          {/* =================================================
+              TÍTULO
+              ================================================= */}
 
           <div className="title-area">
 
@@ -1087,7 +1147,9 @@ export default function CreditosPage() {
                 className="title-diamond"
               />
 
-              <h1>DIAMANTES</h1>
+              <h1>
+                DIAMANTES
+              </h1>
 
             </div>
 
@@ -1099,9 +1161,9 @@ export default function CreditosPage() {
 
           </div>
 
-          {/* ================================================== */}
-          {/* SALDO                                              */}
-          {/* ================================================== */}
+          {/* =================================================
+              SALDO
+              ================================================= */}
 
           <section className="balance-card">
 
@@ -1134,15 +1196,15 @@ export default function CreditosPage() {
 
           </section>
 
-          {/* ================================================== */}
-          {/* GRID                                               */}
-          {/* ================================================== */}
+          {/* =================================================
+              GRID
+              ================================================= */}
 
           <div className="grid">
 
-            {/* ================================================= */}
-            {/* PACOTES                                            */}
-            {/* ================================================= */}
+            {/* =================================================
+                PACOTES
+                ================================================= */}
 
             <section className="card packages">
 
@@ -1158,13 +1220,13 @@ export default function CreditosPage() {
 
               <div className="packages-grid">
 
-                {/* 100 */}
+                {/* 100 DIAMANTES */}
 
                 <div className="package">
 
                   <div className="package-diamond">
 
-                    <DiamondIcon size={58} />
+                    <DiamondIcon size={62} />
 
                   </div>
 
@@ -1189,13 +1251,13 @@ export default function CreditosPage() {
 
                 </div>
 
-                {/* 500 */}
+                {/* 500 DIAMANTES */}
 
                 <div className="package">
 
                   <div className="package-diamond">
 
-                    <DiamondIcon size={58} />
+                    <DiamondIcon size={62} />
 
                   </div>
 
@@ -1220,13 +1282,13 @@ export default function CreditosPage() {
 
                 </div>
 
-                {/* 1.000 */}
+                {/* 1.000 DIAMANTES */}
 
                 <div className="package">
 
                   <div className="package-diamond">
 
-                    <DiamondIcon size={58} />
+                    <DiamondIcon size={62} />
 
                   </div>
 
@@ -1255,9 +1317,9 @@ export default function CreditosPage() {
 
             </section>
 
-            {/* ================================================= */}
-            {/* USO                                                 */}
-            {/* ================================================= */}
+            {/* =================================================
+                USO
+                ================================================= */}
 
             <section className="card usage">
 
@@ -1315,9 +1377,9 @@ export default function CreditosPage() {
 
             </section>
 
-            {/* ================================================= */}
-            {/* HISTÓRICO                                           */}
-            {/* ================================================= */}
+            {/* =================================================
+                HISTÓRICO
+                ================================================= */}
 
             <section className="card history">
 
@@ -1338,9 +1400,9 @@ export default function CreditosPage() {
 
             </section>
 
-            {/* ================================================= */}
-            {/* INFORMAÇÕES                                         */}
-            {/* ================================================= */}
+            {/* =================================================
+                INFORMAÇÕES
+                ================================================= */}
 
             <section className="card info">
 
@@ -1391,9 +1453,9 @@ export default function CreditosPage() {
 
           </div>
 
-          {/* ================================================== */}
-          {/* BOTÕES                                              */}
-          {/* ================================================== */}
+          {/* =================================================
+              AÇÕES
+              ================================================= */}
 
           <div className="actions">
 
@@ -1415,9 +1477,9 @@ export default function CreditosPage() {
 
         </section>
 
-        {/* ================================================== */}
-        {/* FOOTER                                             */}
-        {/* ================================================== */}
+        {/* ==================================================
+            FOOTER
+            ================================================== */}
 
         <footer className="footer">
 
@@ -1512,10 +1574,8 @@ export default function CreditosPage() {
             </div>
 
             <div className="footer-bottom">
-
               © 2026 CIEL IA STUDIO.
               Todos os direitos reservados.
-
             </div>
 
           </div>
