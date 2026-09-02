@@ -104,8 +104,8 @@ export default function CreditosPage() {
           error: creditsError,
         } = await supabase
           .from("créditos")
-          .select("equilíbrio")
-          .eq("usuario_id", user.id)
+          .select("balance")
+          .eq("user_id", user.id)
           .maybeSingle();
 
         if (creditsError) {
@@ -115,6 +115,7 @@ export default function CreditosPage() {
           );
 
           setDiamantes(0);
+
           setError(
             "Não foi possível atualizar o saldo."
           );
@@ -123,11 +124,11 @@ export default function CreditosPage() {
         }
 
         const saldo = data as {
-          equilíbrio?: number | string | null;
+          balance?: number | string | null;
         } | null;
 
         setDiamantes(
-          Number(saldo?.equilíbrio) || 0
+          Number(saldo?.balance) || 0
         );
       } catch (err) {
         console.error(
@@ -175,7 +176,7 @@ export default function CreditosPage() {
           event: "*",
           schema: "public",
           table: "créditos",
-          filter: `usuario_id=eq.${userId}`,
+          filter: `user_id=eq.${userId}`,
         },
         () => {
           carregarSaldo(false);
@@ -871,6 +872,7 @@ export default function CreditosPage() {
           color: #ffffff;
 
           font-size: 29px;
+
           font-weight: 900;
         }
 
