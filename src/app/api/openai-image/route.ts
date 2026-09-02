@@ -10,7 +10,11 @@ const openai = apiKey
     })
   : null;
 
-// Custo da geração de imagem no CIEL IA STUDIO
+// =========================================================
+// CIEL IA STUDIO
+// TEXTO → IMAGEM
+// =========================================================
+
 const IMAGE_COST = 3;
 
 export async function POST(request: Request) {
@@ -19,9 +23,9 @@ export async function POST(request: Request) {
   let diamondsConsumed = false;
 
   try {
-    // =========================================================
+    // =======================================================
     // 1. VERIFICAR USUÁRIO
-    // =========================================================
+    // =======================================================
 
     const {
       data: { user },
@@ -39,9 +43,9 @@ export async function POST(request: Request) {
       );
     }
 
-    // =========================================================
-    // 2. VERIFICAR API KEY
-    // =========================================================
+    // =======================================================
+    // 2. VERIFICAR OPENAI
+    // =======================================================
 
     if (!openai) {
       return NextResponse.json(
@@ -54,9 +58,9 @@ export async function POST(request: Request) {
       );
     }
 
-    // =========================================================
-    // 3. LER DADOS
-    // =========================================================
+    // =======================================================
+    // 3. RECEBER DADOS
+    // =======================================================
 
     const body = await request.json();
 
@@ -85,105 +89,95 @@ export async function POST(request: Request) {
       );
     }
 
-    // =========================================================
-    // 4. DEFINIR TAMANHO DA IMAGEM
-    // =========================================================
+    // =======================================================
+    // 4. DEFINIR PROPORÇÃO
+    // =======================================================
 
     let size:
       | "1024x1024"
       | "1536x1024"
-      | "1024x1536" = "1024x1024";
+      | "1024x1536";
 
-    if (aspectRatio === "16:9") {
-      size = "1536x1024";
+    switch (aspectRatio) {
+      case "16:9":
+        size = "1536x1024";
+        break;
+
+      case "9:16":
+        size = "1024x1536";
+        break;
+
+      case "1:1":
+      default:
+        size = "1024x1024";
+        break;
     }
 
-    if (aspectRatio === "9:16") {
-      size = "1024x1536";
-    }
+    // =======================================================
+    // 5. CONSUMIR 3 DIAMANTES
+    // =======================================================
 
-    // =========================================================
-    // 5. COBRAR 3 DIAMANTES
-    // =========================================================
+    const {
+      data: diamondResult,
+      error: consumeError,
+    } = await supabase.rpc("use_diamonds", {
+      amount: IMAGE_COST,
+    });
 
-    for (let i = 0; i < IMAGE_COST; i++) {
-      const {
-        data: diamondResult,
-        error: consumeError,
-      } = await supabase.rpc("use_one_diamond");
+    if (consumeError) {
+      console.error(
+        "Erro ao consumir Diamantes:",
+        consumeError
+      );
 
-      if (consumeError) {
-        console.error(
-          "Erro ao consumir Diamante:",
-          consumeError
-        );
+      const errorMessage =
+        consumeError.message?.toLowerCase() || "";
 
-        // Se já consumimos alguns Diamantes antes do erro,
-        // devolvemos todos eles.
-        if (diamondsConsumed) {
-          for (let refundIndex = 0; refundIndex <= i - 1; refundIndex++) {
-            const { error: refundError } =
-              await supabase.rpc("refund_one_diamond");
-
-            if (refundError) {
-              console.error(
-                "Erro ao estornar Diamante:",
-                refundError
-              );
-            }
-          }
-        }
-
-        const errorMessage =
-          consumeError.message?.toLowerCase() || "";
-
-        if (
-          errorMessage.includes("saldo insuficiente")
-        ) {
-          return NextResponse.json(
-            {
-              success: false,
-              error:
-                "Você não possui Diamantes suficientes para gerar esta imagem.",
-              code: "INSUFFICIENT_DIAMONDS",
-            },
-            { status: 402 }
-          );
-        }
-
-        if (
-          errorMessage.includes("não autenticado")
-        ) {
-          return NextResponse.json(
-            {
-              success: false,
-              error: "Usuário não autenticado.",
-            },
-            { status: 401 }
-          );
-        }
-
+      if (
+        errorMessage.includes("saldo insuficiente")
+      ) {
         return NextResponse.json(
           {
             success: false,
             error:
-              "Não foi possível verificar seus Diamantes.",
+              "Você não possui Diamantes suficientes para gerar esta imagem.",
+            code: "INSUFFICIENT_DIAMONDS",
           },
-          { status: 500 }
+          { status: 402 }
         );
       }
 
-      diamondsConsumed = true;
+      if (
+        errorMessage.includes("não autenticado")
+      ) {
+        return NextResponse.json(
+          {
+            success: false,
+            error: "Usuário não autenticado.",
+          },
+          { status: 401 }
+        );
+      }
 
-      console.log(
-        `Diamante ${i + 1}/${IMAGE_COST} consumido.`,
-        diamondResult
+      return NextResponse.json(
+        {
+          success: false,
+          error:
+            "Não foi possível verificar seus Diamantes.",
+        },
+        { status: 500 }
       );
     }
 
-    // =========================================================
-    // 6. GERAR IMAGEM COM OPENAI
-    // =========================================================
+    diamondsConsumed = true;
+
+    const remainingDiamonds =
+      diamondResult?.balance ?? null;
+
+    // =======================================================
+    // 6. GERAR IMAGEM — GPT IMAGE 1
+    // QUALIDADE HIGH AUTOMÁTICA
+    // =======================================================
 
     try {
       const result = await openai.images.generate({
@@ -194,9 +188,9 @@ export async function POST(request: Request) {
         n: 1,
       });
 
-      // =======================================================
-      // 7. VERIFICAR RESPOSTA
-      // =======================================================
+      // =====================================================
+      // 7. VERIFICAR RESULTADO
+      // =====================================================
 
       const imageData = result.data?.[0];
 
@@ -214,19 +208,29 @@ export async function POST(request: Request) {
         );
       }
 
-      // =======================================================
-      // 8. RETORNAR IMAGEM
-      // =======================================================
+      // =====================================================
+      // 8. SUCESSO
+      // =====================================================
 
       return NextResponse.json({
         success: true,
-        image: `data:image/png;base64,${base64Image}`,
+
+        image:
+          `data:image/png;base64,${base64Image}`,
+
         prompt: cleanPrompt,
+
         model: "gpt-image-1",
+
         quality: "high",
+
         size,
+
         aspectRatio,
+
         diamondsUsed: IMAGE_COST,
+
+        remainingDiamonds,
       });
     } catch (openaiError: unknown) {
       console.error(
@@ -234,43 +238,63 @@ export async function POST(request: Request) {
         openaiError
       );
 
-      // =======================================================
+      // =====================================================
       // 9. ESTORNAR OS 3 DIAMANTES
-      // =======================================================
+      // =====================================================
 
-      let refundedCount = 0;
+      let refunded = false;
+      let refundResult: any = null;
 
-      for (let i = 0; i < IMAGE_COST; i++) {
+      if (diamondsConsumed) {
         const {
+          data,
           error: refundError,
         } = await supabase.rpc(
-          "refund_one_diamond"
+          "refund_diamonds",
+          {
+            amount: IMAGE_COST,
+          }
         );
+
+        refundResult = data;
 
         if (refundError) {
           console.error(
-            "ERRO CRÍTICO: não foi possível estornar Diamante:",
+            "ERRO CRÍTICO: não foi possível estornar os Diamantes:",
             refundError
           );
         } else {
-          refundedCount++;
+          refunded = true;
         }
       }
+
+      // =====================================================
+      // 10. MENSAGEM DE ERRO
+      // =====================================================
 
       let errorMessage =
         "Não foi possível gerar a imagem com a OpenAI.";
 
       if (openaiError instanceof Error) {
-        errorMessage = openaiError.message;
+        errorMessage =
+          openaiError.message;
       }
 
       return NextResponse.json(
         {
           success: false,
+
           error: errorMessage,
-          refunded:
-            refundedCount === IMAGE_COST,
-          refundedDiamonds: refundedCount,
+
+          refunded,
+
+          refundedDiamonds:
+            refunded
+              ? IMAGE_COST
+              : 0,
+
+          remainingDiamonds:
+            refundResult?.balance ?? null,
         },
         { status: 500 }
       );
@@ -281,40 +305,47 @@ export async function POST(request: Request) {
       error
     );
 
-    // =========================================================
-    // 10. ESTORNO DE SEGURANÇA
-    // =========================================================
+    // =======================================================
+    // 11. ESTORNO DE SEGURANÇA
+    // =======================================================
 
     if (diamondsConsumed) {
-      let refundedCount = 0;
-
-      for (let i = 0; i < IMAGE_COST; i++) {
-        const {
-          error: refundError,
-        } = await supabase.rpc(
-          "refund_one_diamond"
-        );
-
-        if (refundError) {
-          console.error(
-            "Erro ao estornar Diamante:",
-            refundError
-          );
-        } else {
-          refundedCount++;
+      const {
+        data: refundResult,
+        error: refundError,
+      } = await supabase.rpc(
+        "refund_diamonds",
+        {
+          amount: IMAGE_COST,
         }
+      );
+
+      if (refundError) {
+        console.error(
+          "ERRO CRÍTICO: falha no estorno de segurança:",
+          refundError
+        );
       }
 
       return NextResponse.json(
         {
           success: false,
+
           error:
             error instanceof Error
               ? error.message
               : "Não foi possível processar a geração da imagem.",
+
           refunded:
-            refundedCount === IMAGE_COST,
-          refundedDiamonds: refundedCount,
+            !refundError,
+
+          refundedDiamonds:
+            !refundError
+              ? IMAGE_COST
+              : 0,
+
+          remainingDiamonds:
+            refundResult?.balance ?? null,
         },
         { status: 500 }
       );
@@ -323,6 +354,7 @@ export async function POST(request: Request) {
     return NextResponse.json(
       {
         success: false,
+
         error:
           error instanceof Error
             ? error.message
