@@ -1,69 +1,78 @@
 "use client";
 
 import Link from "next/link";
-import { useCallback, useEffect, useState } from "react";
+import {
+  useCallback,
+  useEffect,
+  useState,
+} from "react";
+
 import { createClient } from "@/lib/supabase/client";
 import Diamond from "@/components/Diamond";
 
 export const dynamic = "force-dynamic";
 
 type Package = {
-  id: string;
   name: string;
   diamonds: number;
   price: string;
   description: string;
-  badge?: string;
-  featured?: boolean;
+  popular?: boolean;
 };
 
 const packages: Package[] = [
   {
-    id: "essencial",
     name: "Essencial",
     diamonds: 100,
     price: "R$ 9,90",
-    description: "Para começar suas criações com IA.",
+    description:
+      "Ideal para começar suas criações.",
   },
   {
-    id: "profissional",
     name: "Profissional",
     diamonds: 500,
     price: "R$ 44,90",
-    description: "Mais Diamantes para criar com liberdade.",
-    badge: "MAIS POPULAR",
-    featured: true,
+    description:
+      "Para quem cria com frequência.",
+    popular: true,
   },
   {
-    id: "avancado",
     name: "Avançado",
     diamonds: 1000,
     price: "R$ 79,90",
-    description: "Para criadores que produzem com frequência.",
+    description:
+      "Mais liberdade para criar.",
   },
   {
-    id: "premium",
     name: "Premium",
     diamonds: 2500,
     price: "R$ 179,90",
-    description: "Para criadores que precisam de mais.",
+    description:
+      "Para criadores que precisam de mais.",
   },
 ];
 
 export default function CreditosPage() {
-  const [diamantes, setDiamantes] = useState<number | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [refreshing, setRefreshing] = useState(false);
-  const [buying, setBuying] = useState<string | null>(null);
-
-  const [message, setMessage] = useState("");
-  const [error, setError] = useState("");
-
   const supabase = createClient();
 
-  // =========================================================
+  const [diamantes, setDiamantes] =
+    useState<number | null>(null);
+
+  const [loading, setLoading] =
+    useState(true);
+
+  const [refreshing, setRefreshing] =
+    useState(false);
+
+  const [error, setError] =
+    useState("");
+
+  const [userId, setUserId] =
+    useState<string | null>(null);
+
+  // ==========================================
   // CARREGAR SALDO REAL
-  // =========================================================
+  // ==========================================
 
   const carregarSaldo = useCallback(
     async (mostrarLoading = false) => {
@@ -88,7 +97,12 @@ export default function CreditosPage() {
           return;
         }
 
-        const { data, error: creditsError } = await supabase
+        setUserId(user.id);
+
+        const {
+          data,
+          error: creditsError,
+        } = await supabase
           .from("créditos")
           .select("equilíbrio")
           .eq("usuario_id", user.id)
@@ -96,11 +110,15 @@ export default function CreditosPage() {
 
         if (creditsError) {
           console.error(
-            "Erro ao carregar saldo de Diamantes:",
+            "Erro ao carregar Diamantes:",
             creditsError
           );
 
           setDiamantes(0);
+          setError(
+            "Não foi possível atualizar o saldo."
+          );
+
           return;
         }
 
@@ -113,15 +131,15 @@ export default function CreditosPage() {
         );
       } catch (err) {
         console.error(
-          "Erro ao carregar Diamantes:",
+          "Erro ao carregar saldo:",
           err
         );
+
+        setDiamantes(0);
 
         setError(
           "Não foi possível carregar seu saldo."
         );
-
-        setDiamantes(0);
       } finally {
         setLoading(false);
         setRefreshing(false);
@@ -130,108 +148,58 @@ export default function CreditosPage() {
     [supabase]
   );
 
-  // =========================================================
-  // PRIMEIRO CARREGAMENTO
-  // =========================================================
+  // ==========================================
+  // CARREGAMENTO INICIAL
+  // ==========================================
 
   useEffect(() => {
     carregarSaldo();
   }, [carregarSaldo]);
 
-  // =========================================================
+  // ==========================================
   // ATUALIZAÇÃO EM TEMPO REAL
-  // =========================================================
+  // ==========================================
 
   useEffect(() => {
-    let channel: ReturnType<
-      typeof supabase.channel
-    > | null = null;
-
-    async function iniciarRealtime() {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-
-      if (!user) {
-        return;
-      }
-
-      channel = supabase
-        .channel(`diamantes-${user.id}`)
-        .on(
-          "postgres_changes",
-          {
-            event: "*",
-            schema: "public",
-            table: "créditos",
-            filter: `usuario_id=eq.${user.id}`,
-          },
-          () => {
-            carregarSaldo(false);
-          }
-        )
-        .subscribe();
+    if (!userId) {
+      return;
     }
 
-    iniciarRealtime();
+    const channel = supabase
+      .channel(
+        `creditos-tempo-real-${userId}`
+      )
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "créditos",
+          filter: `usuario_id=eq.${userId}`,
+        },
+        () => {
+          carregarSaldo(false);
+        }
+      )
+      .subscribe();
 
     return () => {
-      if (channel) {
-        supabase.removeChannel(channel);
-      }
+      supabase.removeChannel(channel);
     };
-  }, [carregarSaldo, supabase]);
+  }, [userId, carregarSaldo, supabase]);
 
-  // =========================================================
-  // RECARREGAR SALDO MANUALMENTE
-  // =========================================================
+  // ==========================================
+  // COMPRAR
+  // ==========================================
 
-  async function handleRefresh() {
-    await carregarSaldo(true);
-  }
-
-  // =========================================================
-  // COMPRAR DIAMANTES
-  // =========================================================
-
-  async function handleBuy(pkg: Package) {
-    setMessage("");
-    setError("");
-
-    setBuying(pkg.id);
-
-    try {
-      /*
-       * O checkout real será conectado ao Mercado Pago
-       * na etapa de pagamentos.
-       *
-       * IMPORTANTE:
-       * clicar em Comprar NÃO adiciona Diamantes.
-       * O saldo somente será liberado depois da
-       * confirmação oficial do pagamento pelo webhook.
-       */
-
-      await new Promise((resolve) =>
-        setTimeout(resolve, 500)
-      );
-
-      setMessage(
-        `O pacote de ${pkg.diamonds.toLocaleString(
-          "pt-BR"
-        )} Diamantes será disponibilizado no checkout.`
-      );
-    } catch (err) {
-      console.error(
-        "Erro ao iniciar compra:",
-        err
-      );
-
-      setError(
-        "Não foi possível iniciar a compra."
-      );
-    } finally {
-      setBuying(null);
-    }
+  function handleBuy(
+    pacote: Package
+  ) {
+    alert(
+      `Compra de ${pacote.diamonds.toLocaleString(
+        "pt-BR"
+      )} Diamantes será ativada em breve.`
+    );
   }
 
   return (
@@ -245,7 +213,7 @@ export default function CreditosPage() {
         body {
           margin: 0;
           padding: 0;
-          background: #06111f;
+          background: #07111f;
         }
 
         body {
@@ -253,57 +221,43 @@ export default function CreditosPage() {
             Arial,
             Helvetica,
             sans-serif;
-          color: #ffffff;
         }
 
-        a {
+        a,
+        button {
           -webkit-tap-highlight-color: transparent;
         }
 
-        button {
-          font-family: inherit;
-        }
-
-        /* =====================================================
-           PÁGINA
-        ===================================================== */
-
         .page {
           min-height: 100vh;
+          color: #ffffff;
 
           background:
             radial-gradient(
-              circle at 50% 8%,
-              rgba(22, 126, 190, 0.25),
-              transparent 32%
+              circle at 80% 12%,
+              rgba(20, 119, 190, 0.28),
+              transparent 34%
             ),
             radial-gradient(
-              circle at 8% 45%,
-              rgba(14, 91, 145, 0.18),
-              transparent 30%
-            ),
-            radial-gradient(
-              circle at 90% 60%,
-              rgba(10, 70, 120, 0.16),
-              transparent 35%
+              circle at 15% 48%,
+              rgba(15, 76, 125, 0.2),
+              transparent 38%
             ),
             linear-gradient(
               135deg,
-              #06101d 0%,
-              #071a2c 48%,
-              #061422 100%
+              #06101e 0%,
+              #081a30 48%,
+              #0b3556 100%
             );
 
           overflow-x: hidden;
         }
 
-        /* =====================================================
-           CABEÇALHO PADRÃO
-        ===================================================== */
+        /* =====================================
+           CABEÇALHO PADRÃO DAS PÁGINAS
+        ====================================== */
 
         .topbar {
-          position: relative;
-
           width: 100%;
           min-height: 74px;
 
@@ -311,19 +265,18 @@ export default function CreditosPage() {
           align-items: center;
           justify-content: space-between;
 
-          gap: 24px;
+          padding: 0 42px;
 
-          padding:
-            0 42px;
+          gap: 20px;
 
           background:
-            rgba(3, 12, 24, 0.94);
+            rgba(4, 12, 24, 0.9);
 
           border-bottom:
             1px solid
-            rgba(76, 177, 237, 0.18);
+            rgba(100, 180, 255, 0.18);
 
-          backdrop-filter: blur(14px);
+          backdrop-filter: blur(12px);
         }
 
         .brand {
@@ -332,21 +285,12 @@ export default function CreditosPage() {
 
           gap: 10px;
 
-          text-decoration: none;
-
           white-space: nowrap;
         }
 
         .brand-icon {
           font-size: 28px;
-
           line-height: 1;
-
-          filter:
-            drop-shadow(
-              0 0 8px
-              rgba(255, 215, 70, 0.45)
-            );
         }
 
         .brand-name {
@@ -355,48 +299,42 @@ export default function CreditosPage() {
           font-size: 20px;
           font-weight: 800;
 
-          letter-spacing: 0.3px;
+          letter-spacing: 0.4px;
         }
 
-        .nav {
+        .back {
           display: flex;
           align-items: center;
 
-          gap: 24px;
-        }
-
-        .nav a {
-          color: #b9c9da;
+          color: #8fd8ff;
 
           text-decoration: none;
 
-          font-size: 14px;
+          font-size: 15px;
           font-weight: 700;
+
+          white-space: nowrap;
 
           transition:
             color 0.2s ease,
-            text-shadow 0.2s ease;
+            text-shadow 0.2s ease,
+            transform 0.2s ease;
         }
 
-        .nav a:hover {
-          color: #67d4ff;
+        .back:hover {
+          color: #c4efff;
 
           text-shadow:
             0 0 12px
-            rgba(67, 201, 255, 0.55);
+            rgba(75, 199, 255, 0.75);
+
+          transform:
+            translateX(-2px);
         }
 
-        .nav-active {
-          color: #69d6ff !important;
-
-          text-shadow:
-            0 0 12px
-            rgba(68, 205, 255, 0.45);
-        }
-
-        /* =====================================================
+        /* =====================================
            CONTEÚDO
-        ===================================================== */
+        ====================================== */
 
         .content {
           width:
@@ -411,17 +349,17 @@ export default function CreditosPage() {
             58px 0 80px;
         }
 
-        /* =====================================================
+        /* =====================================
            TÍTULO
-        ===================================================== */
+        ====================================== */
 
-        .hero {
+        .title-area {
           text-align: center;
 
-          margin-bottom: 44px;
+          margin-bottom: 48px;
         }
 
-        .hero-title {
+        .main-title {
           display: flex;
 
           align-items: center;
@@ -431,167 +369,149 @@ export default function CreditosPage() {
 
           margin: 0;
 
-          color: #ffffff;
-
           font-size:
             clamp(
-              40px,
+              38px,
               6vw,
-              64px
+              58px
             );
 
           font-weight: 900;
 
           letter-spacing: 2px;
 
-          text-shadow:
-            0 0 18px
-            rgba(71, 203, 255, 0.2);
+          color: #ffffff;
         }
 
-        .hero-diamond {
+        .title-diamond {
           display: flex;
+
           align-items: center;
           justify-content: center;
 
-          width: 76px;
-          height: 76px;
-
-          flex-shrink: 0;
+          width: 74px;
+          height: 74px;
 
           filter:
             drop-shadow(
-              0 0 9px
-              rgba(87, 218, 255, 0.85)
+              0 0 10px
+              rgba(80, 205, 255, 0.8)
             )
             drop-shadow(
-              0 0 22px
-              rgba(35, 172, 255, 0.5)
+              0 0 25px
+              rgba(50, 180, 255, 0.45)
             );
         }
 
-        .hero-title-text {
+        .title-word {
           background:
             linear-gradient(
               90deg,
-              #ffffff 0%,
-              #c9f1ff 38%,
-              #59caff 72%,
-              #27a9f0 100%
+              #dff8ff 0%,
+              #82dcff 45%,
+              #24baff 100%
             );
 
           -webkit-background-clip: text;
           background-clip: text;
 
-          -webkit-text-fill-color: transparent;
+          color: transparent;
+
+          text-shadow:
+            0 0 18px
+            rgba(70, 200, 255, 0.35);
         }
 
-        .hero p {
-          width:
-            min(
-              760px,
-              100%
-            );
+        .subtitle {
+          max-width: 760px;
 
           margin:
             18px auto 0;
 
-          color: #9fb2c5;
+          color: #aebfd1;
 
           font-size: 18px;
 
           line-height: 1.65;
         }
 
-        /* =====================================================
+        /* =====================================
            SALDO
-        ===================================================== */
+        ====================================== */
 
         .balance-card {
           position: relative;
+
+          padding: 28px 34px;
+
+          border-radius: 22px;
+
+          background:
+            linear-gradient(
+              135deg,
+              rgba(10, 43, 68, 0.88),
+              rgba(5, 25, 42, 0.95)
+            );
+
+          border:
+            2px solid
+            rgba(37, 185, 255, 0.45);
+
+          box-shadow:
+            0 0 10px
+              rgba(36, 188, 255, 0.2),
+            0 0 35px
+              rgba(21, 134, 205, 0.15),
+            inset 0 0 30px
+              rgba(35, 185, 255, 0.04);
 
           display: flex;
 
           align-items: center;
           justify-content: space-between;
 
-          gap: 28px;
-
-          min-height: 180px;
-
-          padding:
-            30px 38px;
+          gap: 30px;
 
           margin-bottom: 62px;
 
-          border-radius: 24px;
+          overflow: hidden;
+        }
+
+        .balance-card::before {
+          content: "";
+
+          position: absolute;
+
+          width: 240px;
+          height: 240px;
+
+          right: 20px;
+          top: 50%;
+
+          transform:
+            translateY(-50%);
 
           background:
-            linear-gradient(
-              135deg,
-              rgba(8, 37, 59, 0.94),
-              rgba(4, 24, 41, 0.98)
+            radial-gradient(
+              circle,
+              rgba(45, 190, 255, 0.14),
+              transparent 70%
             );
 
-          border:
-            1px solid
-            rgba(39, 190, 255, 0.42);
-
-          box-shadow:
-            0 0 12px
-              rgba(28, 179, 255, 0.2),
-            0 0 35px
-              rgba(17, 119, 190, 0.12),
-            inset 0 0 28px
-              rgba(37, 173, 255, 0.045);
+          pointer-events: none;
         }
 
-        .balance-left {
-          display: flex;
-          align-items: center;
-
-          gap: 24px;
-
-          min-width: 0;
-        }
-
-        .balance-diamond {
-          display: flex;
-
-          align-items: center;
-          justify-content: center;
-
-          width: 88px;
-          height: 88px;
-
-          flex-shrink: 0;
-
-          filter:
-            drop-shadow(
-              0 0 8px
-              rgba(90, 220, 255, 0.9)
-            )
-            drop-shadow(
-              0 0 25px
-              rgba(28, 177, 255, 0.52)
-            );
-        }
-
-        .balance-info {
-          min-width: 0;
+        .balance-content {
+          position: relative;
+          z-index: 1;
         }
 
         .balance-label {
-          margin-bottom: 6px;
+          margin-bottom: 7px;
 
-          color: #8fa7bb;
+          color: #aebfd1;
 
-          font-size: 13px;
-          font-weight: 800;
-
-          letter-spacing: 2px;
-
-          text-transform: uppercase;
+          font-size: 16px;
         }
 
         .balance-value {
@@ -600,119 +520,139 @@ export default function CreditosPage() {
           align-items: baseline;
 
           gap: 10px;
-
-          white-space: nowrap;
         }
 
         .balance-number {
-          color: #ffffff;
+          font-size: 52px;
 
-          font-size:
-            clamp(
-              42px,
-              6vw,
-              58px
-            );
+          line-height: 1;
 
           font-weight: 900;
 
-          line-height: 1;
+          color: #ffffff;
         }
 
         .balance-word {
-          color: #5fd0ff;
-
-          font-size:
-            clamp(
-              19px,
-              3vw,
-              27px
-            );
+          font-size: 23px;
 
           font-weight: 800;
+
+          color: #66d5ff;
         }
 
-        .refresh-button {
+        .balance-right {
+          position: relative;
+
+          z-index: 1;
+
+          display: flex;
+
+          align-items: center;
+
+          gap: 22px;
+        }
+
+        .balance-diamond {
+          width: 82px;
+          height: 82px;
+
           display: flex;
 
           align-items: center;
           justify-content: center;
 
-          width: 58px;
-          height: 58px;
+          filter:
+            drop-shadow(
+              0 0 12px
+              rgba(70, 215, 255, 0.9)
+            )
+            drop-shadow(
+              0 0 30px
+              rgba(50, 180, 255, 0.5)
+            );
+        }
 
-          flex-shrink: 0;
+        .refresh-button {
+          width: 56px;
+          height: 56px;
 
-          border-radius: 17px;
+          display: flex;
+
+          align-items: center;
+          justify-content: center;
+
+          border-radius: 15px;
 
           border:
             1px solid
-            rgba(69, 202, 255, 0.32);
+            rgba(77, 204, 255, 0.28);
 
           background:
-            rgba(17, 91, 135, 0.16);
+            rgba(40, 140, 190, 0.08);
 
-          color: #62d4ff;
+          color: #69d7ff;
 
-          font-size: 28px;
+          font-size: 27px;
 
           cursor: pointer;
 
           transition:
             transform 0.2s ease,
             background 0.2s ease,
-            box-shadow 0.2s ease;
+            border-color 0.2s ease;
         }
 
         .refresh-button:hover {
           transform:
-            translateY(-2px);
+            rotate(25deg);
 
           background:
-            rgba(25, 119, 170, 0.24);
+            rgba(60, 180, 235, 0.14);
 
-          box-shadow:
-            0 0 16px
-            rgba(55, 198, 255, 0.25);
+          border-color:
+            rgba(90, 215, 255, 0.55);
         }
 
         .refresh-button:disabled {
-          opacity: 0.55;
+          opacity: 0.5;
 
           cursor: wait;
+
+          transform: none;
         }
 
-        .refresh-spin {
-          display: inline-block;
-
+        .refreshing {
           animation:
-            rotate 0.9s linear infinite;
+            spin 0.8s linear infinite;
         }
 
-        @keyframes rotate {
+        @keyframes spin {
+          from {
+            transform: rotate(0deg);
+          }
+
           to {
-            transform:
-              rotate(360deg);
+            transform: rotate(360deg);
           }
         }
 
-        /* =====================================================
-           SEÇÃO PACOTES
-        ===================================================== */
+        /* =====================================
+           SEÇÃO DE PACOTES
+        ====================================== */
 
         .section-heading {
           margin-bottom: 30px;
         }
 
-        .section-kicker {
-          margin: 0 0 9px;
+        .section-label {
+          margin-bottom: 10px;
 
-          color: #58c9ef;
+          color: #54c9f4;
 
-          font-size: 13px;
+          font-size: 14px;
           font-weight: 900;
 
-          letter-spacing: 2.5px;
+          letter-spacing: 2px;
 
           text-transform: uppercase;
         }
@@ -733,60 +673,62 @@ export default function CreditosPage() {
         }
 
         .section-heading p {
+          max-width: 720px;
+
           margin:
             14px 0 0;
 
-          color: #8fa3b7;
+          color: #91a6ba;
 
           font-size: 17px;
 
           line-height: 1.6;
         }
 
-        /* =====================================================
-           GRID DE PACOTES
-        ===================================================== */
+        /* =====================================
+           PACOTES
+        ====================================== */
 
         .packages-grid {
           display: grid;
 
           grid-template-columns:
-            repeat(2, minmax(0, 1fr));
+            repeat(4, 1fr);
 
-          gap: 24px;
-
-          margin-bottom: 56px;
+          gap: 22px;
         }
 
         .package-card {
           position: relative;
 
+          min-height: 445px;
+
           display: flex;
+
           flex-direction: column;
 
-          min-height: 510px;
+          align-items: center;
 
-          padding:
-            34px 30px 28px;
+          padding: 30px 24px 26px;
 
-          border-radius: 26px;
+          border-radius: 22px;
 
           background:
             linear-gradient(
               145deg,
-              rgba(7, 31, 49, 0.96),
-              rgba(4, 20, 34, 0.98)
+              rgba(10, 34, 55, 0.96),
+              rgba(5, 22, 38, 0.98)
             );
 
           border:
             1px solid
-            rgba(66, 160, 210, 0.2);
+            rgba(76, 184, 235, 0.22);
 
           box-shadow:
-            0 14px 40px
-              rgba(0, 0, 0, 0.2);
-
-          overflow: hidden;
+            0 12px 35px
+              rgba(0, 0, 0, 0.18),
+            inset 0 0 30px
+              rgba(50, 175, 235, 0.025);
 
           transition:
             transform 0.25s ease,
@@ -794,114 +736,97 @@ export default function CreditosPage() {
             box-shadow 0.25s ease;
         }
 
-        .package-card::before {
-          content: "";
-
-          position: absolute;
-
-          width: 220px;
-          height: 220px;
-
-          top: -120px;
-          right: -100px;
-
-          border-radius: 50%;
-
-          background:
-            rgba(46, 181, 255, 0.09);
-
-          filter:
-            blur(30px);
-
-          pointer-events: none;
-        }
-
         .package-card:hover {
           transform:
             translateY(-5px);
 
           border-color:
-            rgba(71, 194, 244, 0.42);
+            rgba(76, 202, 255, 0.48);
 
           box-shadow:
-            0 15px 45px
-              rgba(0, 0, 0, 0.26),
+            0 16px 40px
+              rgba(0, 0, 0, 0.25),
             0 0 22px
-              rgba(35, 166, 225, 0.1);
+              rgba(40, 170, 230, 0.12);
         }
 
-        .package-featured {
+        .package-card.popular {
           border:
-            1px solid
-            rgba(67, 204, 255, 0.62);
+            2px solid
+            rgba(56, 197, 255, 0.72);
 
           box-shadow:
-            0 0 20px
-              rgba(39, 176, 237, 0.12),
-            inset 0 0 25px
-              rgba(39, 176, 237, 0.035);
+            0 0 15px
+              rgba(40, 190, 255, 0.2),
+            0 16px 45px
+              rgba(0, 0, 0, 0.2);
         }
 
         .popular-badge {
           position: absolute;
 
-          top: 18px;
-          right: 18px;
+          top: -13px;
+
+          left: 50%;
+
+          transform:
+            translateX(-50%);
 
           padding:
-            7px 12px;
+            6px 15px;
 
-          border-radius: 999px;
-
-          color: #041522;
+          border-radius: 30px;
 
           background:
             linear-gradient(
               90deg,
-              #5bd6ff,
-              #9ceaff
+              #169cf0,
+              #20c4f5
             );
 
-          font-size: 10px;
+          color: #ffffff;
+
+          font-size: 11px;
           font-weight: 900;
 
           letter-spacing: 0.7px;
 
+          text-transform: uppercase;
+
           box-shadow:
-            0 0 13px
-            rgba(69, 204, 255, 0.35);
+            0 0 15px
+            rgba(30, 190, 255, 0.45);
+
+          white-space: nowrap;
         }
 
         .package-diamond {
+          width: 104px;
+          height: 104px;
+
           display: flex;
 
           align-items: center;
           justify-content: center;
 
-          width: 120px;
-          height: 120px;
-
           margin:
-            8px auto 12px;
+            8px 0 17px;
 
           filter:
             drop-shadow(
-              0 0 9px
-              rgba(91, 219, 255, 0.95)
+              0 0 10px
+              rgba(75, 210, 255, 0.8)
             )
             drop-shadow(
               0 0 25px
-              rgba(31, 168, 240, 0.58)
+              rgba(45, 180, 255, 0.35)
             );
         }
 
         .package-name {
-          margin:
-            4px 0 10px;
+          margin: 0 0 12px;
 
-          text-align: center;
-
-          color: #8fa8bc;
+          color: #9db0c3;
 
           font-size: 14px;
           font-weight: 900;
@@ -911,94 +836,56 @@ export default function CreditosPage() {
           text-transform: uppercase;
         }
 
-        .package-diamonds {
+        .package-amount {
           display: flex;
 
-          align-items: center;
+          align-items: baseline;
+
           justify-content: center;
 
-          gap: 8px;
+          gap: 7px;
 
-          margin-top: 2px;
+          margin-bottom: 12px;
 
           text-align: center;
         }
 
-        .small-diamond {
-          display: flex;
-
-          align-items: center;
-          justify-content: center;
-
-          width: 40px;
-          height: 40px;
-
-          filter:
-            drop-shadow(
-              0 0 7px
-              rgba(78, 214, 255, 0.8)
-            );
-        }
-
-        .package-number {
+        .package-amount-number {
           color: #ffffff;
 
-          font-size:
-            clamp(
-              31px,
-              4vw,
-              42px
-            );
-
+          font-size: 31px;
           font-weight: 900;
-
-          line-height: 1;
         }
 
-        .package-word {
-          color: #5dcfff;
+        .package-amount-word {
+          color: #55cfff;
 
-          font-size: 15px;
-
+          font-size: 14px;
           font-weight: 800;
-
-          align-self: flex-end;
-
-          margin-bottom: 4px;
         }
 
         .package-price {
           margin:
-            25px 0 12px;
-
-          text-align: center;
+            4px 0 12px;
 
           color: #ffffff;
 
-          font-size:
-            clamp(
-              30px,
-              4vw,
-              38px
-            );
-
+          font-size: 29px;
           font-weight: 900;
         }
 
         .package-description {
-          min-height: 50px;
+          min-height: 52px;
 
-          margin: 0 auto;
+          margin: 0;
 
-          max-width: 330px;
+          color: #8fa3b7;
+
+          font-size: 14px;
+
+          line-height: 1.55;
 
           text-align: center;
-
-          color: #879caf;
-
-          font-size: 15px;
-
-          line-height: 1.6;
         }
 
         .buy-button {
@@ -1006,37 +893,35 @@ export default function CreditosPage() {
 
           margin-top: auto;
 
-          padding:
-            16px 20px;
+          padding: 14px 18px;
 
-          border-radius: 14px;
+          border-radius: 13px;
 
           border:
             1px solid
-            rgba(70, 201, 255, 0.45);
-
-          color: #ffffff;
+            rgba(51, 197, 255, 0.5);
 
           background:
             linear-gradient(
               90deg,
-              #0b91ed,
-              #0bc1f3
+              #078ff0,
+              #16c0ed
             );
 
-          font-size: 16px;
+          color: #ffffff;
+
+          font-size: 15px;
           font-weight: 900;
 
           cursor: pointer;
 
           box-shadow:
-            0 0 18px
-            rgba(21, 164, 235, 0.22);
+            0 0 14px
+            rgba(30, 178, 245, 0.2);
 
           transition:
             transform 0.2s ease,
-            box-shadow 0.2s ease,
-            opacity 0.2s ease;
+            box-shadow 0.2s ease;
         }
 
         .buy-button:hover {
@@ -1044,98 +929,43 @@ export default function CreditosPage() {
             translateY(-2px);
 
           box-shadow:
-            0 0 25px
-            rgba(25, 181, 247, 0.4);
+            0 0 22px
+            rgba(30, 190, 255, 0.35);
         }
 
-        .buy-button:disabled {
-          opacity: 0.55;
-
-          cursor: wait;
-
-          transform: none;
-        }
-
-        /* =====================================================
-           MENSAGENS
-        ===================================================== */
-
-        .notice {
-          margin:
-            0 auto 28px;
-
-          padding:
-            14px 18px;
-
-          border-radius: 13px;
-
-          font-size: 14px;
-
-          line-height: 1.5;
-
-          text-align: center;
-        }
-
-        .notice-success {
-          color: #91f1c8;
-
-          background:
-            rgba(32, 170, 115, 0.09);
-
-          border:
-            1px solid
-            rgba(73, 224, 162, 0.25);
-        }
-
-        .notice-error {
-          color: #ffb3b3;
-
-          background:
-            rgba(220, 60, 60, 0.09);
-
-          border:
-            1px solid
-            rgba(255, 90, 90, 0.25);
-        }
-
-        /* =====================================================
-           COMO FUNCIONA
-        ===================================================== */
+        /* =====================================
+           INFORMAÇÕES
+        ====================================== */
 
         .info-card {
-          display: grid;
+          margin-top: 52px;
 
-          grid-template-columns:
-            auto 1fr;
+          padding: 28px;
 
-          gap: 24px;
+          display: flex;
 
-          align-items: start;
+          align-items: flex-start;
 
-          padding:
-            30px;
+          gap: 22px;
 
-          margin-bottom: 32px;
-
-          border-radius: 23px;
+          border-radius: 20px;
 
           background:
-            linear-gradient(
-              145deg,
-              rgba(8, 31, 49, 0.88),
-              rgba(4, 20, 34, 0.96)
-            );
+            rgba(7, 28, 46, 0.72);
 
           border:
             1px solid
-            rgba(69, 164, 215, 0.2);
+            rgba(74, 174, 225, 0.2);
         }
 
         .info-icon {
+          flex: 0 0 auto;
+
           width: 58px;
           height: 58px;
 
           display: flex;
+
           align-items: center;
           justify-content: center;
 
@@ -1143,58 +973,76 @@ export default function CreditosPage() {
 
           border:
             1px solid
-            rgba(73, 200, 255, 0.3);
+            rgba(69, 198, 255, 0.3);
+
+          background:
+            rgba(35, 158, 215, 0.08);
 
           color: #61d3ff;
 
-          background:
-            rgba(45, 171, 225, 0.08);
-
-          font-size: 27px;
+          font-size: 28px;
           font-weight: 900;
-
-          box-shadow:
-            0 0 15px
-            rgba(48, 188, 245, 0.1);
         }
 
-        .info-card h3 {
+        .info-content h3 {
           margin:
-            0 0 10px;
+            2px 0 9px;
 
           color: #ffffff;
 
-          font-size: 21px;
+          font-size: 19px;
         }
 
-        .info-card p {
+        .info-content p {
           margin: 0;
 
-          color: #8ea3b7;
+          color: #8fa4b8;
 
-          font-size: 15px;
+          font-size: 14px;
 
           line-height: 1.7;
         }
 
-        .info-card strong {
-          color: #c8eaff;
+        /* =====================================
+           MENSAGEM DE ERRO
+        ====================================== */
+
+        .error-box {
+          margin:
+            -38px 0 38px;
+
+          padding: 13px 16px;
+
+          border-radius: 12px;
+
+          background:
+            rgba(220, 70, 70, 0.1);
+
+          border:
+            1px solid
+            rgba(255, 100, 100, 0.28);
+
+          color: #ffb5b5;
+
+          font-size: 13px;
+
+          text-align: center;
         }
 
-        /* =====================================================
-           RODAPÉ PADRÃO
-        ===================================================== */
+        /* =====================================
+           FOOTER PADRÃO
+        ====================================== */
 
         .footer {
           border-top:
             1px solid
-            rgba(76, 177, 237, 0.16);
+            rgba(100, 180, 255, 0.18);
 
           background:
             linear-gradient(
               180deg,
-              rgba(3, 13, 25, 0.98),
-              #020a14
+              rgba(4, 15, 29, 0.96),
+              rgba(3, 11, 22, 1)
             );
 
           padding:
@@ -1222,13 +1070,13 @@ export default function CreditosPage() {
           color: #ffffff;
 
           font-size: 24px;
-          font-weight: 900;
+          font-weight: 800;
         }
 
         .footer-brand p {
           margin: 0;
 
-          color: #8fa1b3;
+          color: #9eacbd;
 
           font-size: 15px;
         }
@@ -1249,7 +1097,6 @@ export default function CreditosPage() {
           color: #ffffff;
 
           font-size: 16px;
-          font-weight: 800;
         }
 
         .footer-column a {
@@ -1259,7 +1106,7 @@ export default function CreditosPage() {
 
           margin-bottom: 12px;
 
-          color: #9eafc0;
+          color: #aebaca;
 
           text-decoration: none;
 
@@ -1270,13 +1117,15 @@ export default function CreditosPage() {
         }
 
         .footer-column a:hover {
-          color: #65d3ff;
+          color: #68d2ff;
         }
 
         .footer-diamond-link {
-          color: #65d3ff !important;
+          display: flex !important;
 
-          font-weight: 700;
+          align-items: center;
+
+          gap: 5px;
         }
 
         .footer-bottom {
@@ -1286,105 +1135,77 @@ export default function CreditosPage() {
 
           border-top:
             1px solid
-            rgba(76, 177, 237, 0.14);
-
-          color: #77889a;
+            rgba(100, 180, 255, 0.16);
 
           text-align: center;
+
+          color: #8997a9;
 
           font-size: 13px;
         }
 
-        /* =====================================================
-           LOADING
-        ===================================================== */
-
-        .loading {
-          min-height: 300px;
-
-          display: flex;
-
-          align-items: center;
-          justify-content: center;
-
-          color: #91a7bb;
-
-          font-size: 16px;
-
-          animation:
-            loadingPulse 1.2s infinite;
-        }
-
-        @keyframes loadingPulse {
-          0%,
-          100% {
-            opacity: 0.45;
-          }
-
-          50% {
-            opacity: 1;
-          }
-        }
-
-        /* =====================================================
+        /* =====================================
            TABLET
-        ===================================================== */
+        ====================================== */
 
-        @media (max-width: 950px) {
-          .topbar {
-            padding:
-              0 24px;
-          }
-
-          .nav {
-            gap: 14px;
-          }
-
-          .nav a {
-            font-size: 13px;
-          }
-
+        @media (max-width: 1050px) {
           .packages-grid {
             grid-template-columns:
-              1fr 1fr;
+              repeat(2, 1fr);
           }
         }
 
-        /* =====================================================
-           MOBILE
-        ===================================================== */
-
-        @media (max-width: 700px) {
+        @media (max-width: 850px) {
           .topbar {
-            min-height: auto;
+            padding: 0 22px;
+          }
+
+          .content {
+            width:
+              min(
+                720px,
+                calc(100% - 36px)
+              );
+          }
+
+          .balance-card {
+            padding: 24px;
+          }
+
+          .footer {
+            padding-left: 28px;
+            padding-right: 28px;
+          }
+        }
+
+        /* =====================================
+           MOBILE
+        ====================================== */
+
+        @media (max-width: 650px) {
+          .topbar {
+            min-height: 68px;
 
             padding:
-              17px 16px;
+              0 16px;
 
-            flex-direction: column;
-
-            align-items: stretch;
-
-            gap: 15px;
+            gap: 12px;
           }
 
           .brand {
-            justify-content: center;
+            gap: 8px;
           }
 
-          .nav {
-            display: flex;
-
-            justify-content: center;
-
-            flex-wrap: wrap;
-
-            gap:
-              9px 15px;
+          .brand-icon {
+            font-size: 23px;
           }
 
-          .nav a {
-            font-size: 12px;
+          .brand-name {
+            font-size: 16px;
+          }
+
+          .back {
+            font-size: 13px;
           }
 
           .content {
@@ -1392,115 +1213,104 @@ export default function CreditosPage() {
               calc(100% - 28px);
 
             padding:
-              40px 0 60px;
+              42px 0 60px;
           }
 
-          .hero {
-            margin-bottom: 34px;
+          .title-area {
+            margin-bottom: 35px;
           }
 
-          .hero-title {
-            gap: 10px;
+          .main-title {
+            gap: 11px;
 
-            font-size: 39px;
+            font-size: 34px;
 
             letter-spacing: 1px;
           }
 
-          .hero-diamond {
-            width: 60px;
-            height: 60px;
+          .title-diamond {
+            width: 56px;
+            height: 56px;
           }
 
-          .hero p {
+          .subtitle {
+            margin-top: 15px;
+
             font-size: 16px;
 
             line-height: 1.7;
           }
 
           .balance-card {
-            min-height: 155px;
+            padding: 20px;
 
-            padding:
-              23px 20px;
+            border-radius: 19px;
 
-            gap: 12px;
-
-            border-radius: 21px;
-          }
-
-          .balance-left {
             gap: 14px;
           }
 
-          .balance-diamond {
-            width: 67px;
-            height: 67px;
-          }
-
           .balance-label {
-            font-size: 11px;
-
-            letter-spacing: 1.6px;
+            font-size: 14px;
           }
 
           .balance-number {
-            font-size: 42px;
+            font-size: 40px;
           }
 
           .balance-word {
-            font-size: 18px;
+            font-size: 19px;
+          }
+
+          .balance-right {
+            gap: 10px;
+          }
+
+          .balance-diamond {
+            width: 62px;
+            height: 62px;
           }
 
           .refresh-button {
-            width: 51px;
-            height: 51px;
+            width: 48px;
+            height: 48px;
 
-            border-radius: 15px;
+            border-radius: 13px;
 
-            font-size: 24px;
+            font-size: 23px;
           }
 
           .section-heading h2 {
-            font-size: 30px;
+            font-size: 29px;
           }
 
           .section-heading p {
-            font-size: 15px;
+            font-size: 16px;
           }
 
           .packages-grid {
             grid-template-columns: 1fr;
 
-            gap: 20px;
+            gap: 18px;
           }
 
           .package-card {
-            min-height: 495px;
+            min-height: 430px;
 
             padding:
-              30px 22px 24px;
-          }
-
-          .package-diamond {
-            width: 105px;
-            height: 105px;
-          }
-
-          .package-number {
-            font-size: 34px;
-          }
-
-          .package-price {
-            font-size: 32px;
+              30px 24px 25px;
           }
 
           .info-card {
-            grid-template-columns: 1fr;
+            padding: 22px;
 
-            gap: 18px;
+            gap: 16px;
+          }
 
-            padding: 24px;
+          .info-icon {
+            width: 50px;
+            height: 50px;
+
+            font-size: 23px;
           }
 
           .footer {
@@ -1516,56 +1326,56 @@ export default function CreditosPage() {
         }
 
         @media (max-width: 430px) {
+          .topbar {
+            padding:
+              14px 10px;
+          }
+
           .brand-name {
-            font-size: 18px;
+            font-size: 15px;
           }
 
-          .hero-title {
-            font-size: 34px;
+          .back {
+            font-size: 12px;
           }
 
-          .hero-diamond {
-            width: 52px;
-            height: 52px;
+          .main-title {
+            font-size: 31px;
+          }
+
+          .title-diamond {
+            width: 50px;
+            height: 50px;
           }
 
           .balance-card {
-            padding:
-              21px 16px;
+            align-items: center;
           }
 
-          .balance-diamond {
-            width: 60px;
-            height: 60px;
+          .balance-right {
+            flex-direction: column;
           }
 
           .balance-number {
-            font-size: 38px;
+            font-size: 37px;
           }
 
           .balance-word {
-            font-size: 16px;
-          }
-
-          .refresh-button {
-            width: 47px;
-            height: 47px;
+            font-size: 17px;
           }
         }
       `}</style>
 
       <main className="page">
 
-        {/* =====================================================
+        {/* =====================================
             CABEÇALHO
-        ===================================================== */}
+        ====================================== */}
 
         <header className="topbar">
 
-          <Link
-            href="/dashboard"
-            className="brand"
-          >
+          <div className="brand">
+
             <span className="brand-icon">
               ✨
             </span>
@@ -1573,62 +1383,41 @@ export default function CreditosPage() {
             <span className="brand-name">
               CIEL IA STUDIO
             </span>
+
+          </div>
+
+          <Link
+            href="/dashboard"
+            className="back"
+          >
+            ← Voltar ao Dashboard
           </Link>
-
-          <nav className="nav">
-
-            <Link href="/minha-conta">
-              Minha Conta
-            </Link>
-
-            <Link href="/projetos">
-              Meus Projetos
-            </Link>
-
-            <Link
-              href="/creditos"
-              className="nav-active"
-            >
-              💎 Diamantes
-            </Link>
-
-            <Link href="/configuracoes">
-              Configurações
-            </Link>
-
-            <Link href="/login">
-              Sair
-            </Link>
-
-          </nav>
 
         </header>
 
-        {/* =====================================================
+        {/* =====================================
             CONTEÚDO
-        ===================================================== */}
+        ====================================== */}
 
         <section className="content">
 
-          {/* ===================================================
-              HERO
-          =================================================== */}
+          {/* TÍTULO */}
 
-          <div className="hero">
+          <div className="title-area">
 
-            <h1 className="hero-title">
+            <h1 className="main-title">
 
-              <span className="hero-diamond">
-                <Diamond />
+              <span className="title-diamond">
+                <Diamond size={74} />
               </span>
 
-              <span className="hero-title-text">
+              <span className="title-word">
                 DIAMANTES
               </span>
 
             </h1>
 
-            <p>
+            <p className="subtitle">
               Gerencie seus Diamantes e
               acompanhe o uso das ferramentas
               de inteligência artificial do
@@ -1637,60 +1426,56 @@ export default function CreditosPage() {
 
           </div>
 
-          {/* ===================================================
+          {/* ==================================
               SALDO
-          =================================================== */}
+          =================================== */}
 
-          {loading ? (
+          <section className="balance-card">
 
-            <div className="balance-card loading">
-              Carregando seu saldo de Diamantes...
+            <div className="balance-content">
+
+              <div className="balance-label">
+                Seu saldo disponível
+              </div>
+
+              <div className="balance-value">
+
+                <span className="balance-number">
+                  {loading
+                    ? "..."
+                    : diamantes ?? 0}
+                </span>
+
+                <span className="balance-word">
+                  Diamantes
+                </span>
+
+              </div>
+
             </div>
 
-          ) : (
+            <div className="balance-right">
 
-            <div className="balance-card">
-
-              <div className="balance-left">
-
-                <div className="balance-diamond">
-                  <Diamond />
-                </div>
-
-                <div className="balance-info">
-
-                  <div className="balance-label">
-                    Seu saldo disponível
-                  </div>
-
-                  <div className="balance-value">
-
-                    <span className="balance-number">
-                      {diamantes ?? 0}
-                    </span>
-
-                    <span className="balance-word">
-                      Diamantes
-                    </span>
-
-                  </div>
-
-                </div>
-
+              <div className="balance-diamond">
+                <Diamond size={82} />
               </div>
 
               <button
                 type="button"
                 className="refresh-button"
-                onClick={handleRefresh}
-                disabled={refreshing}
+                onClick={() =>
+                  carregarSaldo(true)
+                }
+                disabled={
+                  refreshing
+                }
                 aria-label="Atualizar saldo"
                 title="Atualizar saldo"
               >
                 <span
                   className={
                     refreshing
-                      ? "refresh-spin"
+                      ? "refreshing"
                       : ""
                   }
                 >
@@ -1700,36 +1485,27 @@ export default function CreditosPage() {
 
             </div>
 
-          )}
-
-          {/* ===================================================
-              MENSAGENS
-          =================================================== */}
-
-          {message && (
-            <div className="notice notice-success">
-              {message}
-            </div>
-          )}
+          </section>
 
           {error && (
-            <div className="notice notice-error">
+            <div className="error-box">
               {error}
             </div>
           )}
 
-          {/* ===================================================
+          {/* ==================================
               PACOTES
-          =================================================== */}
+          =================================== */}
 
           <div className="section-heading">
 
-            <p className="section-kicker">
-              Escolha seu pacote
-            </p>
+            <div className="section-label">
+              ESCOLHA SEU PACOTE
+            </div>
 
             <h2>
-              Mais Diamantes para criar mais
+              Mais Diamantes para
+              criar mais
             </h2>
 
             <p>
@@ -1743,45 +1519,38 @@ export default function CreditosPage() {
           <div className="packages-grid">
 
             {packages.map((pkg) => (
-
               <article
-                key={pkg.id}
-                className={
-                  pkg.featured
-                    ? "package-card package-featured"
-                    : "package-card"
-                }
+                key={pkg.name}
+                className={`package-card ${
+                  pkg.popular
+                    ? "popular"
+                    : ""
+                }`}
               >
 
-                {pkg.badge && (
+                {pkg.popular && (
                   <div className="popular-badge">
-                    {pkg.badge}
+                    ⭐ Mais Popular
                   </div>
                 )}
 
-                {/* DIAMANTE SEM QUADRADO */}
-
                 <div className="package-diamond">
-                  <Diamond />
+                  <Diamond size={104} />
                 </div>
 
                 <div className="package-name">
                   {pkg.name}
                 </div>
 
-                <div className="package-diamonds">
+                <div className="package-amount">
 
-                  <span className="small-diamond">
-                    <Diamond />
-                  </span>
-
-                  <span className="package-number">
+                  <span className="package-amount-number">
                     {pkg.diamonds.toLocaleString(
                       "pt-BR"
                     )}
                   </span>
 
-                  <span className="package-word">
+                  <span className="package-amount-word">
                     Diamantes
                   </span>
 
@@ -1801,32 +1570,26 @@ export default function CreditosPage() {
                   onClick={() =>
                     handleBuy(pkg)
                   }
-                  disabled={
-                    buying === pkg.id
-                  }
                 >
-                  {buying === pkg.id
-                    ? "Preparando..."
-                    : "Comprar Diamantes"}
+                  Comprar Diamantes
                 </button>
 
               </article>
-
             ))}
 
           </div>
 
-          {/* ===================================================
+          {/* ==================================
               COMO FUNCIONAM
-          =================================================== */}
+          =================================== */}
 
-          <div className="info-card">
+          <section className="info-card">
 
             <div className="info-icon">
               i
             </div>
 
-            <div>
+            <div className="info-content">
 
               <h3>
                 Como funcionam os Diamantes?
@@ -1838,19 +1601,20 @@ export default function CreditosPage() {
                 para realizar suas criações
                 com inteligência artificial.
                 Cada ferramenta possui um
-                custo específico, que será
-                apresentado antes da geração.
+                custo específico em Diamantes,
+                que será informado antes da
+                criação.
               </p>
 
             </div>
 
-          </div>
+          </section>
 
         </section>
 
-        {/* =====================================================
+        {/* =====================================
             RODAPÉ PADRÃO
-        ===================================================== */}
+        ====================================== */}
 
         <footer className="footer">
 
@@ -1863,7 +1627,8 @@ export default function CreditosPage() {
               </h2>
 
               <p>
-                Crie. Transforme. Inove com IA.
+                Crie. Transforme. Inove
+                com IA.
               </p>
 
             </div>
@@ -1906,7 +1671,8 @@ export default function CreditosPage() {
                   href="/creditos"
                   className="footer-diamond-link"
                 >
-                  💎 Diamantes
+                  <span>💎</span>
+                  <span>Diamantes</span>
                 </Link>
 
               </div>
