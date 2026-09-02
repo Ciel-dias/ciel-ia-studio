@@ -107,10 +107,16 @@ export default function MinhaContaPage() {
 
         setCredits(0);
       } else {
+        // ==========================================
+        // CORREÇÃO DE TIPAGEM DO CAMPO equilíbrio
+        // ==========================================
+
+        const saldo = creditsData as {
+          equilíbrio?: number | string | null;
+        } | null;
+
         setCredits(
-          Number(
-            creditsData?.["equilíbrio"]
-          ) || 0
+          Number(saldo?.equilíbrio) || 0
         );
       }
     } catch (err) {
