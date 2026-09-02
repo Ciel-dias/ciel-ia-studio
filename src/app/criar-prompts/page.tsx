@@ -3,6 +3,8 @@
 import Link from "next/link";
 import { useState } from "react";
 
+import Diamond from "@/components/Diamond";
+
 export default function CriarPrompts() {
   const [ideia, setIdeia] = useState("");
   const [prompt, setPrompt] = useState("");
@@ -418,13 +420,61 @@ Não explique o que você fez. Entregue somente o prompt final.`,
         }
 
         /* =========================
+           CUSTO
+        ========================= */
+
+        .cost {
+          display: flex;
+
+          align-items: center;
+
+          justify-content: center;
+
+          gap: 8px;
+
+          margin-top: 20px;
+
+          color: #aebdcc;
+
+          font-size: 14px;
+
+          font-weight: 700;
+        }
+
+        .cost-diamond {
+          width: 25px;
+          height: 25px;
+
+          display: flex;
+
+          align-items: center;
+          justify-content: center;
+
+          filter:
+            drop-shadow(
+              0 0 6px
+              rgba(75, 210, 255, 0.8)
+            )
+            drop-shadow(
+              0 0 12px
+              rgba(45, 180, 255, 0.35)
+            );
+        }
+
+        .cost-number {
+          color: #66d5ff;
+
+          font-weight: 900;
+        }
+
+        /* =========================
            BOTÃO
         ========================= */
 
         .generate {
           width: 100%;
 
-          margin-top: 20px;
+          margin-top: 12px;
 
           padding: 16px;
 
@@ -675,6 +725,14 @@ Não explique o que você fez. Entregue somente o prompt final.`,
           color: #68d2ff;
         }
 
+        .footer-diamond-link {
+          display: flex !important;
+
+          align-items: center;
+
+          gap: 5px;
+        }
+
         .footer-bottom {
           margin-top: 36px;
 
@@ -851,7 +909,6 @@ Não explique o que você fez. Entregue somente o prompt final.`,
 
         </header>
 
-
         {/* =========================
             CONTEÚDO
         ========================= */}
@@ -870,7 +927,6 @@ Não explique o que você fez. Entregue somente o prompt final.`,
             </p>
 
           </div>
-
 
           <div className="workspace">
 
@@ -894,7 +950,6 @@ Não explique o que você fez. Entregue somente o prompt final.`,
 
               </div>
 
-
               <label className="label">
                 Descreva sua ideia
               </label>
@@ -908,6 +963,23 @@ Não explique o que você fez. Entregue somente o prompt final.`,
                 placeholder="Exemplo: Uma mulher caminhando em uma cidade futurista ao pôr do sol, com aparência cinematográfica..."
               />
 
+              {/* CUSTO DA GERAÇÃO */}
+
+              <div className="cost">
+
+                <span className="cost-diamond">
+                  <Diamond size={25} />
+                </span>
+
+                <span>
+                  Custo para gerar:
+                </span>
+
+                <span className="cost-number">
+                  1 Diamante
+                </span>
+
+              </div>
 
               <button
                 className="generate"
@@ -919,13 +991,11 @@ Não explique o que você fez. Entregue somente o prompt final.`,
                   : "✨ Gerar Prompt"}
               </button>
 
-
               {error && (
                 <div className="error-box">
                   ⚠️ {error}
                 </div>
               )}
-
 
               {prompt && (
 
@@ -943,11 +1013,9 @@ Não explique o que você fez. Entregue somente o prompt final.`,
 
                   </div>
 
-
                   <div className="result-text">
                     {prompt}
                   </div>
-
 
                   <button
                     className="copy"
@@ -965,7 +1033,6 @@ Não explique o que você fez. Entregue somente o prompt final.`,
           </div>
 
         </section>
-
 
         {/* =========================
             RODAPÉ
@@ -986,7 +1053,6 @@ Não explique o que você fez. Entregue somente o prompt final.`,
               </p>
 
             </div>
-
 
             <div className="footer-columns">
 
@@ -1020,8 +1086,15 @@ Não explique o que você fez. Entregue somente o prompt final.`,
                   Meus Projetos
                 </Link>
 
-              </div>
+                <Link
+                  href="/creditos"
+                  className="footer-diamond-link"
+                >
+                  <span>💎</span>
+                  <span>Diamantes</span>
+                </Link>
 
+              </div>
 
               <div className="footer-column">
 
@@ -1043,7 +1116,6 @@ Não explique o que você fez. Entregue somente o prompt final.`,
 
               </div>
 
-
               <div className="footer-column">
 
                 <h3>
@@ -1061,7 +1133,6 @@ Não explique o que você fez. Entregue somente o prompt final.`,
               </div>
 
             </div>
-
 
             <div className="footer-bottom">
               © 2026 CIEL IA STUDIO. Todos os direitos reservados.
