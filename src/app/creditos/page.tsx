@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useState } from "react";
 
 export default function CreditosPage() {
-  const [credits] = useState(30);
+  const [diamantes] = useState(30);
 
   return (
     <>
@@ -31,48 +31,31 @@ export default function CreditosPage() {
 
         .page {
           min-height: 100vh;
-          color: #ffffff;
-
+          color: #fff;
           background:
             radial-gradient(
-              circle at 75% 20%,
-              rgba(20, 119, 190, 0.42),
-              transparent 38%
+              circle at 15% 10%,
+              rgba(0, 170, 255, 0.13),
+              transparent 30%
             ),
             radial-gradient(
-              circle at 15% 65%,
-              rgba(15, 76, 125, 0.32),
-              transparent 40%
+              circle at 85% 20%,
+              rgba(0, 100, 255, 0.1),
+              transparent 28%
             ),
-            linear-gradient(
-              135deg,
-              #06101e 0%,
-              #081a30 48%,
-              #0b3556 100%
-            );
-
+            linear-gradient(135deg, #06101e 0%, #081a2e 50%, #04101e 100%);
           overflow-x: hidden;
         }
-
-        /* =========================
-           CABEÇALHO
-        ========================= */
 
         .topbar {
           width: 100%;
           min-height: 74px;
-
           display: flex;
           align-items: center;
           justify-content: space-between;
-
           padding: 0 42px;
-
           background: rgba(4, 12, 24, 0.92);
-
-          border-bottom:
-            1px solid rgba(100, 180, 255, 0.18);
-
+          border-bottom: 1px solid rgba(100, 180, 255, 0.18);
           backdrop-filter: blur(12px);
         }
 
@@ -80,247 +63,139 @@ export default function CreditosPage() {
           display: flex;
           align-items: center;
           gap: 10px;
-
-          white-space: nowrap;
+          font-weight: 800;
         }
 
         .brand-icon {
-          font-size: 28px;
-
-          filter:
-            drop-shadow(
-              0 0 10px
-              rgba(75, 199, 255, 0.8)
-            );
+          font-size: 27px;
+          filter: drop-shadow(0 0 10px rgba(0, 200, 255, 0.55));
         }
 
         .brand-name {
-          font-size: 20px;
-          font-weight: 800;
+          font-size: 18px;
           letter-spacing: 0.5px;
+          color: #ffffff;
         }
 
         .back-link {
-          color: #7bd8ff;
-
+          color: #9edcff;
           text-decoration: none;
-
-          font-size: 17px;
+          font-size: 14px;
           font-weight: 700;
-
-          transition:
-            color 0.2s ease,
-            text-shadow 0.2s ease,
-            transform 0.2s ease;
+          transition: 0.2s ease;
         }
 
         .back-link:hover {
-          color: #b4ecff;
-
-          text-shadow:
-            0 0 12px
-            rgba(75, 199, 255, 0.8);
-
-          transform: translateX(-2px);
+          color: #ffffff;
+          text-shadow: 0 0 12px rgba(0, 200, 255, 0.8);
         }
 
-        /* =========================
-           CONTEÚDO
-        ========================= */
-
         .content {
-          width:
-            min(
-              1180px,
-              calc(100% - 48px)
-            );
-
+          width: min(1180px, calc(100% - 48px));
           margin: 0 auto;
-
-          padding:
-            58px 0 76px;
+          padding: 58px 0 76px;
         }
 
         .title-area {
           text-align: center;
-
-          margin-bottom: 38px;
+          margin-bottom: 34px;
         }
 
         .title-area h1 {
-          margin: 0;
-
-          font-size:
-            clamp(
-              34px,
-              5vw,
-              56px
-            );
-
-          line-height: 1.12;
-
-          font-weight: 700;
-
+          margin: 0 0 12px;
+          font-size: 42px;
+          font-weight: 900;
           letter-spacing: 0.5px;
-
-          text-transform: uppercase;
+          background: linear-gradient(90deg, #ffffff, #8ddfff, #ffffff);
+          -webkit-background-clip: text;
+          -webkit-text-fill-color: transparent;
+          background-clip: text;
         }
 
         .title-area p {
-          margin:
-            20px auto 0;
-
-          max-width: 680px;
-
-          color: #b9c5d4;
-
-          font-size:
-            clamp(
-              17px,
-              2vw,
-              20px
-            );
-
-          line-height: 1.5;
+          margin: 0 auto;
+          max-width: 760px;
+          color: #9db5c9;
+          font-size: 17px;
+          line-height: 1.6;
         }
 
-        /* =========================
-           SALDO
-        ========================= */
-
         .balance-card {
-          width: 100%;
-
           margin-bottom: 28px;
-
-          padding: 34px;
-
+          padding: 28px 32px;
           border-radius: 22px;
-
+          border: 1px solid rgba(0, 204, 255, 0.28);
           background:
-            linear-gradient(
-              145deg,
-              rgba(35, 47, 65, 0.96),
-              rgba(14, 25, 40, 0.98)
-            );
-
-          border:
-            2px solid #58c9ff;
-
+            radial-gradient(
+              circle at 80% 50%,
+              rgba(0, 204, 255, 0.12),
+              transparent 35%
+            ),
+            rgba(7, 25, 43, 0.9);
           box-shadow:
-            0 0 10px
-              rgba(70, 199, 255, 0.85),
-            0 0 28px
-              rgba(43, 167, 255, 0.4),
-            inset 0 0 25px
-              rgba(56, 174, 255, 0.08);
+            0 0 35px rgba(0, 150, 255, 0.08),
+            inset 0 1px 0 rgba(255, 255, 255, 0.04);
         }
 
         .balance-content {
           display: flex;
-
           align-items: center;
           justify-content: space-between;
-
-          gap: 30px;
+          gap: 20px;
         }
 
         .balance-label {
-          color: #aebdcc;
-
-          font-size: 16px;
-
+          color: #8ea8bd;
+          font-size: 14px;
           margin-bottom: 8px;
         }
 
         .balance-number {
-          font-size:
-            clamp(
-              42px,
-              7vw,
-              64px
-            );
-
+          font-size: 48px;
           line-height: 1;
-
-          font-weight: 800;
+          font-weight: 900;
+          color: #ffffff;
         }
 
         .balance-number span {
-          font-size: 24px;
-
-          color: #9edfff;
-
-          font-weight: 600;
+          font-size: 21px;
+          font-weight: 700;
+          color: #8edcff;
         }
 
         .balance-icon {
-          font-size: 70px;
-
-          filter:
-            drop-shadow(
-              0 0 14px
-              rgba(100, 220, 255, 0.75)
-            );
+          font-size: 58px;
+          filter: drop-shadow(0 0 18px rgba(0, 200, 255, 0.5));
         }
-
-        /* =========================
-           GRID
-        ========================= */
 
         .grid {
           display: grid;
-
-          grid-template-columns:
-            repeat(3, 1fr);
-
+          grid-template-columns: repeat(3, 1fr);
           gap: 24px;
         }
 
         .card {
-          padding: 28px;
-
+          border: 1px solid rgba(112, 187, 235, 0.14);
           border-radius: 20px;
-
-          background:
-            linear-gradient(
-              145deg,
-              rgba(35, 47, 65, 0.95),
-              rgba(14, 25, 40, 0.97)
-            );
-
-          border:
-            1px solid
-            rgba(88, 201, 255, 0.55);
-
+          padding: 25px;
+          background: rgba(7, 23, 40, 0.78);
           box-shadow:
-            0 0 15px
-              rgba(43, 167, 255, 0.18),
-            inset 0 0 18px
-              rgba(56, 174, 255, 0.04);
+            0 15px 45px rgba(0, 0, 0, 0.16),
+            inset 0 1px 0 rgba(255, 255, 255, 0.025);
         }
 
         .card h2 {
-          margin:
-            0 0 20px;
-
+          margin: 0 0 10px;
           font-size: 20px;
+          color: #ffffff;
         }
 
         .card-description {
-          margin:
-            -8px 0 20px;
-
-          color: #9eacbd;
-
+          margin: 0 0 22px;
+          color: #8fa7bb;
           font-size: 14px;
-
-          line-height: 1.5;
+          line-height: 1.6;
         }
-
-        /* =========================
-           PACOTES
-        ========================= */
 
         .packages {
           grid-column: span 3;
@@ -328,401 +203,233 @@ export default function CreditosPage() {
 
         .packages-grid {
           display: grid;
-
-          grid-template-columns:
-            repeat(3, 1fr);
-
+          grid-template-columns: repeat(3, 1fr);
           gap: 18px;
         }
 
         .package {
-          padding: 22px;
-
-          border-radius: 16px;
-
-          background:
-            rgba(3, 13, 25, 0.65);
-
-          border:
-            1px solid
-            rgba(94, 203, 255, 0.28);
-
           text-align: center;
-
-          transition:
-            transform 0.2s ease,
-            box-shadow 0.2s ease,
-            border-color 0.2s ease;
+          padding: 24px 18px;
+          border-radius: 17px;
+          border: 1px solid rgba(90, 181, 235, 0.16);
+          background: rgba(8, 29, 48, 0.72);
+          transition: 0.25s ease;
         }
 
         .package:hover {
-          transform:
-            translateY(-4px);
-
-          border-color:
-            #58c9ff;
-
-          box-shadow:
-            0 0 20px
-            rgba(70, 199, 255, 0.3);
+          transform: translateY(-3px);
+          border-color: rgba(0, 207, 255, 0.42);
+          box-shadow: 0 12px 30px rgba(0, 160, 255, 0.08);
         }
 
         .package-icon {
-          font-size: 38px;
-
-          margin-bottom: 12px;
+          font-size: 34px;
+          margin-bottom: 10px;
         }
 
         .package h3 {
-          margin:
-            0 0 7px;
-
-          font-size: 21px;
+          margin: 0 0 7px;
+          font-size: 20px;
+          color: #ffffff;
         }
 
         .package p {
-          margin:
-            0 0 18px;
-
-          color: #9eacbd;
-
+          margin: 0 0 17px;
+          color: #819bb0;
           font-size: 13px;
         }
 
         .buy-button {
           width: 100%;
-
-          padding: 12px;
-
-          border: none;
-
+          border: 0;
           border-radius: 11px;
-
-          cursor: pointer;
-
-          color: #04101b;
-
-          background:
-            linear-gradient(
-              90deg,
-              #5ed2ff,
-              #75e0ff
-            );
-
+          padding: 12px 16px;
+          color: #ffffff;
           font-size: 14px;
-
           font-weight: 800;
-
-          box-shadow:
-            0 0 10px
-            rgba(70, 199, 255, 0.45);
-
-          transition:
-            transform 0.2s ease,
-            box-shadow 0.2s ease;
+          cursor: pointer;
+          background: linear-gradient(135deg, #008cff, #00c8ff);
+          box-shadow: 0 7px 20px rgba(0, 157, 255, 0.2);
+          transition: 0.2s ease;
         }
 
         .buy-button:hover {
-          transform:
-            translateY(-2px);
-
-          box-shadow:
-            0 0 18px
-            rgba(70, 199, 255, 0.75);
-        }
-
-        /* =========================
-           USO
-        ========================= */
-
-        .usage {
-          min-height: 210px;
+          transform: translateY(-1px);
+          box-shadow: 0 9px 25px rgba(0, 180, 255, 0.32);
         }
 
         .usage-item {
           display: flex;
-
           align-items: center;
-
           justify-content: space-between;
+          gap: 15px;
+          padding: 14px 0;
+          border-bottom: 1px solid rgba(120, 180, 220, 0.1);
+        }
 
-          padding:
-            13px 14px;
-
-          margin-bottom: 10px;
-
-          border-radius: 11px;
-
-          background:
-            rgba(3, 13, 25, 0.62);
-
-          border:
-            1px solid
-            rgba(94, 203, 255, 0.16);
+        .usage-item:last-child {
+          border-bottom: 0;
         }
 
         .usage-name {
-          color: #b9c9d9;
-
-          font-size: 13px;
+          color: #d7e8f5;
+          font-size: 14px;
         }
 
         .usage-value {
-          color: #7bd8ff;
-
+          color: #73d8ff;
           font-size: 13px;
-
-          font-weight: 800;
-        }
-
-        /* =========================
-           HISTÓRICO
-        ========================= */
-
-        .history {
-          min-height: 210px;
+          font-weight: 700;
         }
 
         .history-empty {
-          padding:
-            25px 10px;
-
+          padding: 22px 10px;
           text-align: center;
-
-          color: #8293a7;
-
+          color: #8199ad;
           font-size: 14px;
-
-          line-height: 1.5;
-        }
-
-        /* =========================
-           INFORMAÇÃO
-        ========================= */
-
-        .info {
-          min-height: 210px;
+          line-height: 1.7;
         }
 
         .info-item {
           display: flex;
-
+          align-items: flex-start;
           gap: 12px;
-
-          margin-bottom: 15px;
-
-          color: #aebdcc;
-
+          padding: 11px 0;
+          color: #9bb1c3;
           font-size: 14px;
-
           line-height: 1.5;
         }
 
-        .info-item span:first-child {
-          font-size: 20px;
+        .info-item > span:first-child {
+          font-size: 18px;
+          flex-shrink: 0;
         }
-
-        /* =========================
-           AÇÕES
-        ========================= */
 
         .actions {
           display: flex;
-
+          justify-content: center;
           gap: 14px;
-
-          margin-top: 28px;
+          margin-top: 34px;
         }
 
         .action {
-          flex: 1;
-
-          min-height: 48px;
-
-          display: flex;
-
+          display: inline-flex;
           align-items: center;
-
           justify-content: center;
-
+          min-height: 46px;
+          padding: 0 22px;
           border-radius: 12px;
-
           text-decoration: none;
-
           font-size: 14px;
-
-          font-weight: 700;
+          font-weight: 800;
+          transition: 0.2s ease;
         }
 
         .action-primary {
-          color: #04101b;
-
-          background:
-            linear-gradient(
-              90deg,
-              #5ed2ff,
-              #75e0ff
-            );
+          color: #ffffff;
+          background: linear-gradient(135deg, #008cff, #00bfff);
+          box-shadow: 0 8px 24px rgba(0, 157, 255, 0.18);
         }
 
         .action-secondary {
-          color: #bfeaff;
-
-          background:
-            rgba(94, 203, 255, 0.08);
-
-          border:
-            1px solid
-            rgba(94, 203, 255, 0.3);
+          color: #9edcff;
+          border: 1px solid rgba(83, 185, 240, 0.2);
+          background: rgba(10, 30, 48, 0.7);
         }
 
-        /* =========================
-           RODAPÉ
-        ========================= */
+        .action:hover {
+          transform: translateY(-2px);
+        }
 
         .footer {
-          border-top:
-            1px solid
-            rgba(100, 180, 255, 0.18);
-
-          background:
-            linear-gradient(
-              180deg,
-              rgba(4, 15, 29, 0.96),
-              rgba(3, 11, 22, 1)
-            );
-
-          padding:
-            52px 42px 24px;
+          padding: 52px 42px 24px;
+          border-top: 1px solid rgba(100, 180, 255, 0.12);
+          background: rgba(3, 11, 21, 0.88);
         }
 
         .footer-inner {
-          width:
-            min(
-              1180px,
-              100%
-            );
-
+          width: min(1180px, 100%);
           margin: 0 auto;
         }
 
-        .footer-brand {
-          margin-bottom: 42px;
-        }
-
         .footer-brand h2 {
-          margin:
-            0 0 8px;
-
-          font-size: 24px;
+          margin: 0 0 6px;
+          font-size: 18px;
         }
 
         .footer-brand p {
           margin: 0;
-
-          color: #9eacbd;
-
-          font-size: 15px;
+          color: #71899d;
+          font-size: 13px;
         }
 
         .footer-columns {
           display: grid;
+          grid-template-columns: repeat(3, 1fr);
+          gap: 40px;
+          margin-top: 34px;
+        }
 
-          grid-template-columns:
-            repeat(3, 1fr);
-
-          gap: 50px;
+        .footer-column {
+          display: flex;
+          flex-direction: column;
+          gap: 10px;
         }
 
         .footer-column h3 {
-          margin:
-            0 0 18px;
-
-          font-size: 16px;
+          margin: 0 0 5px;
+          font-size: 14px;
+          color: #d9f3ff;
         }
 
         .footer-column a {
-          display: block;
-
-          width: fit-content;
-
-          margin-bottom: 12px;
-
-          color: #aebaca;
-
+          color: #71899d;
           text-decoration: none;
-
-          font-size: 14px;
-
-          transition:
-            color 0.2s ease;
+          font-size: 13px;
+          transition: 0.2s ease;
         }
 
         .footer-column a:hover {
-          color: #68d2ff;
+          color: #8edfff;
         }
 
         .footer-bottom {
-          margin-top: 36px;
-
-          padding-top: 22px;
-
-          border-top:
-            1px solid
-            rgba(100, 180, 255, 0.16);
-
+          margin-top: 38px;
+          padding-top: 20px;
+          border-top: 1px solid rgba(100, 180, 255, 0.08);
+          color: #5e7487;
           text-align: center;
-
-          color: #8997a9;
-
-          font-size: 13px;
+          font-size: 12px;
         }
-
-        /* =========================
-           TABLET
-        ========================= */
 
         @media (max-width: 900px) {
           .topbar {
-            padding:
-              0 24px;
+            padding: 0 24px;
           }
 
           .grid {
-            grid-template-columns:
-              1fr 1fr;
+            grid-template-columns: 1fr 1fr;
           }
 
           .packages {
-            grid-column:
-              span 2;
+            grid-column: span 2;
           }
 
           .packages-grid {
-            grid-template-columns:
-              1fr 1fr;
+            grid-template-columns: 1fr 1fr;
           }
         }
-
-        /* =========================
-           CELULAR
-        ========================= */
 
         @media (max-width: 650px) {
           .topbar {
             min-height: 68px;
-
-            padding:
-              14px 16px;
-
+            padding: 14px 16px;
             flex-wrap: wrap;
-
             justify-content: center;
           }
 
           .brand {
             width: 100%;
-
             justify-content: center;
           }
 
@@ -739,14 +446,8 @@ export default function CreditosPage() {
           }
 
           .content {
-            width:
-              min(
-                calc(100% - 32px),
-                430px
-              );
-
-            padding:
-              42px 0 55px;
+            width: min(calc(100% - 32px), 430px);
+            padding: 42px 0 55px;
           }
 
           .title-area h1 {
@@ -759,7 +460,6 @@ export default function CreditosPage() {
 
           .balance-card {
             padding: 23px;
-
             border-radius: 19px;
           }
 
@@ -780,34 +480,27 @@ export default function CreditosPage() {
           }
 
           .grid {
-            grid-template-columns:
-              1fr;
+            grid-template-columns: 1fr;
           }
 
           .packages {
-            grid-column:
-              span 1;
+            grid-column: span 1;
           }
 
           .packages-grid {
-            grid-template-columns:
-              1fr;
+            grid-template-columns: 1fr;
           }
 
           .actions {
-            flex-direction:
-              column;
+            flex-direction: column;
           }
 
           .footer {
-            padding:
-              42px 24px 22px;
+            padding: 42px 24px 22px;
           }
 
           .footer-columns {
-            grid-template-columns:
-              1fr;
-
+            grid-template-columns: 1fr;
             gap: 30px;
           }
         }
@@ -815,20 +508,14 @@ export default function CreditosPage() {
         @media (max-width: 430px) {
           .topbar {
             min-height: 68px;
-
-            padding:
-              0 15px;
-
+            padding: 0 15px;
             flex-wrap: nowrap;
-
             justify-content: space-between;
           }
 
           .brand {
             width: auto;
-
-            justify-content:
-              flex-start;
+            justify-content: flex-start;
           }
 
           .brand-icon {
@@ -841,7 +528,6 @@ export default function CreditosPage() {
 
           .back-link {
             font-size: 12px;
-
             white-space: nowrap;
           }
 
@@ -856,211 +542,116 @@ export default function CreditosPage() {
       `}</style>
 
       <main className="page">
-
-        {/* =========================
-            CABEÇALHO
-        ========================= */}
-
         <header className="topbar">
-
           <div className="brand">
-
-            <span className="brand-icon">
-              ✨
-            </span>
-
-            <span className="brand-name">
-              CIEL IA STUDIO
-            </span>
-
+            <span className="brand-icon">✨</span>
+            <span className="brand-name">CIEL IA STUDIO</span>
           </div>
 
-          <Link
-            href="/dashboard"
-            className="back-link"
-          >
+          <Link href="/dashboard" className="back-link">
             ← Voltar ao Dashboard
           </Link>
-
         </header>
 
-
-        {/* =========================
-            CONTEÚDO
-        ========================= */}
-
         <section className="content">
-
           <div className="title-area">
-
-            <h1>
-              💎 CRÉDITOS
-            </h1>
+            <h1>💎 DIAMANTES</h1>
 
             <p>
-              Gerencie seus créditos e acompanhe
-              o uso das ferramentas de inteligência
-              artificial do CIEL IA STUDIO.
+              Gerencie seus Diamantes e acompanhe o uso das ferramentas de
+              inteligência artificial do CIEL IA STUDIO.
             </p>
-
           </div>
 
-
-          {/* =========================
-              SALDO
-          ========================= */}
-
           <section className="balance-card">
-
             <div className="balance-content">
-
               <div>
-
                 <div className="balance-label">
                   Seu saldo disponível
                 </div>
 
                 <div className="balance-number">
-
-                  {credits}{" "}
-
-                  <span>
-                    créditos
-                  </span>
-
+                  {diamantes} <span>Diamantes</span>
                 </div>
-
               </div>
 
-              <div className="balance-icon">
-                💎
-              </div>
-
+              <div className="balance-icon">💎</div>
             </div>
-
           </section>
 
-
-          {/* =========================
-              GRID
-          ========================= */}
-
           <div className="grid">
-
-            {/* PACOTES */}
-
             <section className="card packages">
-
-              <h2>
-                ⚡ Adicionar créditos
-              </h2>
+              <h2>⚡ Adicionar Diamantes</h2>
 
               <p className="card-description">
-                Escolha um pacote de créditos
-                para utilizar nas ferramentas
+                Escolha um pacote de Diamantes para utilizar nas ferramentas
                 de criação do CIEL IA STUDIO.
               </p>
 
               <div className="packages-grid">
-
                 <div className="package">
+                  <div className="package-icon">🌱</div>
 
-                  <div className="package-icon">
-                    🌱
-                  </div>
+                  <h3>100 Diamantes</h3>
 
-                  <h3>
-                    100 créditos
-                  </h3>
-
-                  <p>
-                    Pacote inicial
-                  </p>
+                  <p>Pacote inicial</p>
 
                   <button
                     className="buy-button"
                     onClick={() =>
                       alert(
-                        "Compra de créditos será ativada em breve."
+                        "Compra de Diamantes será ativada em breve."
                       )
                     }
                   >
                     Comprar
                   </button>
-
                 </div>
 
-
                 <div className="package">
+                  <div className="package-icon">🚀</div>
 
-                  <div className="package-icon">
-                    🚀
-                  </div>
+                  <h3>500 Diamantes</h3>
 
-                  <h3>
-                    500 créditos
-                  </h3>
-
-                  <p>
-                    Pacote popular
-                  </p>
+                  <p>Pacote popular</p>
 
                   <button
                     className="buy-button"
                     onClick={() =>
                       alert(
-                        "Compra de créditos será ativada em breve."
+                        "Compra de Diamantes será ativada em breve."
                       )
                     }
                   >
                     Comprar
                   </button>
-
                 </div>
 
-
                 <div className="package">
+                  <div className="package-icon">🔥</div>
 
-                  <div className="package-icon">
-                    🔥
-                  </div>
+                  <h3>1.000 Diamantes</h3>
 
-                  <h3>
-                    1.000 créditos
-                  </h3>
-
-                  <p>
-                    Pacote avançado
-                  </p>
+                  <p>Pacote avançado</p>
 
                   <button
                     className="buy-button"
                     onClick={() =>
                       alert(
-                        "Compra de créditos será ativada em breve."
+                        "Compra de Diamantes será ativada em breve."
                       )
                     }
                   >
                     Comprar
                   </button>
-
                 </div>
-
               </div>
-
             </section>
 
-
-            {/* USO */}
-
             <section className="card usage">
-
-              <h2>
-                📊 Uso dos créditos
-              </h2>
+              <h2>📊 Uso dos Diamantes</h2>
 
               <div className="usage-item">
-
                 <span className="usage-name">
                   🤖 Criar Prompts
                 </span>
@@ -1068,11 +659,9 @@ export default function CreditosPage() {
                 <span className="usage-value">
                   Em breve
                 </span>
-
               </div>
 
               <div className="usage-item">
-
                 <span className="usage-name">
                   🖼️ Texto → Imagem
                 </span>
@@ -1080,11 +669,9 @@ export default function CreditosPage() {
                 <span className="usage-value">
                   Em breve
                 </span>
-
               </div>
 
               <div className="usage-item">
-
                 <span className="usage-name">
                   🎬 Texto → Vídeo
                 </span>
@@ -1092,11 +679,9 @@ export default function CreditosPage() {
                 <span className="usage-value">
                   Em breve
                 </span>
-
               </div>
 
               <div className="usage-item">
-
                 <span className="usage-name">
                   ✨ Outras ferramentas
                 </span>
@@ -1104,95 +689,52 @@ export default function CreditosPage() {
                 <span className="usage-value">
                   Em breve
                 </span>
-
               </div>
-
             </section>
-
-
-            {/* HISTÓRICO */}
 
             <section className="card history">
-
-              <h2>
-                🧾 Histórico
-              </h2>
+              <h2>🧾 Histórico</h2>
 
               <div className="history-empty">
-
-                📋 Nenhuma movimentação
-                registrada ainda.
-
+                📋 Nenhuma movimentação registrada ainda.
                 <br />
-
-                Quando você utilizar ou
-                adicionar créditos, seu
-                histórico aparecerá aqui.
-
+                Quando você utilizar ou adicionar Diamantes,
+                seu histórico aparecerá aqui.
               </div>
-
             </section>
-
-
-            {/* INFORMAÇÕES */}
 
             <section className="card info">
-
-              <h2>
-                💡 Como funcionam os créditos
-              </h2>
+              <h2>💡 Como funcionam os Diamantes</h2>
 
               <div className="info-item">
+                <span>💎</span>
 
                 <span>
-                  💎
+                  Seus Diamantes são utilizados para acessar
+                  as ferramentas de inteligência artificial.
                 </span>
-
-                <span>
-                  Seus créditos são utilizados
-                  para acessar as ferramentas
-                  de inteligência artificial.
-                </span>
-
               </div>
 
               <div className="info-item">
+                <span>⚡</span>
 
                 <span>
-                  ⚡
+                  Cada ferramenta poderá ter um custo diferente
+                  de Diamantes.
                 </span>
-
-                <span>
-                  Cada ferramenta poderá ter
-                  um custo diferente de créditos.
-                </span>
-
               </div>
 
               <div className="info-item">
+                <span>🔒</span>
 
                 <span>
-                  🔒
+                  Seu saldo fica associado à sua conta.
                 </span>
-
-                <span>
-                  Seu saldo fica associado à
-                  sua conta.
-                </span>
-
               </div>
-
             </section>
-
           </div>
 
-
-          {/* =========================
-              AÇÕES
-          ========================= */}
-
           <div className="actions">
-
             <Link
               href="/dashboard"
               className="action action-primary"
@@ -1206,40 +748,22 @@ export default function CreditosPage() {
             >
               👤 Minha Conta
             </Link>
-
           </div>
-
         </section>
 
-
-        {/* =========================
-            RODAPÉ
-        ========================= */}
-
         <footer className="footer">
-
           <div className="footer-inner">
-
             <div className="footer-brand">
-
-              <h2>
-                CIEL IA STUDIO
-              </h2>
+              <h2>CIEL IA STUDIO</h2>
 
               <p>
                 Crie. Transforme. Inove com IA.
               </p>
-
             </div>
 
-
             <div className="footer-columns">
-
               <div className="footer-column">
-
-                <h3>
-                  Produto
-                </h3>
+                <h3>Produto</h3>
 
                 <Link href="/criar-prompts">
                   Criar Prompts
@@ -1266,17 +790,12 @@ export default function CreditosPage() {
                 </Link>
 
                 <Link href="/creditos">
-                  💎 Créditos
+                  💎 Diamantes
                 </Link>
-
               </div>
 
-
               <div className="footer-column">
-
-                <h3>
-                  Suporte
-                </h3>
+                <h3>Suporte</h3>
 
                 <Link href="/ajuda">
                   Central de Ajuda
@@ -1289,15 +808,10 @@ export default function CreditosPage() {
                 <Link href="/sobre">
                   Sobre o CIEL IA STUDIO
                 </Link>
-
               </div>
 
-
               <div className="footer-column">
-
-                <h3>
-                  Legal
-                </h3>
+                <h3>Legal</h3>
 
                 <Link href="/termos">
                   Termos de Uso
@@ -1306,23 +820,14 @@ export default function CreditosPage() {
                 <Link href="/privacidade">
                   Política de Privacidade
                 </Link>
-
               </div>
-
             </div>
-
 
             <div className="footer-bottom">
-
-              © 2026 CIEL IA STUDIO.
-              Todos os direitos reservados.
-
+              © 2026 CIEL IA STUDIO. Todos os direitos reservados.
             </div>
-
           </div>
-
         </footer>
-
       </main>
     </>
   );
