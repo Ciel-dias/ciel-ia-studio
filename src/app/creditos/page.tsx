@@ -3,18 +3,58 @@
 import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
+import Diamond from "@/components/Diamond";
+
+type Package = {
+  name: string;
+  diamonds: number;
+  price: string;
+  description: string;
+  popular?: boolean;
+  iconSize?: number;
+};
 
 export default function CreditosPage() {
-  const [credits, setCredits] = useState<number | null>(null);
+  const [diamantes, setDiamantes] = useState<number | null>(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
 
-  const supabase = createClient();
+  const packages: Package[] = [
+    {
+      name: "Essencial",
+      diamonds: 100,
+      price: "R$ 9,90",
+      description: "Ideal para começar a criar",
+      iconSize: 42,
+    },
+    {
+      name: "Profissional",
+      diamonds: 500,
+      price: "R$ 44,90",
+      description: "Mais Diamantes para suas criações",
+      popular: true,
+      iconSize: 46,
+    },
+    {
+      name: "Criador",
+      diamonds: 1000,
+      price: "R$ 79,90",
+      description: "Para quem cria com frequência",
+      iconSize: 50,
+    },
+    {
+      name: "Premium",
+      diamonds: 2500,
+      price: "R$ 179,90",
+      description: "Para criadores que precisam de mais",
+      iconSize: 54,
+    },
+  ];
 
   const carregarDiamantes = useCallback(async () => {
     try {
       setLoading(true);
-      setError("");
+
+      const supabase = createClient();
 
       const {
         data: { user },
@@ -22,245 +62,487 @@ export default function CreditosPage() {
       } = await supabase.auth.getUser();
 
       if (userError || !user) {
-        setCredits(0);
-        setError("Usuário não autenticado.");
+        setDiamantes(0);
         return;
       }
 
-      const { data, error: creditsError } = await supabase
+      const { data, error } = await supabase
         .from("créditos")
         .select("equilíbrio")
         .eq("usuario_id", user.id)
         .maybeSingle();
 
-      if (creditsError) {
-        console.error("Erro ao buscar Diamantes:", creditsError);
-
-        setCredits(0);
-        setError("Não foi possível carregar seu saldo.");
+      if (error) {
+        console.error("Erro ao carregar Diamantes:", error);
+        setDiamantes(0);
         return;
       }
 
-      if (!data) {
-        setCredits(0);
-        return;
-      }
-
-      setCredits(Number(data["equilíbrio"] ?? 0));
-    } catch (err) {
-      console.error("Erro inesperado:", err);
-
-      setCredits(0);
-      setError("Não foi possível carregar seu saldo.");
+      setDiamantes(Number(data?.["equilíbrio"]) || 0);
+    } catch (error) {
+      console.error("Erro inesperado ao carregar Diamantes:", error);
+      setDiamantes(0);
     } finally {
       setLoading(false);
     }
-  }, [supabase]);
+  }, []);
 
   useEffect(() => {
     carregarDiamantes();
-
-    const atualizarAoVoltar = () => {
-      carregarDiamantes();
-    };
-
-    window.addEventListener("focus", atualizarAoVoltar);
-
-    return () => {
-      window.removeEventListener("focus", atualizarAoVoltar);
-    };
   }, [carregarDiamantes]);
 
+  function comprarDiamantes() {
+    alert("A compra de Diamantes será ativada em breve.");
+  }
+
+  function formatarNumero(valor: number) {
+    return new Intl.NumberFormat("pt-BR").format(valor);
+  }
+
   return (
-    <>
-      <style jsx global>{`
-        * {
-          box-sizing: border-box;
-        }
+    <main className="credits-page">
+      <div className="page-background" />
 
-        html,
-        body {
-          margin: 0;
-          padding: 0;
-          background: #06101e;
-        }
+      <header className="top-header">
+        <div className="header-container">
+          <Link href="/dashboard" className="brand">
+            <span className="brand-icon">✦</span>
+            <span>CIEL IA STUDIO</span>
+          </Link>
 
-        body {
-          font-family: Arial, Helvetica, sans-serif;
-        }
+          <nav className="header-nav">
+            <Link href="/minha-conta">Minha Conta</Link>
 
-        a,
-        button {
-          -webkit-tap-highlight-color: transparent;
-        }
+            <Link href="/projetos">Meus Projetos</Link>
 
-        .page {
+            <Link href="/creditos" className="active">
+              <Diamond size={22} />
+              <span>Diamantes</span>
+            </Link>
+
+            <Link href="/configuracoes">Configurações</Link>
+
+            <Link href="/login">Sair</Link>
+          </nav>
+        </div>
+      </header>
+
+      <section className="content">
+        <div className="title-area">
+          <div className="title-icon">
+            <Diamond size={62} />
+          </div>
+
+          <div>
+            <h1>
+              <span className="title-diamantes">DIAMANTES</span>
+            </h1>
+
+            <p>
+              Use seus Diamantes para transformar suas ideias em criações com
+              inteligência artificial.
+            </p>
+          </div>
+        </div>
+
+        <section className="balance-card">
+          <div className="balance-left">
+            <div className="balance-icon">
+              <Diamond size={58} />
+            </div>
+
+            <div>
+              <span className="balance-label">SEU SALDO</span>
+
+              <div className="balance-value">
+                {loading ? (
+                  <span className="loading-value">...</span>
+                ) : (
+                  <>
+                    <span>{formatarNumero(diamantes ?? 0)}</span>
+                    <span className="balance-unit">Diamantes</span>
+                  </>
+                )}
+              </div>
+            </div>
+          </div>
+
+          <button
+            type="button"
+            className="refresh-button"
+            onClick={carregarDiamantes}
+            disabled={loading}
+            aria-label="Atualizar saldo"
+            title="Atualizar saldo"
+          >
+            ↻
+          </button>
+        </section>
+
+        <section className="packages-section">
+          <div className="section-heading">
+            <div>
+              <span className="section-kicker">ESCOLHA SEU PACOTE</span>
+
+              <h2>Mais Diamantes para criar mais</h2>
+            </div>
+
+            <p>
+              Escolha a quantidade ideal para suas criações no CIEL IA STUDIO.
+            </p>
+          </div>
+
+          <div className="packages-grid">
+            {packages.map((pkg) => (
+              <article
+                key={pkg.diamonds}
+                className={`package-card ${
+                  pkg.popular ? "popular-package" : ""
+                }`}
+              >
+                {pkg.popular && (
+                  <div className="popular-badge">MAIS POPULAR</div>
+                )}
+
+                <div className="package-icon">
+                  <Diamond size={pkg.iconSize ?? 46} />
+                </div>
+
+                <span className="package-name">{pkg.name}</span>
+
+                <h3>
+                  <span className="package-diamond">
+                    <Diamond size={30} />
+                  </span>
+
+                  <span>{formatarNumero(pkg.diamonds)}</span>
+
+                  <span className="package-unit">Diamantes</span>
+                </h3>
+
+                <div className="package-price">{pkg.price}</div>
+
+                <p className="package-description">{pkg.description}</p>
+
+                <button
+                  type="button"
+                  className="buy-button"
+                  onClick={comprarDiamantes}
+                >
+                  Comprar Diamantes
+                </button>
+              </article>
+            ))}
+          </div>
+        </section>
+
+        <section className="info-card">
+          <div className="info-icon">
+            <span>i</span>
+          </div>
+
+          <div className="info-content">
+            <h3>Como funcionam os Diamantes?</h3>
+
+            <p>
+              Os Diamantes são a unidade utilizada pelo CIEL IA STUDIO para
+              realizar suas criações com inteligência artificial. Cada
+              ferramenta possui um custo diferente, de acordo com o tipo de
+              geração e seus recursos.
+            </p>
+
+            <p>
+              Antes de realizar uma geração, você poderá visualizar o custo
+              correspondente e acompanhar seu saldo.
+            </p>
+          </div>
+        </section>
+
+        <section className="usage-section">
+          <div className="section-heading">
+            <div>
+              <span className="section-kicker">SEU CONSUMO</span>
+
+              <h2>Histórico de utilização</h2>
+            </div>
+          </div>
+
+          <div className="empty-history">
+            <div className="empty-history-icon">
+              <Diamond size={42} />
+            </div>
+
+            <h3>Seu histórico aparecerá aqui</h3>
+
+            <p>
+              Quando você utilizar Diamantes em suas criações, o histórico de
+              utilização ficará disponível nesta área.
+            </p>
+          </div>
+        </section>
+
+        <section className="bottom-note">
+          <Diamond size={28} />
+
+          <p>
+            Seus Diamantes são vinculados à sua conta e podem ser utilizados nas
+            ferramentas disponíveis no CIEL IA STUDIO.
+          </p>
+        </section>
+      </section>
+
+      <footer className="footer">
+        <div className="footer-container">
+          <div className="footer-brand">
+            <Link href="/dashboard" className="footer-logo">
+              <span className="footer-logo-icon">✦</span>
+              <span>CIEL IA STUDIO</span>
+            </Link>
+
+            <p>Crie. Transforme. Inove com IA.</p>
+          </div>
+
+          <div className="footer-column">
+            <h3>Produto</h3>
+
+            <Link href="/criar-prompts">Criar Prompts</Link>
+
+            <Link href="/texto-imagem">Texto → Imagem</Link>
+
+            <Link href="/texto-video">Texto → Vídeo</Link>
+
+            <Link href="/imagem-imagem">Imagem → Imagem</Link>
+
+            <Link href="/imagem-video">Imagem → Vídeo</Link>
+
+            <Link href="/projetos">Meus Projetos</Link>
+
+            <Link href="/creditos" className="footer-diamantes">
+              <Diamond size={20} />
+              <span>Diamantes</span>
+            </Link>
+          </div>
+
+          <div className="footer-column">
+            <h3>Suporte</h3>
+
+            <Link href="/ajuda">Central de Ajuda</Link>
+
+            <Link href="/contato">Contato</Link>
+
+            <Link href="/sobre">Sobre o CIEL IA STUDIO</Link>
+          </div>
+
+          <div className="footer-column">
+            <h3>Legal</h3>
+
+            <Link href="/termos">Termos de Uso</Link>
+
+            <Link href="/privacidade">Política de Privacidade</Link>
+          </div>
+        </div>
+
+        <div className="footer-bottom">
+          <span>© 2026 CIEL IA STUDIO. Todos os direitos reservados.</span>
+        </div>
+      </footer>
+
+      <style jsx>{`
+        .credits-page {
           min-height: 100vh;
+          position: relative;
+          overflow-x: hidden;
+          background: #07111f;
           color: #ffffff;
+        }
+
+        .page-background {
+          position: fixed;
+          inset: 0;
+          z-index: 0;
+          pointer-events: none;
           background:
             radial-gradient(
-              circle at 50% 20%,
-              rgba(0, 140, 255, 0.13),
-              transparent 35%
+              circle at 50% 0%,
+              rgba(0, 174, 255, 0.12),
+              transparent 34%
             ),
             radial-gradient(
-              circle at 50% 70%,
-              rgba(0, 90, 180, 0.12),
-              transparent 40%
+              circle at 0% 50%,
+              rgba(0, 110, 255, 0.08),
+              transparent 30%
             ),
             linear-gradient(
-              180deg,
-              #06101e 0%,
-              #071b2d 48%,
-              #06101e 100%
+              135deg,
+              #07111f 0%,
+              #081827 45%,
+              #050b15 100%
             );
-          overflow-x: hidden;
         }
 
-        /* =========================
-           TOPO
-        ========================= */
+        .top-header {
+          position: relative;
+          z-index: 5;
+          border-bottom: 1px solid rgba(100, 210, 255, 0.1);
+          background: rgba(4, 12, 24, 0.78);
+          backdrop-filter: blur(16px);
+        }
 
-        .topbar {
-          width: 100%;
-          min-height: 74px;
+        .header-container {
+          width: min(1180px, calc(100% - 40px));
+          min-height: 76px;
+          margin: 0 auto;
           display: flex;
           align-items: center;
           justify-content: space-between;
-          padding: 0 42px;
-          background: rgba(4, 12, 24, 0.92);
-          border-bottom: 1px solid rgba(100, 180, 255, 0.18);
-          backdrop-filter: blur(12px);
+          gap: 30px;
         }
 
         .brand {
-          display: flex;
+          display: inline-flex;
           align-items: center;
           gap: 10px;
-        }
-
-        .brand-icon {
-          font-size: 28px;
-          line-height: 1;
-        }
-
-        .brand-name {
-          font-size: 19px;
-          font-weight: 800;
-          letter-spacing: 0.3px;
           color: #ffffff;
-        }
-
-        .back-link {
-          color: #8fd5ff;
           text-decoration: none;
-          font-size: 17px;
-          font-weight: 700;
-          transition: 0.2s ease;
+          font-weight: 800;
+          letter-spacing: 0.5px;
+          white-space: nowrap;
         }
 
-        .back-link:hover {
+        .brand-icon,
+        .footer-logo-icon {
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          width: 30px;
+          height: 30px;
+          border-radius: 9px;
+          color: #d9f9ff;
+          background: linear-gradient(
+            135deg,
+            rgba(55, 214, 255, 0.95),
+            rgba(41, 91, 255, 0.85)
+          );
+          box-shadow:
+            0 0 18px rgba(0, 191, 255, 0.35),
+            inset 0 1px 0 rgba(255, 255, 255, 0.35);
+        }
+
+        .header-nav {
+          display: flex;
+          align-items: center;
+          justify-content: flex-end;
+          gap: 8px;
+          flex-wrap: wrap;
+        }
+
+        .header-nav a {
+          min-height: 38px;
+          padding: 8px 12px;
+          display: inline-flex;
+          align-items: center;
+          gap: 7px;
+          border-radius: 10px;
+          color: rgba(222, 239, 255, 0.72);
+          text-decoration: none;
+          font-size: 14px;
+          transition:
+            color 0.2s ease,
+            background 0.2s ease,
+            box-shadow 0.2s ease;
+        }
+
+        .header-nav a:hover {
           color: #ffffff;
-          text-shadow: 0 0 12px rgba(80, 190, 255, 0.7);
+          background: rgba(57, 193, 255, 0.08);
         }
 
-        /* =========================
-           CONTEÚDO
-        ========================= */
+        .header-nav a.active {
+          color: #dffaff;
+          background: rgba(38, 185, 255, 0.1);
+          box-shadow: inset 0 0 0 1px rgba(70, 210, 255, 0.12);
+        }
 
         .content {
-          width: min(1180px, calc(100% - 48px));
+          position: relative;
+          z-index: 1;
+          width: min(1180px, calc(100% - 40px));
           margin: 0 auto;
-          padding: 58px 0 76px;
+          padding: 58px 0 80px;
         }
 
         .title-area {
-          text-align: center;
-          margin-bottom: 48px;
+          display: flex;
+          align-items: center;
+          gap: 20px;
+          margin-bottom: 34px;
         }
 
-        .title-area h1 {
-          margin: 0;
+        .title-icon {
+          width: 76px;
+          height: 76px;
           display: flex;
           align-items: center;
           justify-content: center;
-          gap: 16px;
-          font-size: 56px;
-          line-height: 1.1;
-          font-weight: 900;
-          letter-spacing: 1px;
-          color: #a8e5ff;
-          text-shadow:
-            0 0 8px rgba(80, 200, 255, 0.75),
-            0 0 22px rgba(40, 150, 255, 0.55),
-            0 0 42px rgba(40, 130, 255, 0.28);
+          flex-shrink: 0;
+          border-radius: 20px;
+          background: rgba(30, 154, 255, 0.08);
+          border: 1px solid rgba(81, 211, 255, 0.14);
+          box-shadow:
+            0 0 30px rgba(0, 172, 255, 0.1),
+            inset 0 0 22px rgba(0, 180, 255, 0.04);
         }
 
-        .title-diamond {
-          width: 58px;
-          height: 58px;
-          object-fit: contain;
-          filter:
-            drop-shadow(0 0 5px rgba(180, 240, 255, 0.95))
-            drop-shadow(0 0 14px rgba(80, 200, 255, 0.8));
-          transform: scaleX(1.08);
+        .title-diamantes {
+          display: inline-block;
+          font-size: clamp(30px, 4vw, 48px);
+          line-height: 1;
+          font-weight: 900;
+          letter-spacing: 2px;
+          background: linear-gradient(
+            90deg,
+            #ffffff 0%,
+            #a8f0ff 30%,
+            #39cfff 62%,
+            #398cff 100%
+          );
+          -webkit-background-clip: text;
+          background-clip: text;
+          -webkit-text-fill-color: transparent;
+          text-shadow: 0 0 28px rgba(35, 199, 255, 0.25);
         }
 
         .title-area p {
-          max-width: 920px;
-          margin: 28px auto 0;
-          color: #a9bfd2;
-          font-size: 21px;
+          max-width: 700px;
+          margin: 10px 0 0;
+          color: rgba(218, 236, 251, 0.66);
+          font-size: 15px;
           line-height: 1.65;
         }
 
-        /* =========================
-           SALDO
-        ========================= */
-
         .balance-card {
-          position: relative;
-          overflow: hidden;
-          margin-bottom: 56px;
-          padding: 30px 38px;
-          border: 1px solid rgba(0, 191, 255, 0.38);
-          border-radius: 24px;
-          background:
-            radial-gradient(
-              circle at 85% 50%,
-              rgba(0, 160, 255, 0.14),
-              transparent 30%
-            ),
-            rgba(4, 22, 38, 0.88);
-          box-shadow:
-            0 0 25px rgba(0, 150, 255, 0.08),
-            inset 0 0 30px rgba(0, 120, 255, 0.035);
-        }
-
-        .balance-content {
+          min-height: 150px;
+          padding: 28px 30px;
           display: flex;
           align-items: center;
           justify-content: space-between;
-          gap: 25px;
+          gap: 20px;
+          border-radius: 22px;
+          border: 1px solid rgba(85, 211, 255, 0.18);
+          background: linear-gradient(
+            135deg,
+            rgba(12, 43, 70, 0.8),
+            rgba(7, 21, 38, 0.88)
+          );
+          box-shadow:
+            0 20px 60px rgba(0, 0, 0, 0.25),
+            inset 0 1px 0 rgba(255, 255, 255, 0.04);
         }
 
-        .balance-label {
-          margin-bottom: 12px;
-          color: #9db5c9;
-          font-size: 19px;
-        }
-
-        .balance-number {
-          font-size: 58px;
-          line-height: 1;
-          font-weight: 900;
-          color: #ffffff;
-        }
-
-        .balance-number span {
-          font-size: 25px;
-          font-weight: 800;
-          color: #75d1ff;
+        .balance-left {
+          display: flex;
+          align-items: center;
+          gap: 20px;
         }
 
         .balance-icon {
@@ -269,328 +551,430 @@ export default function CreditosPage() {
           display: flex;
           align-items: center;
           justify-content: center;
-          flex-shrink: 0;
-          font-size: 68px;
-          line-height: 1;
-          filter:
-            drop-shadow(0 0 7px rgba(210, 245, 255, 1))
-            drop-shadow(0 0 18px rgba(60, 190, 255, 0.8));
-          transform: scaleX(1.08);
+          border-radius: 20px;
+          background: rgba(24, 164, 255, 0.07);
+          border: 1px solid rgba(82, 210, 255, 0.12);
         }
 
-        /* =========================
-           GRID
-        ========================= */
-
-        .grid {
-          display: grid;
-          grid-template-columns: repeat(3, 1fr);
-          gap: 24px;
-        }
-
-        .card {
-          min-width: 0;
-          padding: 28px;
-          border: 1px solid rgba(100, 180, 255, 0.17);
-          border-radius: 22px;
-          background: rgba(4, 21, 36, 0.86);
-          box-shadow:
-            0 12px 35px rgba(0, 0, 0, 0.18),
-            inset 0 0 30px rgba(0, 110, 220, 0.025);
-        }
-
-        .card h2 {
-          margin: 0 0 16px;
-          color: #ffffff;
-          font-size: 25px;
+        .balance-label,
+        .section-kicker {
+          display: block;
+          margin-bottom: 6px;
+          color: rgba(128, 218, 255, 0.68);
+          font-size: 11px;
           font-weight: 800;
+          letter-spacing: 1.8px;
         }
 
-        .card-description {
-          margin: 0 0 26px;
-          color: #91a9bd;
-          font-size: 16px;
-          line-height: 1.65;
+        .balance-value {
+          display: flex;
+          align-items: baseline;
+          gap: 10px;
+          font-size: clamp(34px, 5vw, 48px);
+          font-weight: 900;
+          line-height: 1;
+          color: #ffffff;
         }
 
-        /* =========================
-           PACOTES
-        ========================= */
+        .balance-unit {
+          font-size: 15px;
+          font-weight: 700;
+          color: #73dfff;
+        }
 
-        .packages {
-          grid-column: span 3;
+        .loading-value {
+          color: #72dfff;
+          animation: pulse 1.2s infinite ease-in-out;
+        }
+
+        .refresh-button {
+          width: 44px;
+          height: 44px;
+          border: 1px solid rgba(86, 211, 255, 0.16);
+          border-radius: 12px;
+          background: rgba(27, 162, 255, 0.07);
+          color: #75ddff;
+          font-size: 25px;
+          cursor: pointer;
+          transition:
+            transform 0.2s ease,
+            background 0.2s ease;
+        }
+
+        .refresh-button:hover {
+          transform: rotate(25deg);
+          background: rgba(27, 162, 255, 0.14);
+        }
+
+        .refresh-button:disabled {
+          cursor: wait;
+          opacity: 0.5;
+        }
+
+        .packages-section,
+        .usage-section {
+          margin-top: 58px;
+        }
+
+        .section-heading {
+          display: flex;
+          align-items: flex-end;
+          justify-content: space-between;
+          gap: 30px;
+          margin-bottom: 24px;
+        }
+
+        .section-heading h2 {
+          margin: 0;
+          font-size: 28px;
+          line-height: 1.2;
+          color: #ffffff;
+        }
+
+        .section-heading p {
+          max-width: 390px;
+          margin: 0;
+          color: rgba(211, 232, 249, 0.58);
+          font-size: 14px;
+          line-height: 1.6;
+          text-align: right;
         }
 
         .packages-grid {
           display: grid;
-          grid-template-columns: repeat(3, 1fr);
+          grid-template-columns: repeat(4, minmax(0, 1fr));
           gap: 18px;
         }
 
-        .package {
+        .package-card {
           position: relative;
+          min-height: 390px;
+          padding: 30px 18px 24px;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
           text-align: center;
-          padding: 30px 20px 24px;
-          border: 1px solid rgba(70, 170, 255, 0.2);
-          border-radius: 20px;
-          background: rgba(5, 26, 43, 0.8);
-          transition: 0.2s ease;
+          border: 1px solid rgba(101, 199, 255, 0.1);
+          border-radius: 22px;
+          background: linear-gradient(
+            145deg,
+            rgba(12, 30, 49, 0.88),
+            rgba(6, 16, 29, 0.92)
+          );
+          box-shadow:
+            0 20px 50px rgba(0, 0, 0, 0.2),
+            inset 0 1px 0 rgba(255, 255, 255, 0.03);
+          transition:
+            transform 0.25s ease,
+            border-color 0.25s ease,
+            box-shadow 0.25s ease;
         }
 
-        .package:hover {
-          transform: translateY(-3px);
-          border-color: rgba(50, 190, 255, 0.55);
-          box-shadow: 0 10px 30px rgba(0, 140, 255, 0.12);
+        .package-card:hover {
+          transform: translateY(-5px);
+          border-color: rgba(76, 211, 255, 0.28);
+          box-shadow:
+            0 28px 70px rgba(0, 0, 0, 0.28),
+            0 0 35px rgba(0, 174, 255, 0.07);
+        }
+
+        .popular-package {
+          border-color: rgba(68, 211, 255, 0.28);
+          box-shadow:
+            0 24px 65px rgba(0, 0, 0, 0.25),
+            0 0 40px rgba(0, 188, 255, 0.08);
+        }
+
+        .popular-badge {
+          position: absolute;
+          top: 14px;
+          right: 14px;
+          padding: 5px 9px;
+          border-radius: 999px;
+          background: rgba(35, 192, 255, 0.11);
+          border: 1px solid rgba(71, 213, 255, 0.18);
+          color: #72ddff;
+          font-size: 9px;
+          font-weight: 900;
+          letter-spacing: 0.7px;
         }
 
         .package-icon {
           width: 82px;
           height: 82px;
-          margin: 0 auto 15px;
           display: flex;
           align-items: center;
           justify-content: center;
-          font-size: 66px;
-          line-height: 1;
-          filter:
-            drop-shadow(0 0 5px rgba(220, 250, 255, 0.95))
-            drop-shadow(0 0 15px rgba(50, 180, 255, 0.75));
-          transform: scaleX(1.08);
+          margin-bottom: 15px;
+          border-radius: 22px;
+          background: rgba(21, 160, 255, 0.06);
+          border: 1px solid rgba(86, 211, 255, 0.1);
         }
 
-        .package h3 {
-          margin: 0;
-          font-size: 25px;
-          font-weight: 900;
+        .package-name {
+          color: rgba(211, 234, 249, 0.66);
+          font-size: 12px;
+          font-weight: 800;
+          letter-spacing: 1.2px;
+          text-transform: uppercase;
+        }
+
+        .package-card h3 {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 3px;
+          margin: 12px 0 4px;
           color: #ffffff;
+          font-size: 27px;
+          line-height: 1;
+          font-weight: 900;
+          white-space: nowrap;
         }
 
-        .package p {
-          margin: 9px 0 22px;
-          color: #94aabd;
-          font-size: 16px;
+        .package-diamond {
+          display: inline-flex;
+          align-items: center;
+        }
+
+        .package-unit {
+          align-self: flex-end;
+          margin-bottom: 2px;
+          color: #69d9ff;
+          font-size: 9px;
+          font-weight: 800;
+        }
+
+        .package-price {
+          margin-top: 15px;
+          color: #ffffff;
+          font-size: 24px;
+          font-weight: 900;
+        }
+
+        .package-description {
+          min-height: 42px;
+          margin: 10px 0 22px;
+          color: rgba(211, 232, 249, 0.55);
+          font-size: 12px;
+          line-height: 1.6;
         }
 
         .buy-button {
           width: 100%;
-          min-height: 50px;
-          border: 0;
+          min-height: 46px;
+          margin-top: auto;
+          border: 1px solid rgba(73, 210, 255, 0.22);
           border-radius: 12px;
           background: linear-gradient(
             135deg,
-            #009cff,
-            #00bfff
+            rgba(29, 177, 255, 0.2),
+            rgba(44, 104, 255, 0.17)
           );
-          color: #ffffff;
-          font-size: 17px;
+          color: #dffaff;
+          font-size: 13px;
           font-weight: 800;
           cursor: pointer;
-          box-shadow: 0 8px 22px rgba(0, 160, 255, 0.18);
+          transition:
+            transform 0.2s ease,
+            background 0.2s ease,
+            box-shadow 0.2s ease;
         }
 
         .buy-button:hover {
-          filter: brightness(1.08);
+          transform: translateY(-1px);
+          background: linear-gradient(
+            135deg,
+            rgba(29, 177, 255, 0.28),
+            rgba(44, 104, 255, 0.25)
+          );
+          box-shadow: 0 8px 25px rgba(0, 169, 255, 0.12);
         }
 
-        /* =========================
-           USO
-        ========================= */
-
-        .usage {
-          grid-column: span 1;
+        .info-card {
+          margin-top: 34px;
+          padding: 24px;
+          display: flex;
+          align-items: flex-start;
+          gap: 18px;
+          border: 1px solid rgba(101, 199, 255, 0.09);
+          border-radius: 18px;
+          background: rgba(9, 27, 44, 0.62);
         }
 
-        .usage-item {
+        .info-icon {
+          width: 38px;
+          height: 38px;
+          flex: 0 0 38px;
           display: flex;
           align-items: center;
-          justify-content: space-between;
-          gap: 12px;
-          padding: 16px 0;
-          border-bottom: 1px solid rgba(100, 180, 255, 0.1);
-        }
-
-        .usage-item:last-child {
-          border-bottom: 0;
-        }
-
-        .usage-name {
-          color: #d9e8f5;
-          font-size: 15px;
-        }
-
-        .usage-value {
-          color: #73ceff;
-          font-size: 14px;
-          font-weight: 700;
-        }
-
-        /* =========================
-           HISTÓRICO
-        ========================= */
-
-        .history {
-          grid-column: span 1;
-        }
-
-        .history-empty {
-          padding: 20px;
-          border-radius: 15px;
-          background: rgba(0, 100, 180, 0.055);
-          color: #91a9bd;
-          font-size: 15px;
-          line-height: 1.65;
-          text-align: center;
-        }
-
-        /* =========================
-           INFORMAÇÕES
-        ========================= */
-
-        .info {
-          grid-column: span 1;
-        }
-
-        .info-item {
-          display: flex;
-          gap: 13px;
-          align-items: flex-start;
-          padding: 13px 0;
-          color: #a7bbcc;
-          font-size: 15px;
-          line-height: 1.55;
-        }
-
-        .info-item > span:first-child {
-          flex-shrink: 0;
-        }
-
-        /* =========================
-           AÇÕES
-        ========================= */
-
-        .actions {
-          display: flex;
           justify-content: center;
-          gap: 15px;
-          margin-top: 44px;
+          border-radius: 50%;
+          border: 1px solid rgba(74, 207, 255, 0.2);
+          background: rgba(31, 181, 255, 0.08);
+          color: #6edcff;
+          font-size: 18px;
+          font-weight: 900;
         }
 
-        .action {
-          min-width: 220px;
-          padding: 15px 22px;
-          border-radius: 12px;
-          text-align: center;
-          text-decoration: none;
-          font-weight: 800;
+        .info-content h3 {
+          margin: 1px 0 7px;
+          color: #ffffff;
           font-size: 16px;
         }
 
-        .action-primary {
+        .info-content p {
+          margin: 0 0 8px;
+          color: rgba(211, 232, 249, 0.58);
+          font-size: 13px;
+          line-height: 1.65;
+        }
+
+        .info-content p:last-child {
+          margin-bottom: 0;
+        }
+
+        .empty-history {
+          min-height: 250px;
+          padding: 35px 25px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          flex-direction: column;
+          text-align: center;
+          border: 1px dashed rgba(102, 204, 255, 0.12);
+          border-radius: 20px;
+          background: rgba(7, 20, 34, 0.45);
+        }
+
+        .empty-history-icon {
+          width: 68px;
+          height: 68px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          margin-bottom: 15px;
+          border-radius: 18px;
+          background: rgba(27, 166, 255, 0.06);
+          border: 1px solid rgba(80, 208, 255, 0.1);
+        }
+
+        .empty-history h3 {
+          margin: 0 0 7px;
           color: #ffffff;
-          background: linear-gradient(
-            135deg,
-            #008ff0,
-            #00b9ff
-          );
-          box-shadow: 0 8px 25px rgba(0, 150, 255, 0.16);
+          font-size: 17px;
         }
 
-        .action-secondary {
-          color: #9bdcff;
-          border: 1px solid rgba(80, 190, 255, 0.28);
-          background: rgba(5, 24, 41, 0.7);
+        .empty-history p {
+          max-width: 520px;
+          margin: 0;
+          color: rgba(211, 232, 249, 0.52);
+          font-size: 13px;
+          line-height: 1.65;
         }
 
-        /* =========================
-           RODAPÉ COMPLETO
-        ========================= */
+        .bottom-note {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 9px;
+          margin-top: 30px;
+          color: rgba(210, 234, 250, 0.48);
+          font-size: 12px;
+          text-align: center;
+        }
+
+        .bottom-note p {
+          margin: 0;
+        }
 
         .footer {
-          padding: 55px 42px 25px;
-          border-top: 1px solid rgba(100, 180, 255, 0.12);
-          background: rgba(3, 12, 23, 0.96);
+          position: relative;
+          z-index: 1;
+          border-top: 1px solid rgba(100, 210, 255, 0.08);
+          background: rgba(3, 10, 19, 0.82);
         }
 
-        .footer-inner {
-          width: min(1180px, 100%);
+        .footer-container {
+          width: min(1180px, calc(100% - 40px));
           margin: 0 auto;
+          padding: 55px 0 45px;
+          display: grid;
+          grid-template-columns: 1.4fr repeat(3, 1fr);
+          gap: 40px;
         }
 
-        .footer-brand {
-          margin-bottom: 10px;
-        }
-
-        .footer-brand h2 {
-          margin: 0;
-          font-size: 22px;
+        .footer-logo {
+          display: inline-flex;
+          align-items: center;
+          gap: 10px;
           color: #ffffff;
+          text-decoration: none;
+          font-size: 15px;
           font-weight: 900;
-          letter-spacing: 0.3px;
+        }
+
+        .footer-logo-icon {
+          width: 28px;
+          height: 28px;
+          font-size: 13px;
         }
 
         .footer-brand p {
-          margin: 8px 0 30px;
-          color: #7992a7;
-          font-size: 14px;
-        }
-
-        .footer-columns {
-          display: grid;
-          grid-template-columns: repeat(3, 1fr);
-          gap: 35px;
+          max-width: 220px;
+          margin: 13px 0 0;
+          color: rgba(210, 233, 250, 0.48);
+          font-size: 13px;
+          line-height: 1.6;
         }
 
         .footer-column {
           display: flex;
           flex-direction: column;
-          gap: 10px;
+          align-items: flex-start;
+          gap: 9px;
         }
 
         .footer-column h3 {
-          margin: 0 0 8px;
+          margin: 0 0 7px;
           color: #ffffff;
-          font-size: 16px;
+          font-size: 13px;
           font-weight: 800;
         }
 
         .footer-column a {
-          color: #7892a7;
+          display: inline-flex;
+          align-items: center;
+          gap: 6px;
+          color: rgba(210, 233, 250, 0.52);
           text-decoration: none;
-          font-size: 14px;
-          line-height: 1.5;
-          transition: 0.2s ease;
+          font-size: 12px;
+          line-height: 1.4;
+          transition: color 0.2s ease;
         }
 
         .footer-column a:hover {
-          color: #8edbff;
-          transform: translateX(2px);
-          text-shadow: 0 0 10px rgba(60, 190, 255, 0.35);
+          color: #72ddff;
+        }
+
+        .footer-diamantes {
+          color: #72ddff !important;
         }
 
         .footer-bottom {
-          margin-top: 35px;
-          padding-top: 20px;
-          border-top: 1px solid rgba(100, 180, 255, 0.1);
-          color: #60788c;
-          font-size: 13px;
+          width: min(1180px, calc(100% - 40px));
+          margin: 0 auto;
+          padding: 20px 0 25px;
+          border-top: 1px solid rgba(100, 210, 255, 0.07);
+          color: rgba(210, 233, 250, 0.35);
+          font-size: 11px;
           text-align: center;
         }
 
-        /* =========================
-           ESTADOS
-        ========================= */
-
-        .loading-balance {
-          display: inline-block;
-          min-width: 90px;
-          color: #a9dfff;
-          animation: pulseBalance 1.2s ease-in-out infinite;
-        }
-
-        @keyframes pulseBalance {
+        @keyframes pulse {
           0%,
           100% {
-            opacity: 0.45;
+            opacity: 0.35;
           }
 
           50% {
@@ -598,637 +982,143 @@ export default function CreditosPage() {
           }
         }
 
-        .balance-error {
-          margin-top: 10px;
-          color: #ff9a9a;
-          font-size: 13px;
-        }
+        @media (max-width: 1050px) {
+          .packages-grid {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+          }
 
-        /* =========================
-           TABLET
-        ========================= */
+          .package-card {
+            min-height: 380px;
+          }
+        }
 
         @media (max-width: 900px) {
-          .topbar {
-            padding: 0 24px;
-          }
-
-          .grid {
-            grid-template-columns: 1fr 1fr;
-          }
-
-          .packages {
-            grid-column: span 2;
-          }
-
-          .packages-grid {
-            grid-template-columns: 1fr 1fr;
-          }
-
-          .usage,
-          .history,
-          .info {
-            grid-column: span 1;
-          }
-        }
-
-        /* =========================
-           MOBILE
-        ========================= */
-
-        @media (max-width: 650px) {
-          .topbar {
-            min-height: 68px;
-            padding: 14px 16px;
-            flex-wrap: wrap;
-            justify-content: center;
-          }
-
-          .brand {
-            width: 100%;
-            justify-content: center;
-          }
-
-          .brand-name {
-            font-size: 16px;
-          }
-
-          .brand-icon {
-            font-size: 23px;
-          }
-
-          .back-link {
-            font-size: 13px;
-          }
-
-          .content {
-            width: min(calc(100% - 32px), 430px);
-            padding: 42px 0 55px;
-          }
-
-          .title-area {
-            margin-bottom: 38px;
-          }
-
-          .title-area h1 {
-            font-size: 40px;
-            gap: 11px;
-          }
-
-          .title-diamond {
-            width: 45px;
-            height: 45px;
-          }
-
-          .title-area p {
-            font-size: 16px;
-            line-height: 1.7;
-          }
-
-          .balance-card {
-            padding: 23px;
-            border-radius: 19px;
-          }
-
-          .balance-content {
-            align-items: center;
-          }
-
-          .balance-icon {
-            width: 65px;
-            height: 65px;
-            font-size: 52px;
-          }
-
-          .balance-number {
-            font-size: 48px;
-          }
-
-          .balance-number span {
-            font-size: 20px;
-          }
-
-          .grid {
-            grid-template-columns: 1fr;
-          }
-
-          .packages {
-            grid-column: span 1;
-          }
-
-          .packages-grid {
-            grid-template-columns: 1fr;
-          }
-
-          .usage,
-          .history,
-          .info {
-            grid-column: span 1;
-          }
-
-          .actions {
+          .header-container {
+            padding: 14px 0;
+            align-items: flex-start;
             flex-direction: column;
           }
 
-          .action {
+          .header-nav {
             width: 100%;
-          }
-
-          .footer {
-            padding: 42px 24px 22px;
-          }
-
-          .footer-columns {
-            grid-template-columns: 1fr;
-            gap: 30px;
-          }
-        }
-
-        /* =========================
-           MOBILE PEQUENO
-        ========================= */
-
-        @media (max-width: 430px) {
-          .topbar {
-            min-height: 68px;
-            padding: 0 15px;
-            flex-wrap: nowrap;
-            justify-content: space-between;
-          }
-
-          .brand {
-            width: auto;
             justify-content: flex-start;
           }
 
-          .brand-icon {
-            font-size: 22px;
+          .section-heading {
+            align-items: flex-start;
+            flex-direction: column;
           }
 
-          .brand-name {
-            font-size: 14px;
+          .section-heading p {
+            text-align: left;
           }
 
-          .back-link {
-            font-size: 12px;
-            white-space: nowrap;
+          .footer-container {
+            grid-template-columns: repeat(2, 1fr);
+          }
+        }
+
+        @media (max-width: 600px) {
+          .header-container,
+          .content,
+          .footer-container,
+          .footer-bottom {
+            width: min(100% - 28px, 1180px);
           }
 
-          .balance-content {
-            gap: 10px;
+          .content {
+            padding-top: 35px;
+            padding-bottom: 55px;
+          }
+
+          .title-area {
+            align-items: flex-start;
+            gap: 14px;
+          }
+
+          .title-icon {
+            width: 62px;
+            height: 62px;
+            border-radius: 17px;
+          }
+
+          .title-diamantes {
+            font-size: 30px;
+            letter-spacing: 1px;
+          }
+
+          .title-area p {
+            font-size: 13px;
+          }
+
+          .balance-card {
+            min-height: auto;
+            padding: 22px 18px;
+          }
+
+          .balance-left {
+            gap: 13px;
           }
 
           .balance-icon {
-            width: 53px;
-            height: 53px;
-            font-size: 43px;
+            width: 62px;
+            height: 62px;
+            border-radius: 16px;
           }
 
-          .balance-number {
-            font-size: 42px;
+          .balance-value {
+            font-size: 31px;
           }
 
-          .balance-number span {
-            font-size: 18px;
+          .balance-unit {
+            font-size: 12px;
           }
 
-          .title-area h1 {
-            font-size: 34px;
-          }
-
-          .title-diamond {
+          .refresh-button {
             width: 40px;
             height: 40px;
           }
 
-          .footer {
-            padding-left: 18px;
-            padding-right: 18px;
+          .packages-grid {
+            grid-template-columns: 1fr;
           }
 
-          .footer-brand h2 {
-            font-size: 19px;
+          .package-card {
+            min-height: 350px;
+          }
+
+          .section-heading h2 {
+            font-size: 23px;
+          }
+
+          .info-card {
+            padding: 18px;
+          }
+
+          .bottom-note {
+            align-items: flex-start;
+          }
+
+          .footer-container {
+            grid-template-columns: 1fr;
+            gap: 30px;
+            padding: 40px 0;
+          }
+
+          .footer-column {
+            gap: 10px;
+          }
+
+          .header-nav {
+            gap: 3px;
+          }
+
+          .header-nav a {
+            padding: 7px 8px;
+            font-size: 12px;
           }
         }
       `}</style>
-
-      <main className="page">
-        {/* =========================
-            TOPO
-        ========================= */}
-
-        <header className="topbar">
-          <div className="brand">
-            <span className="brand-icon">✨</span>
-
-            <span className="brand-name">
-              CIEL IA STUDIO
-            </span>
-          </div>
-
-          <Link
-            href="/dashboard"
-            className="back-link"
-          >
-            ← Voltar ao Dashboard
-          </Link>
-        </header>
-
-        {/* =========================
-            CONTEÚDO
-        ========================= */}
-
-        <section className="content">
-          <div className="title-area">
-            <h1>
-              <span>💎</span>
-
-              <span>
-                DIAMANTES
-              </span>
-            </h1>
-
-            <p>
-              Gerencie seus Diamantes e acompanhe o uso das
-              ferramentas de inteligência artificial do
-              CIEL IA STUDIO.
-            </p>
-          </div>
-
-          {/* =========================
-              SALDO
-          ========================= */}
-
-          <section className="balance-card">
-            <div className="balance-content">
-              <div>
-                <div className="balance-label">
-                  Seu saldo disponível
-                </div>
-
-                <div className="balance-number">
-                  {loading ? (
-                    <span className="loading-balance">
-                      ...
-                    </span>
-                  ) : (
-                    <>
-                      {credits ?? 0}{" "}
-
-                      <span>
-                        {credits === 1
-                          ? "Diamante"
-                          : "Diamantes"}
-                      </span>
-                    </>
-                  )}
-                </div>
-
-                {error && (
-                  <div className="balance-error">
-                    {error}
-                  </div>
-                )}
-              </div>
-
-              <div className="balance-icon">
-                💎
-              </div>
-            </div>
-          </section>
-
-          {/* =========================
-              CARDS
-          ========================= */}
-
-          <div className="grid">
-            {/* PACOTES */}
-
-            <section className="card packages">
-              <h2>
-                ⚡ Adicionar Diamantes
-              </h2>
-
-              <p className="card-description">
-                Escolha um pacote de Diamantes para utilizar
-                nas ferramentas de criação do CIEL IA STUDIO.
-              </p>
-
-              <div className="packages-grid">
-                {/* 100 */}
-
-                <div className="package">
-                  <div className="package-icon">
-                    💎
-                  </div>
-
-                  <h3>
-                    💎 100 Diamantes
-                  </h3>
-
-                  <p>
-                    Pacote inicial
-                  </p>
-
-                  <button
-                    className="buy-button"
-                    onClick={() =>
-                      alert(
-                        "Compra de Diamantes será ativada em breve."
-                      )
-                    }
-                  >
-                    Comprar
-                  </button>
-                </div>
-
-                {/* 500 */}
-
-                <div className="package">
-                  <div className="package-icon">
-                    💎
-                  </div>
-
-                  <h3>
-                    💎 500 Diamantes
-                  </h3>
-
-                  <p>
-                    Pacote popular
-                  </p>
-
-                  <button
-                    className="buy-button"
-                    onClick={() =>
-                      alert(
-                        "Compra de Diamantes será ativada em breve."
-                      )
-                    }
-                  >
-                    Comprar
-                  </button>
-                </div>
-
-                {/* 1000 */}
-
-                <div className="package">
-                  <div className="package-icon">
-                    💎
-                  </div>
-
-                  <h3>
-                    💎 1.000 Diamantes
-                  </h3>
-
-                  <p>
-                    Pacote avançado
-                  </p>
-
-                  <button
-                    className="buy-button"
-                    onClick={() =>
-                      alert(
-                        "Compra de Diamantes será ativada em breve."
-                      )
-                    }
-                  >
-                    Comprar
-                  </button>
-                </div>
-              </div>
-            </section>
-
-            {/* USO */}
-
-            <section className="card usage">
-              <h2>
-                📊 Uso dos Diamantes
-              </h2>
-
-              <div className="usage-item">
-                <span className="usage-name">
-                  🤖 Criar Prompts
-                </span>
-
-                <span className="usage-value">
-                  Em breve
-                </span>
-              </div>
-
-              <div className="usage-item">
-                <span className="usage-name">
-                  🖼️ Texto → Imagem
-                </span>
-
-                <span className="usage-value">
-                  Em breve
-                </span>
-              </div>
-
-              <div className="usage-item">
-                <span className="usage-name">
-                  🎬 Texto → Vídeo
-                </span>
-
-                <span className="usage-value">
-                  Em breve
-                </span>
-              </div>
-
-              <div className="usage-item">
-                <span className="usage-name">
-                  ✨ Outras ferramentas
-                </span>
-
-                <span className="usage-value">
-                  Em breve
-                </span>
-              </div>
-            </section>
-
-            {/* HISTÓRICO */}
-
-            <section className="card history">
-              <h2>
-                🧾 Histórico
-              </h2>
-
-              <div className="history-empty">
-                📋 Nenhuma movimentação registrada ainda.
-                <br />
-                Quando você utilizar ou adicionar Diamantes,
-                seu histórico aparecerá aqui.
-              </div>
-            </section>
-
-            {/* INFORMAÇÕES */}
-
-            <section className="card info">
-              <h2>
-                💡 Como funcionam os Diamantes
-              </h2>
-
-              <div className="info-item">
-                <span>
-                  💎
-                </span>
-
-                <span>
-                  Seus Diamantes são utilizados para acessar
-                  as ferramentas de inteligência artificial.
-                </span>
-              </div>
-
-              <div className="info-item">
-                <span>
-                  ⚡
-                </span>
-
-                <span>
-                  Cada ferramenta poderá ter um custo
-                  diferente de Diamantes.
-                </span>
-              </div>
-
-              <div className="info-item">
-                <span>
-                  🔒
-                </span>
-
-                <span>
-                  Seu saldo fica associado à sua conta.
-                </span>
-              </div>
-            </section>
-          </div>
-
-          {/* =========================
-              AÇÕES
-          ========================= */}
-
-          <div className="actions">
-            <Link
-              href="/dashboard"
-              className="action action-primary"
-            >
-              ← Voltar ao Dashboard
-            </Link>
-
-            <Link
-              href="/minha-conta"
-              className="action action-secondary"
-            >
-              👤 Minha Conta
-            </Link>
-          </div>
-        </section>
-
-        {/* ==================================================
-            RODAPÉ COMPLETO DO CIEL IA STUDIO
-        ================================================== */}
-
-        <footer className="footer">
-          <div className="footer-inner">
-
-            {/* MARCA */}
-
-            <div className="footer-brand">
-              <h2>
-                CIEL IA STUDIO
-              </h2>
-
-              <p>
-                Crie. Transforme. Inove com IA.
-              </p>
-            </div>
-
-            {/* COLUNAS */}
-
-            <div className="footer-columns">
-
-              {/* PRODUTO */}
-
-              <div className="footer-column">
-                <h3>
-                  Produto
-                </h3>
-
-                <Link href="/criar-prompts">
-                  Criar Prompts
-                </Link>
-
-                <Link href="/texto-imagem">
-                  Texto → Imagem
-                </Link>
-
-                <Link href="/texto-video">
-                  Texto → Vídeo
-                </Link>
-
-                <Link href="/imagem-imagem">
-                  Imagem → Imagem
-                </Link>
-
-                <Link href="/imagem-video">
-                  Imagem → Vídeo
-                </Link>
-
-                <Link href="/projetos">
-                  Meus Projetos
-                </Link>
-
-                <Link href="/creditos">
-                  💎 Diamantes
-                </Link>
-              </div>
-
-              {/* SUPORTE */}
-
-              <div className="footer-column">
-                <h3>
-                  Suporte
-                </h3>
-
-                <Link href="/ajuda">
-                  Central de Ajuda
-                </Link>
-
-                <Link href="/contato">
-                  Contato
-                </Link>
-
-                <Link href="/sobre">
-                  Sobre o CIEL IA STUDIO
-                </Link>
-              </div>
-
-              {/* LEGAL */}
-
-              <div className="footer-column">
-                <h3>
-                  Legal
-                </h3>
-
-                <Link href="/termos">
-                  Termos de Uso
-                </Link>
-
-                <Link href="/privacidade">
-                  Política de Privacidade
-                </Link>
-              </div>
-
-            </div>
-
-            {/* COPYRIGHT */}
-
-            <div className="footer-bottom">
-              © 2026 CIEL IA STUDIO. Todos os direitos reservados.
-            </div>
-
-          </div>
-        </footer>
-      </main>
-    </>
+    </main>
   );
 }
