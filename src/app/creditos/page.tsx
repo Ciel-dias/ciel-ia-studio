@@ -78,7 +78,15 @@ export default function CreditosPage() {
         return;
       }
 
-      setDiamantes(Number(data?.["equilíbrio"]) || 0);
+      /*
+       * Tipagem explícita para evitar o erro do TypeScript
+       * causado pelo acesso à coluna "equilíbrio".
+       */
+      const saldo = data as {
+        equilíbrio?: number | string | null;
+      } | null;
+
+      setDiamantes(Number(saldo?.equilíbrio) || 0);
     } catch (error) {
       console.error("Erro inesperado ao carregar Diamantes:", error);
       setDiamantes(0);
@@ -103,6 +111,7 @@ export default function CreditosPage() {
     <main className="credits-page">
       <div className="page-background" />
 
+      {/* HEADER */}
       <header className="top-header">
         <div className="header-container">
           <Link href="/dashboard" className="brand">
@@ -127,7 +136,9 @@ export default function CreditosPage() {
         </div>
       </header>
 
+      {/* CONTEÚDO */}
       <section className="content">
+        {/* TÍTULO */}
         <div className="title-area">
           <div className="title-icon">
             <Diamond size={62} />
@@ -145,6 +156,7 @@ export default function CreditosPage() {
           </div>
         </div>
 
+        {/* SALDO */}
         <section className="balance-card">
           <div className="balance-left">
             <div className="balance-icon">
@@ -160,6 +172,7 @@ export default function CreditosPage() {
                 ) : (
                   <>
                     <span>{formatarNumero(diamantes ?? 0)}</span>
+
                     <span className="balance-unit">Diamantes</span>
                   </>
                 )}
@@ -179,6 +192,7 @@ export default function CreditosPage() {
           </button>
         </section>
 
+        {/* PACOTES */}
         <section className="packages-section">
           <div className="section-heading">
             <div>
@@ -236,6 +250,7 @@ export default function CreditosPage() {
           </div>
         </section>
 
+        {/* INFORMAÇÕES */}
         <section className="info-card">
           <div className="info-icon">
             <span>i</span>
@@ -258,6 +273,7 @@ export default function CreditosPage() {
           </div>
         </section>
 
+        {/* HISTÓRICO */}
         <section className="usage-section">
           <div className="section-heading">
             <div>
@@ -281,6 +297,7 @@ export default function CreditosPage() {
           </div>
         </section>
 
+        {/* OBSERVAÇÃO */}
         <section className="bottom-note">
           <Diamond size={28} />
 
@@ -291,17 +308,21 @@ export default function CreditosPage() {
         </section>
       </section>
 
+      {/* FOOTER */}
       <footer className="footer">
         <div className="footer-container">
+          {/* MARCA */}
           <div className="footer-brand">
             <Link href="/dashboard" className="footer-logo">
               <span className="footer-logo-icon">✦</span>
+
               <span>CIEL IA STUDIO</span>
             </Link>
 
             <p>Crie. Transforme. Inove com IA.</p>
           </div>
 
+          {/* PRODUTO */}
           <div className="footer-column">
             <h3>Produto</h3>
 
@@ -319,10 +340,12 @@ export default function CreditosPage() {
 
             <Link href="/creditos" className="footer-diamantes">
               <Diamond size={20} />
+
               <span>Diamantes</span>
             </Link>
           </div>
 
+          {/* SUPORTE */}
           <div className="footer-column">
             <h3>Suporte</h3>
 
@@ -333,6 +356,7 @@ export default function CreditosPage() {
             <Link href="/sobre">Sobre o CIEL IA STUDIO</Link>
           </div>
 
+          {/* LEGAL */}
           <div className="footer-column">
             <h3>Legal</h3>
 
@@ -379,6 +403,8 @@ export default function CreditosPage() {
               #050b15 100%
             );
         }
+
+        /* HEADER */
 
         .top-header {
           position: relative;
@@ -463,6 +489,8 @@ export default function CreditosPage() {
           box-shadow: inset 0 0 0 1px rgba(70, 210, 255, 0.12);
         }
 
+        /* CONTEÚDO */
+
         .content {
           position: relative;
           z-index: 1;
@@ -470,6 +498,8 @@ export default function CreditosPage() {
           margin: 0 auto;
           padding: 58px 0 80px;
         }
+
+        /* TÍTULO */
 
         .title-area {
           display: flex;
@@ -519,6 +549,8 @@ export default function CreditosPage() {
           font-size: 15px;
           line-height: 1.65;
         }
+
+        /* SALDO */
 
         .balance-card {
           min-height: 150px;
@@ -611,6 +643,8 @@ export default function CreditosPage() {
           opacity: 0.5;
         }
 
+        /* SEÇÕES */
+
         .packages-section,
         .usage-section {
           margin-top: 58px;
@@ -639,6 +673,8 @@ export default function CreditosPage() {
           line-height: 1.6;
           text-align: right;
         }
+
+        /* PACOTES */
 
         .packages-grid {
           display: grid;
@@ -791,6 +827,8 @@ export default function CreditosPage() {
           box-shadow: 0 8px 25px rgba(0, 169, 255, 0.12);
         }
 
+        /* INFORMAÇÕES */
+
         .info-card {
           margin-top: 34px;
           padding: 24px;
@@ -834,6 +872,8 @@ export default function CreditosPage() {
           margin-bottom: 0;
         }
 
+        /* HISTÓRICO */
+
         .empty-history {
           min-height: 250px;
           padding: 35px 25px;
@@ -873,6 +913,8 @@ export default function CreditosPage() {
           line-height: 1.65;
         }
 
+        /* OBSERVAÇÃO */
+
         .bottom-note {
           display: flex;
           align-items: center;
@@ -887,6 +929,8 @@ export default function CreditosPage() {
         .bottom-note p {
           margin: 0;
         }
+
+        /* FOOTER */
 
         .footer {
           position: relative;
@@ -971,6 +1015,8 @@ export default function CreditosPage() {
           text-align: center;
         }
 
+        /* ANIMAÇÃO */
+
         @keyframes pulse {
           0%,
           100% {
@@ -981,6 +1027,8 @@ export default function CreditosPage() {
             opacity: 1;
           }
         }
+
+        /* TABLET */
 
         @media (max-width: 1050px) {
           .packages-grid {
@@ -1017,6 +1065,8 @@ export default function CreditosPage() {
             grid-template-columns: repeat(2, 1fr);
           }
         }
+
+        /* CELULAR */
 
         @media (max-width: 600px) {
           .header-container,
