@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 
 type FilterType = "Todos" | "Imagens" | "Vídeos" | "Prompts";
 
@@ -10,25 +11,52 @@ export default function ProjetosPage() {
 
   const projetos = [
     {
+      tipo: "Prompts",
+      icon: "✨",
+      titulo: "Criar Prompts",
+      descricao:
+        "Crie e aprimore prompts com inteligência artificial.",
+      href: "/criar-prompts",
+    },
+    {
       tipo: "Imagens",
       icon: "🖼️",
-      titulo: "Minhas imagens",
+      titulo: "Texto → Imagem",
       descricao:
-        "Suas criações de Texto → Imagem e Imagem → Imagem aparecerão aqui.",
+        "Transforme seus textos em imagens incríveis com IA.",
+      href: "/texto-imagem",
     },
     {
       tipo: "Vídeos",
       icon: "🎬",
-      titulo: "Meus vídeos",
+      titulo: "Texto → Vídeo",
       descricao:
-        "Seus vídeos gerados por IA aparecerão aqui.",
+        "Transforme suas ideias em vídeos gerados por inteligência artificial.",
+      href: "/texto-video",
     },
     {
-      tipo: "Prompts",
-      icon: "✨",
-      titulo: "Meus prompts",
+      tipo: "Imagens",
+      icon: "🔄",
+      titulo: "Imagem → Imagem",
       descricao:
-        "Seus prompts criados e aprimorados com IA aparecerão aqui.",
+        "Transforme e crie novas imagens usando uma imagem de referência.",
+      href: "/imagem-imagem",
+    },
+    {
+      tipo: "Vídeos",
+      icon: "🎥",
+      titulo: "Imagem → Vídeo",
+      descricao:
+        "Anime suas imagens e transforme-as em vídeos com IA.",
+      href: "/imagem-video",
+    },
+    {
+      tipo: "Todos",
+      icon: "📁",
+      titulo: "Meus Projetos",
+      descricao:
+        "Organize e acompanhe todas as suas criações feitas no CIEL IA STUDIO.",
+      href: "/projetos",
     },
   ];
 
@@ -65,13 +93,8 @@ export default function ProjetosPage() {
           font-family: inherit;
         }
 
-        /* =========================
-           PÁGINA
-        ========================= */
-
         .page {
           min-height: 100vh;
-
           color: #ffffff;
 
           background:
@@ -101,13 +124,10 @@ export default function ProjetosPage() {
 
         .topbar {
           width: 100%;
-
           min-height: 74px;
 
           display: flex;
-
           align-items: center;
-
           justify-content: space-between;
 
           padding: 0 42px;
@@ -122,11 +142,8 @@ export default function ProjetosPage() {
 
         .brand {
           display: flex;
-
           align-items: center;
-
           gap: 10px;
-
           white-space: nowrap;
         }
 
@@ -140,9 +157,7 @@ export default function ProjetosPage() {
 
         .brand-name {
           font-size: 20px;
-
           font-weight: 800;
-
           letter-spacing: 0.5px;
         }
 
@@ -152,7 +167,6 @@ export default function ProjetosPage() {
           text-decoration: none;
 
           font-size: 17px;
-
           font-weight: 700;
 
           transition:
@@ -188,7 +202,6 @@ export default function ProjetosPage() {
 
         .title-area {
           text-align: center;
-
           margin-bottom: 34px;
         }
 
@@ -204,6 +217,18 @@ export default function ProjetosPage() {
           line-height: 1.12;
 
           text-transform: uppercase;
+
+          background:
+            linear-gradient(
+              90deg,
+              #ffffff,
+              #76ddff,
+              #ffffff
+            );
+
+          -webkit-background-clip: text;
+          -webkit-text-fill-color: transparent;
+          background-clip: text;
         }
 
         .title-area p {
@@ -214,7 +239,6 @@ export default function ProjetosPage() {
           color: #b7c5d5;
 
           font-size: 17px;
-
           line-height: 1.5;
         }
 
@@ -224,15 +248,12 @@ export default function ProjetosPage() {
 
         .toolbar {
           display: flex;
-
           align-items: center;
-
           justify-content: space-between;
 
           gap: 20px;
 
           margin-bottom: 28px;
-
           padding: 18px 20px;
 
           border-radius: 18px;
@@ -254,15 +275,12 @@ export default function ProjetosPage() {
           color: #c7d5e3;
 
           font-size: 14px;
-
           font-weight: 700;
         }
 
         .filters {
           display: flex;
-
           flex-wrap: wrap;
-
           gap: 9px;
         }
 
@@ -286,7 +304,6 @@ export default function ProjetosPage() {
           cursor: pointer;
 
           font-size: 13px;
-
           font-weight: 700;
 
           transition:
@@ -296,7 +313,6 @@ export default function ProjetosPage() {
 
         .filter:hover {
           color: #ffffff;
-
           border-color: #58c9ff;
         }
 
@@ -320,7 +336,7 @@ export default function ProjetosPage() {
         }
 
         /* =========================
-           CARDS DOS PROJETOS
+           CARDS
         ========================= */
 
         .projects-grid {
@@ -335,15 +351,22 @@ export default function ProjetosPage() {
           gap: 28px;
         }
 
+        .project-link {
+          display: block;
+
+          color: inherit;
+          text-decoration: none;
+
+          height: 100%;
+        }
+
         .project-card {
           min-height: 300px;
 
           padding: 28px;
 
           display: flex;
-
           flex-direction: column;
-
           justify-content: space-between;
 
           text-align: center;
@@ -373,7 +396,7 @@ export default function ProjetosPage() {
             background 0.22s ease;
         }
 
-        .project-card:hover {
+        .project-link:hover .project-card {
           transform: translateY(-5px);
 
           background:
@@ -394,15 +417,12 @@ export default function ProjetosPage() {
 
         .project-icon {
           width: 92px;
-
           height: 92px;
 
           margin: 0 auto 22px;
 
           display: flex;
-
           align-items: center;
-
           justify-content: center;
 
           border-radius: 22px;
@@ -428,7 +448,6 @@ export default function ProjetosPage() {
 
         .project-card h2 {
           margin: 0;
-
           font-size: 21px;
         }
 
@@ -440,7 +459,6 @@ export default function ProjetosPage() {
           color: #aebdcc;
 
           font-size: 14px;
-
           line-height: 1.55;
         }
 
@@ -466,7 +484,6 @@ export default function ProjetosPage() {
             rgba(94, 203, 255, 0.2);
 
           font-size: 12px;
-
           font-weight: 700;
         }
 
@@ -511,7 +528,6 @@ export default function ProjetosPage() {
 
         .empty h2 {
           margin: 0;
-
           font-size: 21px;
         }
 
@@ -546,7 +562,6 @@ export default function ProjetosPage() {
           text-decoration: none;
 
           font-size: 14px;
-
           font-weight: 800;
 
           box-shadow:
@@ -603,7 +618,6 @@ export default function ProjetosPage() {
 
         .footer-brand h2 {
           margin: 0 0 8px;
-
           font-size: 24px;
         }
 
@@ -611,7 +625,6 @@ export default function ProjetosPage() {
           margin: 0;
 
           color: #9eacbd;
-
           font-size: 15px;
         }
 
@@ -626,7 +639,6 @@ export default function ProjetosPage() {
 
         .footer-column h3 {
           margin: 0 0 18px;
-
           font-size: 16px;
         }
 
@@ -684,7 +696,6 @@ export default function ProjetosPage() {
 
           .toolbar {
             align-items: flex-start;
-
             flex-direction: column;
           }
         }
@@ -696,7 +707,6 @@ export default function ProjetosPage() {
         @media (max-width: 650px) {
           .topbar {
             min-height: 68px;
-
             padding: 0 16px;
           }
 
@@ -723,7 +733,6 @@ export default function ProjetosPage() {
 
           .projects-grid {
             grid-template-columns: 1fr;
-
             gap: 20px;
           }
 
@@ -741,7 +750,6 @@ export default function ProjetosPage() {
 
           .footer-columns {
             grid-template-columns: 1fr;
-
             gap: 30px;
           }
         }
@@ -753,9 +761,7 @@ export default function ProjetosPage() {
         @media (max-width: 430px) {
           .topbar {
             min-height: 68px;
-
             padding: 0 12px;
-
             gap: 8px;
           }
 
@@ -773,7 +779,6 @@ export default function ProjetosPage() {
 
           .back {
             font-size: 12px;
-
             white-space: nowrap;
           }
 
@@ -826,12 +831,12 @@ export default function ProjetosPage() {
 
           </div>
 
-          <a
+          <Link
             href="/dashboard"
             className="back"
           >
             ← Voltar ao Dashboard
-          </a>
+          </Link>
 
         </header>
 
@@ -906,32 +911,39 @@ export default function ProjetosPage() {
             {projetosFiltrados.map(
               (projeto) => (
 
-                <article
-                  key={projeto.tipo}
-                  className="project-card"
+                <Link
+                  key={projeto.titulo}
+                  href={projeto.href}
+                  className="project-link"
                 >
 
-                  <div>
+                  <article className="project-card">
 
-                    <div className="project-icon">
-                      {projeto.icon}
+                    <div>
+
+                      <div className="project-icon">
+                        {projeto.icon}
+                      </div>
+
+                      <h2>
+                        {projeto.titulo}
+                      </h2>
+
+                      <p>
+                        {projeto.descricao}
+                      </p>
+
+                      <span className="project-type">
+                        {projeto.tipo === "Todos"
+                          ? "Projetos"
+                          : projeto.tipo}
+                      </span>
+
                     </div>
 
-                    <h2>
-                      {projeto.titulo}
-                    </h2>
+                  </article>
 
-                    <p>
-                      {projeto.descricao}
-                    </p>
-
-                    <span className="project-type">
-                      {projeto.tipo}
-                    </span>
-
-                  </div>
-
-                </article>
+                </Link>
 
               )
             )}
@@ -958,12 +970,12 @@ export default function ProjetosPage() {
               eles serão organizados nesta área.
             </p>
 
-            <a
+            <Link
               href="/criar-prompts"
               className="create-button"
             >
               ✨ Começar uma criação
-            </a>
+            </Link>
 
           </div>
 
@@ -999,29 +1011,29 @@ export default function ProjetosPage() {
                   Produto
                 </h3>
 
-                <a href="/criar-prompts">
+                <Link href="/criar-prompts">
                   Criar Prompts
-                </a>
+                </Link>
 
-                <a href="/texto-imagem">
+                <Link href="/texto-imagem">
                   Texto → Imagem
-                </a>
+                </Link>
 
-                <a href="/texto-video">
+                <Link href="/texto-video">
                   Texto → Vídeo
-                </a>
+                </Link>
 
-                <a href="/imagem-imagem">
+                <Link href="/imagem-imagem">
                   Imagem → Imagem
-                </a>
+                </Link>
 
-                <a href="/imagem-video">
+                <Link href="/imagem-video">
                   Imagem → Vídeo
-                </a>
+                </Link>
 
-                <a href="/projetos">
+                <Link href="/projetos">
                   Meus Projetos
-                </a>
+                </Link>
 
               </div>
 
@@ -1033,39 +1045,39 @@ export default function ProjetosPage() {
                   Suporte
                 </h3>
 
-                <a href="/ajuda">
+                <Link href="/ajuda">
                   Central de Ajuda
-                </a>
+                </Link>
 
-                <a href="/contato">
+                <Link href="/contato">
                   Contato
-                </a>
+                </Link>
 
-                <a href="/sobre">
+                <Link href="/sobre">
                   Sobre o CIEL IA STUDIO
-                </a>
+                </Link>
 
               </div>
 
-              {/* LEGAL */}
+              {/* CONTA */}
 
               <div className="footer-column">
 
                 <h3>
-                  Legal
+                  Conta
                 </h3>
 
-                <a href="/termos">
-                  Termos de Uso
-                </a>
+                <Link href="/diamantes">
+                  💎 Diamantes
+                </Link>
 
-                <a href="/privacidade">
-                  Política de Privacidade
-                </a>
+                <Link href="/configuracoes">
+                  ⚙️ Configurações
+                </Link>
 
-                <a href="/reembolso">
-                  Política de Reembolso
-                </a>
+                <Link href="/dashboard">
+                  🏠 Dashboard
+                </Link>
 
               </div>
 
