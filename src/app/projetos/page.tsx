@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import Link from "next/link";
 
 type FilterType = "Todos" | "Imagens" | "Vídeos" | "Prompts";
 
@@ -11,52 +10,25 @@ export default function ProjetosPage() {
 
   const projetos = [
     {
-      tipo: "Prompts",
-      icon: "✨",
-      titulo: "Criar Prompts",
-      descricao:
-        "Crie e aprimore prompts com inteligência artificial.",
-      href: "/criar-prompts",
-    },
-    {
       tipo: "Imagens",
       icon: "🖼️",
-      titulo: "Texto → Imagem",
+      titulo: "Minhas imagens",
       descricao:
-        "Transforme seus textos em imagens incríveis com IA.",
-      href: "/texto-imagem",
+        "Suas criações de Texto → Imagem e Imagem → Imagem aparecerão aqui.",
     },
     {
       tipo: "Vídeos",
       icon: "🎬",
-      titulo: "Texto → Vídeo",
+      titulo: "Meus vídeos",
       descricao:
-        "Transforme suas ideias em vídeos gerados por inteligência artificial.",
-      href: "/texto-video",
+        "Seus vídeos gerados por IA aparecerão aqui.",
     },
     {
-      tipo: "Imagens",
-      icon: "🔄",
-      titulo: "Imagem → Imagem",
+      tipo: "Prompts",
+      icon: "✨",
+      titulo: "Meus prompts",
       descricao:
-        "Transforme e crie novas imagens usando uma imagem de referência.",
-      href: "/imagem-imagem",
-    },
-    {
-      tipo: "Vídeos",
-      icon: "🎥",
-      titulo: "Imagem → Vídeo",
-      descricao:
-        "Anime suas imagens e transforme-as em vídeos com IA.",
-      href: "/imagem-video",
-    },
-    {
-      tipo: "Todos",
-      icon: "📁",
-      titulo: "Meus Projetos",
-      descricao:
-        "Organize e acompanhe todas as suas criações feitas no CIEL IA STUDIO.",
-      href: "/projetos",
+        "Seus prompts criados e aprimorados com IA aparecerão aqui.",
     },
   ];
 
@@ -93,18 +65,23 @@ export default function ProjetosPage() {
           font-family: inherit;
         }
 
+        /* =========================
+           PÁGINA
+        ========================= */
+
         .page {
           min-height: 100vh;
+
           color: #ffffff;
 
           background:
             radial-gradient(
-              circle at 78% 16%,
+              circle at 75% 20%,
               rgba(20, 119, 190, 0.42),
               transparent 38%
             ),
             radial-gradient(
-              circle at 14% 68%,
+              circle at 15% 65%,
               rgba(15, 76, 125, 0.32),
               transparent 40%
             ),
@@ -124,17 +101,21 @@ export default function ProjetosPage() {
 
         .topbar {
           width: 100%;
+
           min-height: 74px;
 
           display: flex;
+
           align-items: center;
+
           justify-content: space-between;
 
           padding: 0 42px;
 
           background: rgba(4, 12, 24, 0.92);
 
-          border-bottom: 1px solid
+          border-bottom:
+            1px solid
             rgba(100, 180, 255, 0.18);
 
           backdrop-filter: blur(12px);
@@ -142,8 +123,11 @@ export default function ProjetosPage() {
 
         .brand {
           display: flex;
+
           align-items: center;
+
           gap: 10px;
+
           white-space: nowrap;
         }
 
@@ -151,13 +135,16 @@ export default function ProjetosPage() {
           font-size: 28px;
 
           filter: drop-shadow(
-            0 0 10px rgba(75, 199, 255, 0.8)
+            0 0 10px
+            rgba(75, 199, 255, 0.8)
           );
         }
 
         .brand-name {
           font-size: 20px;
+
           font-weight: 800;
+
           letter-spacing: 0.5px;
         }
 
@@ -167,6 +154,7 @@ export default function ProjetosPage() {
           text-decoration: none;
 
           font-size: 17px;
+
           font-weight: 700;
 
           transition:
@@ -180,7 +168,7 @@ export default function ProjetosPage() {
 
           text-shadow:
             0 0 12px
-              rgba(75, 199, 255, 0.8);
+            rgba(75, 199, 255, 0.8);
 
           transform: translateX(-2px);
         }
@@ -202,6 +190,7 @@ export default function ProjetosPage() {
 
         .title-area {
           text-align: center;
+
           margin-bottom: 34px;
         }
 
@@ -217,18 +206,6 @@ export default function ProjetosPage() {
           line-height: 1.12;
 
           text-transform: uppercase;
-
-          background:
-            linear-gradient(
-              90deg,
-              #ffffff,
-              #76ddff,
-              #ffffff
-            );
-
-          -webkit-background-clip: text;
-          -webkit-text-fill-color: transparent;
-          background-clip: text;
         }
 
         .title-area p {
@@ -239,6 +216,7 @@ export default function ProjetosPage() {
           color: #b7c5d5;
 
           font-size: 17px;
+
           line-height: 1.5;
         }
 
@@ -248,12 +226,15 @@ export default function ProjetosPage() {
 
         .toolbar {
           display: flex;
+
           align-items: center;
+
           justify-content: space-between;
 
           gap: 20px;
 
           margin-bottom: 28px;
+
           padding: 18px 20px;
 
           border-radius: 18px;
@@ -265,7 +246,8 @@ export default function ProjetosPage() {
             0.65
           );
 
-          border: 1px solid
+          border:
+            1px solid
             rgba(94, 203, 255, 0.22);
 
           backdrop-filter: blur(10px);
@@ -275,12 +257,15 @@ export default function ProjetosPage() {
           color: #c7d5e3;
 
           font-size: 14px;
+
           font-weight: 700;
         }
 
         .filters {
           display: flex;
+
           flex-wrap: wrap;
+
           gap: 9px;
         }
 
@@ -289,7 +274,8 @@ export default function ProjetosPage() {
 
           border-radius: 11px;
 
-          border: 1px solid
+          border:
+            1px solid
             rgba(94, 203, 255, 0.28);
 
           background: rgba(
@@ -304,6 +290,7 @@ export default function ProjetosPage() {
           cursor: pointer;
 
           font-size: 13px;
+
           font-weight: 700;
 
           transition:
@@ -313,6 +300,7 @@ export default function ProjetosPage() {
 
         .filter:hover {
           color: #ffffff;
+
           border-color: #58c9ff;
         }
 
@@ -330,13 +318,13 @@ export default function ProjetosPage() {
 
           box-shadow:
             0 0 10px
-              rgba(70, 199, 255, 0.55),
+            rgba(70, 199, 255, 0.55),
             0 0 20px
-              rgba(43, 167, 255, 0.25);
+            rgba(43, 167, 255, 0.25);
         }
 
         /* =========================
-           CARDS
+           CARDS DOS PROJETOS
         ========================= */
 
         .projects-grid {
@@ -351,22 +339,15 @@ export default function ProjetosPage() {
           gap: 28px;
         }
 
-        .project-link {
-          display: block;
-
-          color: inherit;
-          text-decoration: none;
-
-          height: 100%;
-        }
-
         .project-card {
           min-height: 300px;
 
           padding: 28px;
 
           display: flex;
+
           flex-direction: column;
+
           justify-content: space-between;
 
           text-align: center;
@@ -380,15 +361,16 @@ export default function ProjetosPage() {
               rgba(14, 25, 40, 0.97)
             );
 
-          border: 2px solid #58c9ff;
+          border:
+            2px solid #58c9ff;
 
           box-shadow:
             0 0 8px
-              rgba(70, 199, 255, 0.8),
+            rgba(70, 199, 255, 0.8),
             0 0 22px
-              rgba(43, 167, 255, 0.35),
+            rgba(43, 167, 255, 0.35),
             inset 0 0 22px
-              rgba(56, 174, 255, 0.07);
+            rgba(56, 174, 255, 0.07);
 
           transition:
             transform 0.22s ease,
@@ -396,7 +378,7 @@ export default function ProjetosPage() {
             background 0.22s ease;
         }
 
-        .project-link:hover .project-card {
+        .project-card:hover {
           transform: translateY(-5px);
 
           background:
@@ -408,46 +390,38 @@ export default function ProjetosPage() {
 
           box-shadow:
             0 0 12px
-              rgba(85, 211, 255, 1),
+            rgba(85, 211, 255, 1),
             0 0 32px
-              rgba(43, 167, 255, 0.7),
+            rgba(43, 167, 255, 0.7),
             inset 0 0 25px
-              rgba(56, 174, 255, 0.12);
+            rgba(56, 174, 255, 0.12);
         }
 
-        .project-icon {
-          width: 92px;
-          height: 92px;
+        /*
+          Emoji mantido diretamente,
+          sem caixa/quadrado.
+        */
 
+        .project-icon {
           margin: 0 auto 22px;
 
           display: flex;
-          align-items: center;
-          justify-content: center;
 
-          border-radius: 22px;
+          align-items: center;
+
+          justify-content: center;
 
           font-size: 46px;
 
-          background:
-            radial-gradient(
-              circle,
-              rgba(43, 167, 255, 0.18),
-              transparent 70%
-            ),
-            rgba(
-              3,
-              13,
-              25,
-              0.72
-            );
-
-          border: 1px solid
-            rgba(94, 203, 255, 0.3);
+          filter: drop-shadow(
+            0 0 10px
+            rgba(75, 199, 255, 0.55)
+          );
         }
 
         .project-card h2 {
           margin: 0;
+
           font-size: 21px;
         }
 
@@ -459,6 +433,7 @@ export default function ProjetosPage() {
           color: #aebdcc;
 
           font-size: 14px;
+
           line-height: 1.55;
         }
 
@@ -480,10 +455,12 @@ export default function ProjetosPage() {
             0.15
           );
 
-          border: 1px solid
+          border:
+            1px solid
             rgba(94, 203, 255, 0.2);
 
           font-size: 12px;
+
           font-weight: 700;
         }
 
@@ -500,7 +477,8 @@ export default function ProjetosPage() {
 
           border-radius: 22px;
 
-          border: 1px dashed
+          border:
+            1px dashed
             rgba(104, 207, 255, 0.35);
 
           background: rgba(
@@ -512,7 +490,7 @@ export default function ProjetosPage() {
 
           box-shadow:
             inset 0 0 25px
-              rgba(43, 167, 255, 0.04);
+            rgba(43, 167, 255, 0.04);
         }
 
         .empty-icon {
@@ -522,12 +500,13 @@ export default function ProjetosPage() {
 
           filter: drop-shadow(
             0 0 12px
-              rgba(75, 199, 255, 0.55)
+            rgba(75, 199, 255, 0.55)
           );
         }
 
         .empty h2 {
           margin: 0;
+
           font-size: 21px;
         }
 
@@ -562,13 +541,14 @@ export default function ProjetosPage() {
           text-decoration: none;
 
           font-size: 14px;
+
           font-weight: 800;
 
           box-shadow:
             0 0 10px
-              rgba(70, 199, 255, 0.65),
+            rgba(70, 199, 255, 0.65),
             0 0 22px
-              rgba(43, 167, 255, 0.3);
+            rgba(43, 167, 255, 0.3);
 
           transition:
             transform 0.2s ease,
@@ -580,9 +560,9 @@ export default function ProjetosPage() {
 
           box-shadow:
             0 0 14px
-              rgba(85, 211, 255, 1),
+            rgba(85, 211, 255, 1),
             0 0 30px
-              rgba(43, 167, 255, 0.5);
+            rgba(43, 167, 255, 0.5);
         }
 
         /* =========================
@@ -590,7 +570,8 @@ export default function ProjetosPage() {
         ========================= */
 
         .footer {
-          border-top: 1px solid
+          border-top:
+            1px solid
             rgba(100, 180, 255, 0.18);
 
           background:
@@ -600,14 +581,13 @@ export default function ProjetosPage() {
               rgba(3, 11, 22, 1)
             );
 
-          padding: 52px 42px 24px;
+          padding:
+            52px 42px 24px;
         }
 
         .footer-inner {
-          width: min(
-            1180px,
-            100%
-          );
+          width:
+            min(1180px, 100%);
 
           margin: 0 auto;
         }
@@ -617,7 +597,9 @@ export default function ProjetosPage() {
         }
 
         .footer-brand h2 {
-          margin: 0 0 8px;
+          margin:
+            0 0 8px;
+
           font-size: 24px;
         }
 
@@ -625,6 +607,7 @@ export default function ProjetosPage() {
           margin: 0;
 
           color: #9eacbd;
+
           font-size: 15px;
         }
 
@@ -638,7 +621,9 @@ export default function ProjetosPage() {
         }
 
         .footer-column h3 {
-          margin: 0 0 18px;
+          margin:
+            0 0 18px;
+
           font-size: 16px;
         }
 
@@ -654,12 +639,10 @@ export default function ProjetosPage() {
           text-decoration: none;
 
           font-size: 14px;
-
-          transition: color 0.2s ease;
         }
 
         .footer-column a:hover {
-          color: #68d2ff;
+          color: #7bd8ff;
         }
 
         .footer-bottom {
@@ -667,7 +650,8 @@ export default function ProjetosPage() {
 
           padding-top: 22px;
 
-          border-top: 1px solid
+          border-top:
+            1px solid
             rgba(100, 180, 255, 0.16);
 
           text-align: center;
@@ -696,6 +680,7 @@ export default function ProjetosPage() {
 
           .toolbar {
             align-items: flex-start;
+
             flex-direction: column;
           }
         }
@@ -707,6 +692,7 @@ export default function ProjetosPage() {
         @media (max-width: 650px) {
           .topbar {
             min-height: 68px;
+
             padding: 0 16px;
           }
 
@@ -733,6 +719,7 @@ export default function ProjetosPage() {
 
           .projects-grid {
             grid-template-columns: 1fr;
+
             gap: 20px;
           }
 
@@ -745,11 +732,13 @@ export default function ProjetosPage() {
           }
 
           .footer {
-            padding: 42px 24px 22px;
+            padding:
+              42px 24px 22px;
           }
 
           .footer-columns {
             grid-template-columns: 1fr;
+
             gap: 30px;
           }
         }
@@ -761,7 +750,9 @@ export default function ProjetosPage() {
         @media (max-width: 430px) {
           .topbar {
             min-height: 68px;
+
             padding: 0 12px;
+
             gap: 8px;
           }
 
@@ -779,6 +770,7 @@ export default function ProjetosPage() {
 
           .back {
             font-size: 12px;
+
             white-space: nowrap;
           }
 
@@ -806,7 +798,8 @@ export default function ProjetosPage() {
           }
 
           .empty {
-            padding: 45px 18px;
+            padding:
+              45px 18px;
           }
         }
       `}</style>
@@ -831,12 +824,12 @@ export default function ProjetosPage() {
 
           </div>
 
-          <Link
+          <a
             href="/dashboard"
             className="back"
           >
             ← Voltar ao Dashboard
-          </Link>
+          </a>
 
         </header>
 
@@ -911,39 +904,32 @@ export default function ProjetosPage() {
             {projetosFiltrados.map(
               (projeto) => (
 
-                <Link
-                  key={projeto.titulo}
-                  href={projeto.href}
-                  className="project-link"
+                <article
+                  key={projeto.tipo}
+                  className="project-card"
                 >
 
-                  <article className="project-card">
+                  <div>
 
-                    <div>
-
-                      <div className="project-icon">
-                        {projeto.icon}
-                      </div>
-
-                      <h2>
-                        {projeto.titulo}
-                      </h2>
-
-                      <p>
-                        {projeto.descricao}
-                      </p>
-
-                      <span className="project-type">
-                        {projeto.tipo === "Todos"
-                          ? "Projetos"
-                          : projeto.tipo}
-                      </span>
-
+                    <div className="project-icon">
+                      {projeto.icon}
                     </div>
 
-                  </article>
+                    <h2>
+                      {projeto.titulo}
+                    </h2>
 
-                </Link>
+                    <p>
+                      {projeto.descricao}
+                    </p>
+
+                    <span className="project-type">
+                      {projeto.tipo}
+                    </span>
+
+                  </div>
+
+                </article>
 
               )
             )}
@@ -970,12 +956,12 @@ export default function ProjetosPage() {
               eles serão organizados nesta área.
             </p>
 
-            <Link
+            <a
               href="/criar-prompts"
               className="create-button"
             >
               ✨ Começar uma criação
-            </Link>
+            </a>
 
           </div>
 
@@ -1011,29 +997,33 @@ export default function ProjetosPage() {
                   Produto
                 </h3>
 
-                <Link href="/criar-prompts">
+                <a href="/criar-prompts">
                   Criar Prompts
-                </Link>
+                </a>
 
-                <Link href="/texto-imagem">
+                <a href="/texto-imagem">
                   Texto → Imagem
-                </Link>
+                </a>
 
-                <Link href="/texto-video">
+                <a href="/texto-video">
                   Texto → Vídeo
-                </Link>
+                </a>
 
-                <Link href="/imagem-imagem">
+                <a href="/imagem-imagem">
                   Imagem → Imagem
-                </Link>
+                </a>
 
-                <Link href="/imagem-video">
+                <a href="/imagem-video">
                   Imagem → Vídeo
-                </Link>
+                </a>
 
-                <Link href="/projetos">
+                <a href="/projetos">
                   Meus Projetos
-                </Link>
+                </a>
+
+                <a href="/diamantes">
+                  💎 Diamantes
+                </a>
 
               </div>
 
@@ -1045,39 +1035,35 @@ export default function ProjetosPage() {
                   Suporte
                 </h3>
 
-                <Link href="/ajuda">
+                <a href="/ajuda">
                   Central de Ajuda
-                </Link>
+                </a>
 
-                <Link href="/contato">
+                <a href="/contato">
                   Contato
-                </Link>
+                </a>
 
-                <Link href="/sobre">
+                <a href="/sobre">
                   Sobre o CIEL IA STUDIO
-                </Link>
+                </a>
 
               </div>
 
-              {/* CONTA */}
+              {/* LEGAL */}
 
               <div className="footer-column">
 
                 <h3>
-                  Conta
+                  Legal
                 </h3>
 
-                <Link href="/diamantes">
-                  💎 Diamantes
-                </Link>
+                <a href="/termos">
+                  Termos de Uso
+                </a>
 
-                <Link href="/configuracoes">
-                  ⚙️ Configurações
-                </Link>
-
-                <Link href="/dashboard">
-                  🏠 Dashboard
-                </Link>
+                <a href="/privacidade">
+                  Política de Privacidade
+                </a>
 
               </div>
 
