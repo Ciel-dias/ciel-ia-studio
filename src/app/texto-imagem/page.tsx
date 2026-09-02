@@ -1,7 +1,10 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import Diamond from "@/components/Diamond";
+
+const IMAGE_COST = 3;
 
 export default function TextoImagemPage() {
   const [prompt, setPrompt] = useState("");
@@ -12,9 +15,61 @@ export default function TextoImagemPage() {
   const [result, setResult] = useState<any>(null);
   const [errorData, setErrorData] = useState<any>(null);
 
+  const [balance, setBalance] = useState<number | null>(null);
+  const [balanceLoading, setBalanceLoading] = useState(true);
+
+  // =========================================================
+  // BUSCAR SALDO REAL DO SUPABASE
+  // =========================================================
+
+  async function loadBalance() {
+    try {
+      setBalanceLoading(true);
+
+      const response = await fetch("/api/credits", {
+        method: "GET",
+        cache: "no-store",
+      });
+
+      const data = await response.json();
+
+      if (response.ok && data?.success) {
+        setBalance(
+          typeof data.balance === "number"
+            ? data.balance
+            : Number(data.balance)
+        );
+      }
+    } catch (error) {
+      console.error(
+        "Erro ao carregar saldo:",
+        error
+      );
+    } finally {
+      setBalanceLoading(false);
+    }
+  }
+
+  useEffect(() => {
+    loadBalance();
+  }, []);
+
+  // =========================================================
+  // GERAR IMAGEM
+  // =========================================================
+
   async function handleGenerate() {
     if (!prompt.trim()) {
-      alert("Digite uma descrição para gerar sua imagem.");
+      alert(
+        "Digite uma descrição para gerar sua imagem."
+      );
+      return;
+    }
+
+    if (balance !== null && balance < IMAGE_COST) {
+      alert(
+        "Você não possui Diamantes suficientes para gerar esta imagem."
+      );
       return;
     }
 
@@ -28,41 +83,79 @@ export default function TextoImagemPage() {
         `Estilo visual: ${style}. ` +
         `Alta qualidade, extremamente detalhada, fotorealista.`;
 
-      const response = await fetch("/api/kling-image", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          prompt: finalPrompt,
-          aspect_ratio: aspectRatio,
-        }),
-      });
+      const response = await fetch(
+        "/api/openai-image",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            prompt: finalPrompt,
+            aspect_ratio: aspectRatio,
+          }),
+        }
+      );
 
       const data = await response.json();
 
-      if (!response.ok || data?.status !== "success") {
+      if (!response.ok || !data?.success) {
         setErrorData(data);
 
+        if (
+          typeof data?.remainingDiamonds ===
+          "number"
+        ) {
+          setBalance(
+            data.remainingDiamonds
+          );
+        }
+
         throw new Error(
-          data?.message ||
-            "A Kling recusou a solicitação de imagem."
+          data?.error ||
+            "Não foi possível gerar a imagem."
         );
       }
 
       setResult(data);
-    } catch (error) {
-      console.error("Erro ao gerar imagem:", error);
 
-      if (!errorData) {
-        setErrorData({
-          status: "error",
-          message:
+      if (
+        typeof data?.remainingDiamonds ===
+        "number"
+      ) {
+        setBalance(
+          data.remainingDiamonds
+        );
+      } else if (
+        typeof balance === "number"
+      ) {
+        setBalance(
+          balance - IMAGE_COST
+        );
+      }
+    } catch (error) {
+      console.error(
+        "Erro ao gerar imagem:",
+        error
+      );
+
+      setErrorData((current: any) => {
+        if (current) {
+          return current;
+        }
+
+        return {
+          success: false,
+          error:
             error instanceof Error
               ? error.message
-              : "Erro ao conectar com a API da Kling.",
-        });
-      }
+              : "Erro ao conectar com o serviço de geração de imagem.",
+        };
+      });
+
+      // Atualiza o saldo porque a API pode
+      // ter realizado um estorno.
+      await loadBalance();
     } finally {
       setLoading(false);
     }
@@ -369,7 +462,7 @@ export default function TextoImagemPage() {
         }
 
         /* =========================
-           CRÉDITOS
+           SALDO
         ========================= */
 
         .credits {
@@ -388,6 +481,63 @@ export default function TextoImagemPage() {
           color: #bfeaff;
 
           font-size: 14px;
+
+          display: flex;
+          align-items: center;
+          gap: 9px;
+        }
+
+        .credits-diamond {
+          display: inline-flex;
+
+          align-items: center;
+          justify-content: center;
+
+          flex-shrink: 0;
+        }
+
+        .credits strong {
+          color: #ffffff;
+        }
+
+        /* =========================
+           CUSTO
+        ========================= */
+
+        .cost {
+          margin-top: 20px;
+
+          display: flex;
+
+          align-items: center;
+
+          justify-content: center;
+
+          gap: 9px;
+
+          min-height: 44px;
+
+          color: #c9f3ff;
+
+          font-size: 14px;
+
+          font-weight: 700;
+
+          text-align: center;
+        }
+
+        .cost-text {
+          display: inline-flex;
+
+          align-items: center;
+
+          gap: 5px;
+        }
+
+        .cost-value {
+          color: #ffffff;
+
+          font-weight: 800;
         }
 
         /* =========================
@@ -397,7 +547,7 @@ export default function TextoImagemPage() {
         .generate {
           width: 100%;
 
-          margin-top: 22px;
+          margin-top: 8px;
 
           padding: 16px;
 
@@ -460,6 +610,12 @@ export default function TextoImagemPage() {
             rgba(2, 12, 24, 0.55);
 
           padding: 25px;
+
+          overflow: hidden;
+        }
+
+        .preview-content {
+          width: 100%;
         }
 
         .preview-icon {
@@ -486,6 +642,49 @@ export default function TextoImagemPage() {
         }
 
         /* =========================
+           IMAGEM RESULTADO
+        ========================= */
+
+        .result-image {
+          display: block;
+
+          width: 100%;
+
+          max-width: 100%;
+
+          max-height: 620px;
+
+          object-fit: contain;
+
+          margin:
+            0 auto 18px;
+
+          border-radius: 14px;
+
+          box-shadow:
+            0 0 18px rgba(43, 167, 255, 0.28);
+
+          border:
+            1px solid rgba(104, 207, 255, 0.3);
+        }
+
+        .result-title {
+          color: #72f0b1;
+
+          font-weight: 800;
+
+          margin-top: 8px;
+        }
+
+        .result-info {
+          color: #8798aa;
+
+          font-size: 13px;
+
+          margin-top: 7px;
+        }
+
+        /* =========================
            LOADING
         ========================= */
 
@@ -503,44 +702,6 @@ export default function TextoImagemPage() {
           50% {
             opacity: 1;
           }
-        }
-
-        /* =========================
-           TASK BOX
-        ========================= */
-
-        .task-box {
-          margin-top: 22px;
-
-          padding: 16px;
-
-          border-radius: 12px;
-
-          background:
-            rgba(20, 150, 90, 0.12);
-
-          border:
-            1px solid rgba(80, 220, 150, 0.35);
-
-          text-align: left;
-
-          overflow-wrap: anywhere;
-        }
-
-        .task-title {
-          color: #72f0b1;
-
-          font-weight: 700;
-
-          margin-bottom: 8px;
-        }
-
-        .task-id {
-          color: #c8d7e5;
-
-          font-size: 13px;
-
-          line-height: 1.5;
         }
 
         /* =========================
@@ -685,6 +846,10 @@ export default function TextoImagemPage() {
           text-decoration: none;
 
           font-size: 14px;
+        }
+
+        .footer-column a:hover {
+          color: #7bd8ff;
         }
 
         .footer-bottom {
@@ -939,22 +1104,65 @@ export default function TextoImagemPage() {
                 </option>
               </select>
 
+              {/* =========================
+                  SALDO REAL
+              ========================= */}
+
               <div className="credits">
-                💎 Seus créditos:{" "}
-                <strong>
-                  30
-                </strong>
+
+                <span className="credits-diamond">
+                  <Diamond size={25} />
+                </span>
+
+                <span>
+                  Saldo disponível:{" "}
+
+                  <strong>
+                    {balanceLoading
+                      ? "..."
+                      : balance ?? 0}
+                  </strong>{" "}
+
+                  Diamantes
+                </span>
+
               </div>
+
+              {/* =========================
+                  CUSTO
+              ========================= */}
+
+              <div className="cost">
+
+                <span className="cost-text">
+                  Custo para gerar:
+                </span>
+
+                <Diamond size={27} />
+
+                <span className="cost-value">
+                  {IMAGE_COST} Diamantes
+                </span>
+
+              </div>
+
+              {/* =========================
+                  BOTÃO
+              ========================= */}
 
               <button
                 className={`generate ${
                   loading ? "loading" : ""
                 }`}
                 onClick={handleGenerate}
-                disabled={loading}
+                disabled={
+                  loading ||
+                  balance === null ||
+                  balance < IMAGE_COST
+                }
               >
                 {loading
-                  ? "✨ Enviando para a Kling..."
+                  ? "✨ Gerando imagem..."
                   : "✨ Gerar Imagem"}
               </button>
 
@@ -976,55 +1184,60 @@ export default function TextoImagemPage() {
                 }`}
               >
 
-                <div>
+                <div className="preview-content">
 
-                  <div className="preview-icon">
-                    {loading
-                      ? "✨"
-                      : result
-                      ? "✅"
-                      : errorData
-                      ? "⚠️"
-                      : "🖼️"}
-                  </div>
+                  {/* =====================
+                      IMAGEM GERADA
+                  ===================== */}
 
-                  <h3>
+                  {result?.image ? (
+                    <>
+                      <img
+                        src={result.image}
+                        alt="Imagem gerada pelo CIEL IA STUDIO"
+                        className="result-image"
+                      />
 
-                    {loading
-                      ? "Enviando sua criação para a Kling..."
-                      : result
-                      ? "Tarefa enviada com sucesso!"
-                      : errorData
-                      ? "A Kling recusou a solicitação"
-                      : "Sua imagem aparecerá aqui"}
+                      <h3 className="result-title">
+                        ✅ Imagem gerada com sucesso!
+                      </h3>
 
-                  </h3>
-
-                  <p>
-
-                    {loading
-                      ? "Aguarde enquanto a Kling recebe seu pedido."
-                      : result
-                      ? "A Kling recebeu a solicitação."
-                      : errorData
-                      ? "Confira abaixo os detalhes retornados pela API."
-                      : "Escreva um prompt ao lado e clique em “Gerar Imagem” para começar."}
-
-                  </p>
-
-                  {result?.taskId && (
-                    <div className="task-box">
-
-                      <div className="task-title">
-                        ✅ Task ID recebido
+                      <p className="result-info">
+                        GPT Image 1 • Qualidade High •{" "}
+                        {result.aspectRatio}
+                      </p>
+                    </>
+                  ) : (
+                    <>
+                      <div className="preview-icon">
+                        {loading
+                          ? "✨"
+                          : errorData
+                          ? "⚠️"
+                          : "🖼️"}
                       </div>
 
-                      <div className="task-id">
-                        {result.taskId}
-                      </div>
+                      <h3>
+                        {loading
+                          ? "Gerando sua imagem..."
+                          : errorData
+                          ? "Não foi possível gerar a imagem"
+                          : "Sua imagem aparecerá aqui"}
+                      </h3>
 
-                    </div>
+                      <p>
+                        {loading
+                          ? "Aguarde enquanto a inteligência artificial cria sua imagem."
+                          : errorData
+                          ? "Confira abaixo os detalhes retornados pelo serviço."
+                          : "Escreva um prompt ao lado e clique em “Gerar Imagem” para começar."}
+                      </p>
+                    </>
                   )}
+
+                  {/* =====================
+                      ERRO
+                  ===================== */}
 
                   {errorData && (
                     <div className="error-box">
@@ -1035,36 +1248,27 @@ export default function TextoImagemPage() {
 
                       <div className="error-line">
                         <span className="error-label">
-                          HTTP:
+                          Mensagem:
                         </span>{" "}
-                        {errorData.httpStatus ?? "N/A"}
+                        {errorData.error ??
+                          errorData.message ??
+                          "Erro desconhecido."}
                       </div>
 
-                      <div className="error-line">
-                        <span className="error-label">
-                          Código Kling:
-                        </span>{" "}
-                        {errorData.klingCode ?? "N/A"}
-                      </div>
-
-                      <div className="error-line">
-                        <span className="error-label">
-                          Mensagem Kling:
-                        </span>{" "}
-                        {errorData.klingMessage ?? "N/A"}
-                      </div>
-
-                      <div className="error-line">
-                        <span className="error-label">
-                          Request ID:
-                        </span>{" "}
-                        {errorData.requestId ?? "N/A"}
-                      </div>
+                      {typeof errorData.refundedDiamonds ===
+                        "number" && (
+                        <div className="error-line">
+                          <span className="error-label">
+                            Estorno:
+                          </span>{" "}
+                          {errorData.refundedDiamonds}{" "}
+                          Diamantes
+                        </div>
+                      )}
 
                       <div className="error-json">
                         {JSON.stringify(
-                          errorData.klingResponse ??
-                            errorData,
+                          errorData,
                           null,
                           2
                         )}
@@ -1135,6 +1339,10 @@ export default function TextoImagemPage() {
                   Meus Projetos
                 </a>
 
+                <a href="/diamantes">
+                  💎 Diamantes
+                </a>
+
               </div>
 
               <div className="footer-column">
@@ -1169,10 +1377,6 @@ export default function TextoImagemPage() {
 
                 <a href="/privacidade">
                   Política de Privacidade
-                </a>
-
-                <a href="/reembolso">
-                  Política de Reembolso
                 </a>
 
               </div>
