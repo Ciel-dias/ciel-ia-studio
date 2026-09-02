@@ -26,7 +26,7 @@ export default function MinhaContaPage() {
   const [userId, setUserId] = useState("");
   const [createdAt, setCreatedAt] = useState("");
 
-  // 💎 Saldo real de Diamantes vindo do Supabase
+  // 💎 Saldo real de Diamantes
   const [credits, setCredits] = useState(0);
 
   const [loading, setLoading] = useState(true);
@@ -50,6 +50,10 @@ export default function MinhaContaPage() {
     loadAccount();
   }, []);
 
+  // ==========================================
+  // CARREGAR DADOS DA CONTA
+  // ==========================================
+
   async function loadAccount() {
     try {
       setLoading(true);
@@ -62,10 +66,15 @@ export default function MinhaContaPage() {
         return;
       }
 
+      // ========================================
+      // USUÁRIO AUTENTICADO
+      // ========================================
+
       const {
         data: { user },
         error: userError,
-      } = await supabase.auth.getUser();
+      } =
+        await supabase.auth.getUser();
 
       if (userError) {
         throw userError;
@@ -75,6 +84,10 @@ export default function MinhaContaPage() {
         window.location.replace("/login");
         return;
       }
+
+      // ========================================
+      // INFORMAÇÕES DO USUÁRIO
+      // ========================================
 
       setEmail(user.email || "");
       setUserId(user.id || "");
@@ -87,35 +100,40 @@ export default function MinhaContaPage() {
         );
       }
 
-      // ==========================================
-      // 💎 CARREGAR DIAMANTES REAIS DO SUPABASE
-      // ==========================================
+      // ========================================
+      // 💎 CARREGAR SALDO REAL
+      //
+      // Usa a mesma rota /api/credits
+      // que já foi testada e está funcionando.
+      // ========================================
 
-      const {
-        data: creditsData,
-        error: creditsError,
-      } = await supabase
-        .from("créditos")
-        .select("equilíbrio")
-        .eq("usuario_id", user.id)
-        .maybeSingle();
+      try {
+        const response =
+          await fetch("/api/credits", {
+            method: "GET",
+            cache: "no-store",
+          });
 
-      if (creditsError) {
+        const data =
+          await response.json();
+
+        if (!response.ok || !data.success) {
+          throw new Error(
+            data?.error ||
+              "Não foi possível carregar os Diamantes."
+          );
+        }
+
+        setCredits(
+          Number(data.balance) || 0
+        );
+      } catch (creditsError) {
         console.error(
           "Erro ao carregar Diamantes:",
           creditsError
         );
 
         setCredits(0);
-      } else {
-        // Correção de tipagem do campo equilíbrio
-        const saldo = creditsData as {
-          equilíbrio?: number | string | null;
-        } | null;
-
-        setCredits(
-          Number(saldo?.equilíbrio) || 0
-        );
       }
     } catch (err) {
       console.error(
@@ -140,7 +158,9 @@ export default function MinhaContaPage() {
     setError("");
 
     if (!newPassword) {
-      setError("Digite uma nova senha.");
+      setError(
+        "Digite uma nova senha."
+      );
       return;
     }
 
@@ -151,7 +171,10 @@ export default function MinhaContaPage() {
       return;
     }
 
-    if (newPassword !== confirmPassword) {
+    if (
+      newPassword !==
+      confirmPassword
+    ) {
       setError(
         "As senhas não coincidem."
       );
@@ -307,6 +330,7 @@ export default function MinhaContaPage() {
 
         .brand-icon {
           font-size: 28px;
+
           filter:
             drop-shadow(
               0 0 8px
@@ -631,12 +655,6 @@ export default function MinhaContaPage() {
             0 0 12px
             rgba(70, 199, 255, 0.45);
         }
-
-        /*
-          IMPORTANTE:
-          O diamante aqui NÃO possui caixa,
-          borda ou fundo.
-        */
 
         .diamond-display {
           width: 82px;
@@ -1019,17 +1037,24 @@ export default function MinhaContaPage() {
         }
 
         /*
-          💎 LINK OFICIAL PARA DIAMANTES
+          💎 AGORA USA EXATAMENTE
+          A MESMA COR DOS OUTROS LINKS.
         */
 
         .footer-diamonds {
-          color: #68d2ff !important;
+          color: #aebaca !important;
 
-          font-weight: 700;
+          font-weight: normal;
+
+          text-shadow: none;
+        }
+
+        .footer-diamonds:hover {
+          color: #68d2ff !important;
 
           text-shadow:
             0 0 8px
-            rgba(70, 199, 255, 0.3);
+            rgba(70, 199, 255, 0.35);
         }
 
         .footer-bottom {
@@ -1364,21 +1389,16 @@ export default function MinhaContaPage() {
                     </div>
 
                     <div className="credits-number">
+
                       {credits}
 
                       <span>
                         Diamantes
                       </span>
+
                     </div>
 
                   </div>
-
-                  {/* 
-                    DIAMANTE OFICIAL
-                    Sem quadrado.
-                    Sem borda.
-                    Sem fundo.
-                  */}
 
                   <div className="diamond-display">
                     <Diamond />
@@ -1429,7 +1449,9 @@ export default function MinhaContaPage() {
                     <input
                       type="password"
                       className="input"
-                      value={confirmPassword}
+                      value={
+                        confirmPassword
+                      }
                       onChange={(e) =>
                         setConfirmPassword(
                           e.target.value
@@ -1570,11 +1592,7 @@ export default function MinhaContaPage() {
                   Meus Projetos
                 </Link>
 
-                {/* 💎 LINK OFICIAL */}
-                <Link
-                  href="/creditos"
-                  className="footer-diamonds"
-                >
+                <Link href="/diamantes">
                   💎 Diamantes
                 </Link>
 
