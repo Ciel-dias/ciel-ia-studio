@@ -25,7 +25,8 @@ export default function MinhaContaPage() {
   const [userId, setUserId] = useState("");
   const [createdAt, setCreatedAt] = useState("");
 
-  const [credits] = useState(30);
+  // 💎 Saldo real de Diamantes vindo do Supabase
+  const [credits, setCredits] = useState(0);
 
   const [loading, setLoading] = useState(true);
 
@@ -84,6 +85,34 @@ export default function MinhaContaPage() {
           ).toLocaleDateString("pt-BR")
         );
       }
+
+      // ==========================================
+      // 💎 CARREGAR DIAMANTES REAIS DO SUPABASE
+      // ==========================================
+
+      const {
+        data: creditsData,
+        error: creditsError,
+      } = await supabase
+        .from("créditos")
+        .select("equilíbrio")
+        .eq("usuario_id", user.id)
+        .maybeSingle();
+
+      if (creditsError) {
+        console.error(
+          "Erro ao carregar Diamantes:",
+          creditsError
+        );
+
+        setCredits(0);
+      } else {
+        setCredits(
+          Number(
+            creditsData?.["equilíbrio"]
+          ) || 0
+        );
+      }
     } catch (err) {
       console.error(
         "Erro ao carregar conta:",
@@ -97,6 +126,10 @@ export default function MinhaContaPage() {
       setLoading(false);
     }
   }
+
+  // ==========================================
+  // ALTERAR SENHA
+  // ==========================================
 
   async function handleChangePassword() {
     setMessage("");
@@ -161,6 +194,10 @@ export default function MinhaContaPage() {
       setChangingPassword(false);
     }
   }
+
+  // ==========================================
+  // LOGOUT
+  // ==========================================
 
   async function handleLogout() {
     try {
@@ -232,7 +269,7 @@ export default function MinhaContaPage() {
         }
 
         /* ================================
-           CABEÇALHO — IGUAL AO DASHBOARD
+           CABEÇALHO
         ================================= */
 
         .topbar {
@@ -504,7 +541,7 @@ export default function MinhaContaPage() {
         }
 
         /* ================================
-           CRÉDITOS
+           💎 DIAMANTES
         ================================= */
 
         .credits-card {
@@ -1047,8 +1084,6 @@ export default function MinhaContaPage() {
 
         {/* ================================
             CABEÇALHO
-            CIEL IA STUDIO À ESQUERDA
-            VOLTAR AO DASHBOARD À DIREITA
         ================================= */}
 
         <header className="topbar">
@@ -1088,7 +1123,7 @@ export default function MinhaContaPage() {
 
             <p>
               Gerencie seus dados,
-              créditos e configurações
+              Diamantes e configurações
               da sua conta no CIEL IA
               STUDIO.
             </p>
@@ -1106,7 +1141,9 @@ export default function MinhaContaPage() {
 
             <div className="account-grid">
 
-              {/* PERFIL */}
+              {/* ==========================
+                  PERFIL
+              ========================== */}
 
               <section className="card">
 
@@ -1129,7 +1166,9 @@ export default function MinhaContaPage() {
 
               </section>
 
-              {/* INFORMAÇÕES */}
+              {/* ==========================
+                  INFORMAÇÕES
+              ========================== */}
 
               <section className="card">
 
@@ -1184,12 +1223,14 @@ export default function MinhaContaPage() {
 
               </section>
 
-              {/* CRÉDITOS */}
+              {/* ==========================
+                  💎 DIAMANTES
+              ========================== */}
 
               <section className="card credits-card">
 
                 <h2>
-                  💎 Seus créditos
+                  💎 Seus Diamantes
                 </h2>
 
                 <div className="credits-box">
@@ -1203,7 +1244,7 @@ export default function MinhaContaPage() {
                     <div className="credits-number">
                       {credits}{" "}
                       <span>
-                        créditos
+                        Diamantes
                       </span>
                     </div>
 
@@ -1217,7 +1258,9 @@ export default function MinhaContaPage() {
 
               </section>
 
-              {/* ALTERAR SENHA */}
+              {/* ==========================
+                  ALTERAR SENHA
+              ========================== */}
 
               <section className="card password-card">
 
@@ -1297,7 +1340,9 @@ export default function MinhaContaPage() {
 
               </section>
 
-              {/* AÇÕES */}
+              {/* ==========================
+                  AÇÕES
+              ========================== */}
 
               <section className="card">
 
@@ -1363,6 +1408,8 @@ export default function MinhaContaPage() {
 
             <div className="footer-columns">
 
+              {/* PRODUTO */}
+
               <div className="footer-column">
 
                 <h3>
@@ -1393,7 +1440,13 @@ export default function MinhaContaPage() {
                   Meus Projetos
                 </Link>
 
+                <Link href="/creditos">
+                  💎 Diamantes
+                </Link>
+
               </div>
+
+              {/* SUPORTE */}
 
               <div className="footer-column">
 
@@ -1414,6 +1467,8 @@ export default function MinhaContaPage() {
                 </Link>
 
               </div>
+
+              {/* LEGAL */}
 
               <div className="footer-column">
 
