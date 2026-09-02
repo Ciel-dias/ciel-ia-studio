@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { createClient } from "@supabase/supabase-js";
+import Diamond from "@/components/Diamond";
 
 export const dynamic = "force-dynamic";
 
@@ -107,10 +108,7 @@ export default function MinhaContaPage() {
 
         setCredits(0);
       } else {
-        // ==========================================
-        // CORREÇÃO DE TIPAGEM DO CAMPO equilíbrio
-        // ==========================================
-
+        // Correção de tipagem do campo equilíbrio
         const saldo = creditsData as {
           equilíbrio?: number | string | null;
         } | null;
@@ -290,7 +288,7 @@ export default function MinhaContaPage() {
           padding: 0 42px;
 
           background:
-            rgba(4, 12, 24, 0.88);
+            rgba(4, 12, 24, 0.94);
 
           border-bottom:
             1px solid
@@ -309,6 +307,11 @@ export default function MinhaContaPage() {
 
         .brand-icon {
           font-size: 28px;
+          filter:
+            drop-shadow(
+              0 0 8px
+              rgba(255, 215, 60, 0.45)
+            );
         }
 
         .brand-name {
@@ -322,12 +325,12 @@ export default function MinhaContaPage() {
           display: flex;
           align-items: center;
 
-          color: #e8eef7;
+          color: #9bdcff;
 
           text-decoration: none;
 
           font-size: 15px;
-          font-weight: 600;
+          font-weight: 700;
 
           white-space: nowrap;
 
@@ -337,11 +340,11 @@ export default function MinhaContaPage() {
         }
 
         .back:hover {
-          color: #159ddd;
+          color: #ffffff;
 
           text-shadow:
             0 0 12px
-            rgba(75, 199, 255, 0.6);
+            rgba(75, 199, 255, 0.75);
         }
 
         /* ================================
@@ -376,6 +379,25 @@ export default function MinhaContaPage() {
               5vw,
               50px
             );
+
+          font-weight: 800;
+
+          background:
+            linear-gradient(
+              90deg,
+              #ffffff,
+              #8edfff,
+              #36bfff
+            );
+
+          -webkit-background-clip: text;
+          background-clip: text;
+
+          color: transparent;
+
+          text-shadow:
+            0 0 22px
+            rgba(70, 199, 255, 0.22);
         }
 
         .title-area p {
@@ -587,25 +609,55 @@ export default function MinhaContaPage() {
         }
 
         .credits-number {
+          display: flex;
+
+          align-items: baseline;
+
+          gap: 9px;
+
           font-size: 38px;
 
           font-weight: 800;
 
-          color: #fff;
+          color: #ffffff;
         }
 
         .credits-number span {
           font-size: 25px;
+
+          color: #68d2ff;
+
+          text-shadow:
+            0 0 12px
+            rgba(70, 199, 255, 0.45);
         }
 
-        .diamond {
-          font-size: 55px;
+        /*
+          IMPORTANTE:
+          O diamante aqui NÃO possui caixa,
+          borda ou fundo.
+        */
+
+        .diamond-display {
+          width: 82px;
+          height: 82px;
+
+          display: flex;
+          align-items: center;
+          justify-content: center;
+
+          flex-shrink: 0;
 
           filter:
             drop-shadow(
-              0 0 10px
-              rgba(100, 220, 255, 0.7)
+              0 0 15px
+              rgba(80, 210, 255, 0.7)
             );
+        }
+
+        .diamond-display :global(svg) {
+          width: 100%;
+          height: 100%;
         }
 
         /* ================================
@@ -657,6 +709,10 @@ export default function MinhaContaPage() {
           font-size: 14px;
         }
 
+        .input::placeholder {
+          color: #71869b;
+        }
+
         .input:focus {
           border-color: #63d3ff;
 
@@ -693,6 +749,19 @@ export default function MinhaContaPage() {
           box-shadow:
             0 0 10px
             rgba(70, 199, 255, 0.6);
+
+          transition:
+            transform 0.2s ease,
+            box-shadow 0.2s ease;
+        }
+
+        .password-button:hover:not(:disabled) {
+          transform:
+            translateY(-2px);
+
+          box-shadow:
+            0 0 18px
+            rgba(70, 199, 255, 0.75);
         }
 
         .password-button:disabled {
@@ -824,6 +893,13 @@ export default function MinhaContaPage() {
 
           font-size: 14px;
           font-weight: 700;
+
+          transition: 0.2s ease;
+        }
+
+        .logout:hover {
+          background:
+            rgba(220, 70, 70, 0.15);
         }
 
         /* ================================
@@ -928,10 +1004,32 @@ export default function MinhaContaPage() {
           text-decoration: none;
 
           font-size: 14px;
+
+          transition:
+            color 0.2s ease,
+            text-shadow 0.2s ease;
         }
 
         .footer-column a:hover {
           color: #68d2ff;
+
+          text-shadow:
+            0 0 8px
+            rgba(70, 199, 255, 0.35);
+        }
+
+        /*
+          💎 LINK OFICIAL PARA DIAMANTES
+        */
+
+        .footer-diamonds {
+          color: #68d2ff !important;
+
+          font-weight: 700;
+
+          text-shadow:
+            0 0 8px
+            rgba(70, 199, 255, 0.3);
         }
 
         .footer-bottom {
@@ -1026,8 +1124,13 @@ export default function MinhaContaPage() {
             font-size: 32px;
           }
 
-          .diamond {
-            font-size: 45px;
+          .credits-number span {
+            font-size: 21px;
+          }
+
+          .diamond-display {
+            width: 70px;
+            height: 70px;
           }
 
           .footer {
@@ -1082,6 +1185,19 @@ export default function MinhaContaPage() {
 
           .info-value {
             text-align: left;
+          }
+
+          .credits-box {
+            align-items: center;
+          }
+
+          .credits-number {
+            flex-wrap: wrap;
+          }
+
+          .diamond-display {
+            width: 62px;
+            height: 62px;
           }
         }
       `}</style>
@@ -1248,7 +1364,8 @@ export default function MinhaContaPage() {
                     </div>
 
                     <div className="credits-number">
-                      {credits}{" "}
+                      {credits}
+
                       <span>
                         Diamantes
                       </span>
@@ -1256,8 +1373,15 @@ export default function MinhaContaPage() {
 
                   </div>
 
-                  <div className="diamond">
-                    💎
+                  {/* 
+                    DIAMANTE OFICIAL
+                    Sem quadrado.
+                    Sem borda.
+                    Sem fundo.
+                  */}
+
+                  <div className="diamond-display">
+                    <Diamond />
                   </div>
 
                 </div>
@@ -1446,7 +1570,11 @@ export default function MinhaContaPage() {
                   Meus Projetos
                 </Link>
 
-                <Link href="/creditos">
+                {/* 💎 LINK OFICIAL */}
+                <Link
+                  href="/creditos"
+                  className="footer-diamonds"
+                >
                   💎 Diamantes
                 </Link>
 
