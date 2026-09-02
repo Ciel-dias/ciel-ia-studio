@@ -54,7 +54,10 @@ export default function ProjetosPage() {
         }
 
         body {
-          font-family: Arial, Helvetica, sans-serif;
+          font-family:
+            Arial,
+            Helvetica,
+            sans-serif;
         }
 
         a {
@@ -112,7 +115,8 @@ export default function ProjetosPage() {
 
           padding: 0 42px;
 
-          background: rgba(4, 12, 24, 0.92);
+          background:
+            rgba(4, 12, 24, 0.92);
 
           border-bottom:
             1px solid
@@ -134,10 +138,11 @@ export default function ProjetosPage() {
         .brand-icon {
           font-size: 28px;
 
-          filter: drop-shadow(
-            0 0 10px
-            rgba(75, 199, 255, 0.8)
-          );
+          filter:
+            drop-shadow(
+              0 0 10px
+              rgba(75, 199, 255, 0.8)
+            );
         }
 
         .brand-name {
@@ -170,7 +175,8 @@ export default function ProjetosPage() {
             0 0 12px
             rgba(75, 199, 255, 0.8);
 
-          transform: translateX(-2px);
+          transform:
+            translateX(-2px);
         }
 
         /* =========================
@@ -178,14 +184,16 @@ export default function ProjetosPage() {
         ========================= */
 
         .content {
-          width: min(
-            1180px,
-            calc(100% - 40px)
-          );
+          width:
+            min(
+              1180px,
+              calc(100% - 40px)
+            );
 
           margin: 0 auto;
 
-          padding: 55px 0 70px;
+          padding:
+            55px 0 70px;
         }
 
         .title-area {
@@ -194,22 +202,65 @@ export default function ProjetosPage() {
           margin-bottom: 34px;
         }
 
+        /* =========================
+           TÍTULO MEUS PROJETOS
+        ========================= */
+
         .title-area h1 {
           margin: 0;
 
-          font-size: clamp(
-            32px,
-            5vw,
-            52px
-          );
+          font-size:
+            clamp(
+              32px,
+              5vw,
+              52px
+            );
 
           line-height: 1.12;
 
           text-transform: uppercase;
+
+          background:
+            linear-gradient(
+              90deg,
+              #ffffff 0%,
+              #dff8ff 20%,
+              #82dcff 45%,
+              #24baff 65%,
+              #dff8ff 85%,
+              #ffffff 100%
+            );
+
+          background-size: 200% auto;
+
+          -webkit-background-clip: text;
+          background-clip: text;
+
+          color: transparent;
+
+          text-shadow:
+            0 0 18px
+            rgba(70, 200, 255, 0.35);
+
+          animation:
+            title-shine 4s linear infinite;
+        }
+
+        @keyframes title-shine {
+          0% {
+            background-position:
+              200% center;
+          }
+
+          100% {
+            background-position:
+              -200% center;
+          }
         }
 
         .title-area p {
-          margin: 15px auto 0;
+          margin:
+            15px auto 0;
 
           max-width: 650px;
 
@@ -235,16 +286,18 @@ export default function ProjetosPage() {
 
           margin-bottom: 28px;
 
-          padding: 18px 20px;
+          padding:
+            18px 20px;
 
           border-radius: 18px;
 
-          background: rgba(
-            4,
-            15,
-            29,
-            0.65
-          );
+          background:
+            rgba(
+              4,
+              15,
+              29,
+              0.65
+            );
 
           border:
             1px solid
@@ -270,7 +323,8 @@ export default function ProjetosPage() {
         }
 
         .filter {
-          padding: 9px 15px;
+          padding:
+            9px 15px;
 
           border-radius: 11px;
 
@@ -278,12 +332,13 @@ export default function ProjetosPage() {
             1px solid
             rgba(94, 203, 255, 0.28);
 
-          background: rgba(
-            5,
-            20,
-            36,
-            0.8
-          );
+          background:
+            rgba(
+              5,
+              20,
+              36,
+              0.8
+            );
 
           color: #b9c8d7;
 
@@ -301,7 +356,8 @@ export default function ProjetosPage() {
         .filter:hover {
           color: #ffffff;
 
-          border-color: #58c9ff;
+          border-color:
+            #58c9ff;
         }
 
         .filter.active {
@@ -314,7 +370,8 @@ export default function ProjetosPage() {
               #75e0ff
             );
 
-          border-color: #68d4ff;
+          border-color:
+            #68d4ff;
 
           box-shadow:
             0 0 10px
@@ -362,7 +419,8 @@ export default function ProjetosPage() {
             );
 
           border:
-            2px solid #58c9ff;
+            2px solid
+            #58c9ff;
 
           box-shadow:
             0 0 8px
@@ -379,7 +437,8 @@ export default function ProjetosPage() {
         }
 
         .project-card:hover {
-          transform: translateY(-5px);
+          transform:
+            translateY(-5px);
 
           background:
             linear-gradient(
@@ -397,13 +456,13 @@ export default function ProjetosPage() {
             rgba(56, 174, 255, 0.12);
         }
 
-        /*
-          Emoji mantido diretamente,
-          sem caixa/quadrado.
-        */
+        /* =========================
+           EMOJIS
+        ========================= */
 
         .project-icon {
-          margin: 0 auto 22px;
+          margin:
+            0 auto 22px;
 
           display: flex;
 
@@ -413,10 +472,11 @@ export default function ProjetosPage() {
 
           font-size: 46px;
 
-          filter: drop-shadow(
-            0 0 10px
-            rgba(75, 199, 255, 0.55)
-          );
+          filter:
+            drop-shadow(
+              0 0 10px
+              rgba(75, 199, 255, 0.55)
+            );
         }
 
         .project-card h2 {
@@ -426,7 +486,8 @@ export default function ProjetosPage() {
         }
 
         .project-card p {
-          margin: 13px auto 0;
+          margin:
+            13px auto 0;
 
           max-width: 280px;
 
@@ -442,18 +503,20 @@ export default function ProjetosPage() {
 
           margin-top: 18px;
 
-          padding: 7px 12px;
+          padding:
+            7px 12px;
 
           border-radius: 10px;
 
           color: #bfeaff;
 
-          background: rgba(
-            29,
-            112,
-            157,
-            0.15
-          );
+          background:
+            rgba(
+              29,
+              112,
+              157,
+              0.15
+            );
 
           border:
             1px solid
@@ -471,7 +534,8 @@ export default function ProjetosPage() {
         .empty {
           margin-top: 30px;
 
-          padding: 55px 25px;
+          padding:
+            55px 25px;
 
           text-align: center;
 
@@ -481,12 +545,13 @@ export default function ProjetosPage() {
             1px dashed
             rgba(104, 207, 255, 0.35);
 
-          background: rgba(
-            2,
-            12,
-            24,
-            0.48
-          );
+          background:
+            rgba(
+              2,
+              12,
+              24,
+              0.48
+            );
 
           box-shadow:
             inset 0 0 25px
@@ -498,10 +563,11 @@ export default function ProjetosPage() {
 
           margin-bottom: 15px;
 
-          filter: drop-shadow(
-            0 0 12px
-            rgba(75, 199, 255, 0.55)
-          );
+          filter:
+            drop-shadow(
+              0 0 12px
+              rgba(75, 199, 255, 0.55)
+            );
         }
 
         .empty h2 {
@@ -511,7 +577,8 @@ export default function ProjetosPage() {
         }
 
         .empty p {
-          margin: 10px auto 0;
+          margin:
+            10px auto 0;
 
           max-width: 500px;
 
@@ -525,7 +592,8 @@ export default function ProjetosPage() {
 
           margin-top: 22px;
 
-          padding: 13px 22px;
+          padding:
+            13px 22px;
 
           border-radius: 13px;
 
@@ -556,7 +624,8 @@ export default function ProjetosPage() {
         }
 
         .create-button:hover {
-          transform: translateY(-2px);
+          transform:
+            translateY(-2px);
 
           box-shadow:
             0 0 14px
@@ -587,7 +656,10 @@ export default function ProjetosPage() {
 
         .footer-inner {
           width:
-            min(1180px, 100%);
+            min(
+              1180px,
+              100%
+            );
 
           margin: 0 auto;
         }
@@ -599,6 +671,8 @@ export default function ProjetosPage() {
         .footer-brand h2 {
           margin:
             0 0 8px;
+
+          color: #ffffff;
 
           font-size: 24px;
         }
@@ -615,7 +689,10 @@ export default function ProjetosPage() {
           display: grid;
 
           grid-template-columns:
-            repeat(3, 1fr);
+            repeat(
+              3,
+              1fr
+            );
 
           gap: 50px;
         }
@@ -623,6 +700,8 @@ export default function ProjetosPage() {
         .footer-column h3 {
           margin:
             0 0 18px;
+
+          color: #ffffff;
 
           font-size: 16px;
         }
@@ -639,6 +718,9 @@ export default function ProjetosPage() {
           text-decoration: none;
 
           font-size: 14px;
+
+          transition:
+            color 0.2s ease;
         }
 
         .footer-column a:hover {
@@ -667,7 +749,8 @@ export default function ProjetosPage() {
 
         @media (max-width: 900px) {
           .topbar {
-            padding: 0 24px;
+            padding:
+              0 24px;
           }
 
           .projects-grid {
@@ -679,9 +762,11 @@ export default function ProjetosPage() {
           }
 
           .toolbar {
-            align-items: flex-start;
+            align-items:
+              flex-start;
 
-            flex-direction: column;
+            flex-direction:
+              column;
           }
         }
 
@@ -693,7 +778,8 @@ export default function ProjetosPage() {
           .topbar {
             min-height: 68px;
 
-            padding: 0 16px;
+            padding:
+              0 16px;
           }
 
           .brand-name {
@@ -709,16 +795,19 @@ export default function ProjetosPage() {
           }
 
           .content {
-            width: min(
-              calc(100% - 28px),
-              430px
-            );
+            width:
+              min(
+                calc(100% - 28px),
+                430px
+              );
 
-            padding-top: 38px;
+            padding-top:
+              38px;
           }
 
           .projects-grid {
-            grid-template-columns: 1fr;
+            grid-template-columns:
+              1fr;
 
             gap: 20px;
           }
@@ -737,7 +826,8 @@ export default function ProjetosPage() {
           }
 
           .footer-columns {
-            grid-template-columns: 1fr;
+            grid-template-columns:
+              1fr;
 
             gap: 30px;
           }
@@ -751,7 +841,8 @@ export default function ProjetosPage() {
           .topbar {
             min-height: 68px;
 
-            padding: 0 12px;
+            padding:
+              0 12px;
 
             gap: 8px;
           }
@@ -775,10 +866,11 @@ export default function ProjetosPage() {
           }
 
           .content {
-            width: min(
-              calc(100% - 24px),
-              430px
-            );
+            width:
+              min(
+                calc(100% - 24px),
+                430px
+              );
           }
 
           .title-area h1 {
@@ -842,7 +934,7 @@ export default function ProjetosPage() {
           <div className="title-area">
 
             <h1>
-              Meus Projetos
+              MEUS PROJETOS
             </h1>
 
             <p>
@@ -982,7 +1074,8 @@ export default function ProjetosPage() {
               </h2>
 
               <p>
-                Crie. Transforme. Inove com IA.
+                Crie. Transforme. Inove
+                com IA.
               </p>
 
             </div>
