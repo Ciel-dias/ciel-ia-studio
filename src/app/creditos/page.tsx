@@ -5,1022 +5,1320 @@ import { useCallback, useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import Diamond from "@/components/Diamond";
 
+export const dynamic = "force-dynamic";
+
 type Package = {
+  id: string;
   name: string;
   diamonds: number;
   price: string;
   description: string;
-  popular?: boolean;
-  iconSize?: number;
+  badge?: string;
+  featured?: boolean;
 };
+
+const packages: Package[] = [
+  {
+    id: "essencial",
+    name: "Essencial",
+    diamonds: 100,
+    price: "R$ 9,90",
+    description: "Para começar suas criações com IA.",
+  },
+  {
+    id: "profissional",
+    name: "Profissional",
+    diamonds: 500,
+    price: "R$ 44,90",
+    description: "Mais Diamantes para criar com liberdade.",
+    badge: "MAIS POPULAR",
+    featured: true,
+  },
+  {
+    id: "avancado",
+    name: "Avançado",
+    diamonds: 1000,
+    price: "R$ 79,90",
+    description: "Para criadores que produzem com frequência.",
+  },
+  {
+    id: "premium",
+    name: "Premium",
+    diamonds: 2500,
+    price: "R$ 179,90",
+    description: "Para criadores que precisam de mais.",
+  },
+];
 
 export default function CreditosPage() {
   const [diamantes, setDiamantes] = useState<number | null>(null);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+  const [buying, setBuying] = useState<string | null>(null);
 
-  const packages: Package[] = [
-    {
-      name: "Essencial",
-      diamonds: 100,
-      price: "R$ 9,90",
-      description: "Ideal para começar a criar",
-      iconSize: 42,
-    },
-    {
-      name: "Profissional",
-      diamonds: 500,
-      price: "R$ 44,90",
-      description: "Mais Diamantes para suas criações",
-      popular: true,
-      iconSize: 46,
-    },
-    {
-      name: "Criador",
-      diamonds: 1000,
-      price: "R$ 79,90",
-      description: "Para quem cria com frequência",
-      iconSize: 50,
-    },
-    {
-      name: "Premium",
-      diamonds: 2500,
-      price: "R$ 179,90",
-      description: "Para criadores que precisam de mais",
-      iconSize: 54,
-    },
-  ];
+  const [message, setMessage] = useState("");
+  const [error, setError] = useState("");
 
-  const carregarDiamantes = useCallback(async () => {
-    try {
-      setLoading(true);
+  const supabase = createClient();
 
-      const supabase = createClient();
+  // =========================================================
+  // CARREGAR SALDO REAL
+  // =========================================================
 
-      const {
-        data: { user },
-        error: userError,
-      } = await supabase.auth.getUser();
+  const carregarSaldo = useCallback(
+    async (mostrarLoading = false) => {
+      try {
+        if (mostrarLoading) {
+          setRefreshing(true);
+        }
 
-      if (userError || !user) {
+        setError("");
+
+        const {
+          data: { user },
+          error: userError,
+        } = await supabase.auth.getUser();
+
+        if (userError) {
+          throw userError;
+        }
+
+        if (!user) {
+          window.location.replace("/login");
+          return;
+        }
+
+        const { data, error: creditsError } = await supabase
+          .from("créditos")
+          .select("equilíbrio")
+          .eq("usuario_id", user.id)
+          .maybeSingle();
+
+        if (creditsError) {
+          console.error(
+            "Erro ao carregar saldo de Diamantes:",
+            creditsError
+          );
+
+          setDiamantes(0);
+          return;
+        }
+
+        const saldo = data as {
+          equilíbrio?: number | string | null;
+        } | null;
+
+        setDiamantes(
+          Number(saldo?.equilíbrio) || 0
+        );
+      } catch (err) {
+        console.error(
+          "Erro ao carregar Diamantes:",
+          err
+        );
+
+        setError(
+          "Não foi possível carregar seu saldo."
+        );
+
         setDiamantes(0);
-        return;
+      } finally {
+        setLoading(false);
+        setRefreshing(false);
       }
+    },
+    [supabase]
+  );
 
-      const { data, error } = await supabase
-        .from("créditos")
-        .select("equilíbrio")
-        .eq("usuario_id", user.id)
-        .maybeSingle();
-
-      if (error) {
-        console.error("Erro ao carregar Diamantes:", error);
-        setDiamantes(0);
-        return;
-      }
-
-      /*
-       * Tipagem explícita para evitar o erro do TypeScript
-       * causado pelo acesso à coluna "equilíbrio".
-       */
-      const saldo = data as {
-        equilíbrio?: number | string | null;
-      } | null;
-
-      setDiamantes(Number(saldo?.equilíbrio) || 0);
-    } catch (error) {
-      console.error("Erro inesperado ao carregar Diamantes:", error);
-      setDiamantes(0);
-    } finally {
-      setLoading(false);
-    }
-  }, []);
+  // =========================================================
+  // PRIMEIRO CARREGAMENTO
+  // =========================================================
 
   useEffect(() => {
-    carregarDiamantes();
-  }, [carregarDiamantes]);
+    carregarSaldo();
+  }, [carregarSaldo]);
 
-  function comprarDiamantes() {
-    alert("A compra de Diamantes será ativada em breve.");
+  // =========================================================
+  // ATUALIZAÇÃO EM TEMPO REAL
+  // =========================================================
+
+  useEffect(() => {
+    let channel: ReturnType<
+      typeof supabase.channel
+    > | null = null;
+
+    async function iniciarRealtime() {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+
+      if (!user) {
+        return;
+      }
+
+      channel = supabase
+        .channel(`diamantes-${user.id}`)
+        .on(
+          "postgres_changes",
+          {
+            event: "*",
+            schema: "public",
+            table: "créditos",
+            filter: `usuario_id=eq.${user.id}`,
+          },
+          () => {
+            carregarSaldo(false);
+          }
+        )
+        .subscribe();
+    }
+
+    iniciarRealtime();
+
+    return () => {
+      if (channel) {
+        supabase.removeChannel(channel);
+      }
+    };
+  }, [carregarSaldo, supabase]);
+
+  // =========================================================
+  // RECARREGAR SALDO MANUALMENTE
+  // =========================================================
+
+  async function handleRefresh() {
+    await carregarSaldo(true);
   }
 
-  function formatarNumero(valor: number) {
-    return new Intl.NumberFormat("pt-BR").format(valor);
+  // =========================================================
+  // COMPRAR DIAMANTES
+  // =========================================================
+
+  async function handleBuy(pkg: Package) {
+    setMessage("");
+    setError("");
+
+    setBuying(pkg.id);
+
+    try {
+      /*
+       * O checkout real será conectado ao Mercado Pago
+       * na etapa de pagamentos.
+       *
+       * IMPORTANTE:
+       * clicar em Comprar NÃO adiciona Diamantes.
+       * O saldo somente será liberado depois da
+       * confirmação oficial do pagamento pelo webhook.
+       */
+
+      await new Promise((resolve) =>
+        setTimeout(resolve, 500)
+      );
+
+      setMessage(
+        `O pacote de ${pkg.diamonds.toLocaleString(
+          "pt-BR"
+        )} Diamantes será disponibilizado no checkout.`
+      );
+    } catch (err) {
+      console.error(
+        "Erro ao iniciar compra:",
+        err
+      );
+
+      setError(
+        "Não foi possível iniciar a compra."
+      );
+    } finally {
+      setBuying(null);
+    }
   }
 
   return (
-    <main className="credits-page">
-      <div className="page-background" />
+    <>
+      <style jsx global>{`
+        * {
+          box-sizing: border-box;
+        }
 
-      {/* HEADER */}
-      <header className="top-header">
-        <div className="header-container">
-          <Link href="/dashboard" className="brand">
-            <span className="brand-icon">✦</span>
-            <span>CIEL IA STUDIO</span>
-          </Link>
+        html,
+        body {
+          margin: 0;
+          padding: 0;
+          background: #06111f;
+        }
 
-          <nav className="header-nav">
-            <Link href="/minha-conta">Minha Conta</Link>
-
-            <Link href="/projetos">Meus Projetos</Link>
-
-            <Link href="/creditos" className="active">
-              <Diamond size={22} />
-              <span>Diamantes</span>
-            </Link>
-
-            <Link href="/configuracoes">Configurações</Link>
-
-            <Link href="/login">Sair</Link>
-          </nav>
-        </div>
-      </header>
-
-      {/* CONTEÚDO */}
-      <section className="content">
-        {/* TÍTULO */}
-        <div className="title-area">
-          <div className="title-icon">
-            <Diamond size={62} />
-          </div>
-
-          <div>
-            <h1>
-              <span className="title-diamantes">DIAMANTES</span>
-            </h1>
-
-            <p>
-              Use seus Diamantes para transformar suas ideias em criações com
-              inteligência artificial.
-            </p>
-          </div>
-        </div>
-
-        {/* SALDO */}
-        <section className="balance-card">
-          <div className="balance-left">
-            <div className="balance-icon">
-              <Diamond size={58} />
-            </div>
-
-            <div>
-              <span className="balance-label">SEU SALDO</span>
-
-              <div className="balance-value">
-                {loading ? (
-                  <span className="loading-value">...</span>
-                ) : (
-                  <>
-                    <span>{formatarNumero(diamantes ?? 0)}</span>
-
-                    <span className="balance-unit">Diamantes</span>
-                  </>
-                )}
-              </div>
-            </div>
-          </div>
-
-          <button
-            type="button"
-            className="refresh-button"
-            onClick={carregarDiamantes}
-            disabled={loading}
-            aria-label="Atualizar saldo"
-            title="Atualizar saldo"
-          >
-            ↻
-          </button>
-        </section>
-
-        {/* PACOTES */}
-        <section className="packages-section">
-          <div className="section-heading">
-            <div>
-              <span className="section-kicker">ESCOLHA SEU PACOTE</span>
-
-              <h2>Mais Diamantes para criar mais</h2>
-            </div>
-
-            <p>
-              Escolha a quantidade ideal para suas criações no CIEL IA STUDIO.
-            </p>
-          </div>
-
-          <div className="packages-grid">
-            {packages.map((pkg) => (
-              <article
-                key={pkg.diamonds}
-                className={`package-card ${
-                  pkg.popular ? "popular-package" : ""
-                }`}
-              >
-                {pkg.popular && (
-                  <div className="popular-badge">MAIS POPULAR</div>
-                )}
-
-                <div className="package-icon">
-                  <Diamond size={pkg.iconSize ?? 46} />
-                </div>
-
-                <span className="package-name">{pkg.name}</span>
-
-                <h3>
-                  <span className="package-diamond">
-                    <Diamond size={30} />
-                  </span>
-
-                  <span>{formatarNumero(pkg.diamonds)}</span>
-
-                  <span className="package-unit">Diamantes</span>
-                </h3>
-
-                <div className="package-price">{pkg.price}</div>
-
-                <p className="package-description">{pkg.description}</p>
-
-                <button
-                  type="button"
-                  className="buy-button"
-                  onClick={comprarDiamantes}
-                >
-                  Comprar Diamantes
-                </button>
-              </article>
-            ))}
-          </div>
-        </section>
-
-        {/* INFORMAÇÕES */}
-        <section className="info-card">
-          <div className="info-icon">
-            <span>i</span>
-          </div>
-
-          <div className="info-content">
-            <h3>Como funcionam os Diamantes?</h3>
-
-            <p>
-              Os Diamantes são a unidade utilizada pelo CIEL IA STUDIO para
-              realizar suas criações com inteligência artificial. Cada
-              ferramenta possui um custo diferente, de acordo com o tipo de
-              geração e seus recursos.
-            </p>
-
-            <p>
-              Antes de realizar uma geração, você poderá visualizar o custo
-              correspondente e acompanhar seu saldo.
-            </p>
-          </div>
-        </section>
-
-        {/* HISTÓRICO */}
-        <section className="usage-section">
-          <div className="section-heading">
-            <div>
-              <span className="section-kicker">SEU CONSUMO</span>
-
-              <h2>Histórico de utilização</h2>
-            </div>
-          </div>
-
-          <div className="empty-history">
-            <div className="empty-history-icon">
-              <Diamond size={42} />
-            </div>
-
-            <h3>Seu histórico aparecerá aqui</h3>
-
-            <p>
-              Quando você utilizar Diamantes em suas criações, o histórico de
-              utilização ficará disponível nesta área.
-            </p>
-          </div>
-        </section>
-
-        {/* OBSERVAÇÃO */}
-        <section className="bottom-note">
-          <Diamond size={28} />
-
-          <p>
-            Seus Diamantes são vinculados à sua conta e podem ser utilizados nas
-            ferramentas disponíveis no CIEL IA STUDIO.
-          </p>
-        </section>
-      </section>
-
-      {/* FOOTER */}
-      <footer className="footer">
-        <div className="footer-container">
-          {/* MARCA */}
-          <div className="footer-brand">
-            <Link href="/dashboard" className="footer-logo">
-              <span className="footer-logo-icon">✦</span>
-
-              <span>CIEL IA STUDIO</span>
-            </Link>
-
-            <p>Crie. Transforme. Inove com IA.</p>
-          </div>
-
-          {/* PRODUTO */}
-          <div className="footer-column">
-            <h3>Produto</h3>
-
-            <Link href="/criar-prompts">Criar Prompts</Link>
-
-            <Link href="/texto-imagem">Texto → Imagem</Link>
-
-            <Link href="/texto-video">Texto → Vídeo</Link>
-
-            <Link href="/imagem-imagem">Imagem → Imagem</Link>
-
-            <Link href="/imagem-video">Imagem → Vídeo</Link>
-
-            <Link href="/projetos">Meus Projetos</Link>
-
-            <Link href="/creditos" className="footer-diamantes">
-              <Diamond size={20} />
-
-              <span>Diamantes</span>
-            </Link>
-          </div>
-
-          {/* SUPORTE */}
-          <div className="footer-column">
-            <h3>Suporte</h3>
-
-            <Link href="/ajuda">Central de Ajuda</Link>
-
-            <Link href="/contato">Contato</Link>
-
-            <Link href="/sobre">Sobre o CIEL IA STUDIO</Link>
-          </div>
-
-          {/* LEGAL */}
-          <div className="footer-column">
-            <h3>Legal</h3>
-
-            <Link href="/termos">Termos de Uso</Link>
-
-            <Link href="/privacidade">Política de Privacidade</Link>
-          </div>
-        </div>
-
-        <div className="footer-bottom">
-          <span>© 2026 CIEL IA STUDIO. Todos os direitos reservados.</span>
-        </div>
-      </footer>
-
-      <style jsx>{`
-        .credits-page {
-          min-height: 100vh;
-          position: relative;
-          overflow-x: hidden;
-          background: #07111f;
+        body {
+          font-family:
+            Arial,
+            Helvetica,
+            sans-serif;
           color: #ffffff;
         }
 
-        .page-background {
-          position: fixed;
-          inset: 0;
-          z-index: 0;
-          pointer-events: none;
+        a {
+          -webkit-tap-highlight-color: transparent;
+        }
+
+        button {
+          font-family: inherit;
+        }
+
+        /* =====================================================
+           PÁGINA
+        ===================================================== */
+
+        .page {
+          min-height: 100vh;
+
           background:
             radial-gradient(
-              circle at 50% 0%,
-              rgba(0, 174, 255, 0.12),
-              transparent 34%
+              circle at 50% 8%,
+              rgba(22, 126, 190, 0.25),
+              transparent 32%
             ),
             radial-gradient(
-              circle at 0% 50%,
-              rgba(0, 110, 255, 0.08),
+              circle at 8% 45%,
+              rgba(14, 91, 145, 0.18),
               transparent 30%
+            ),
+            radial-gradient(
+              circle at 90% 60%,
+              rgba(10, 70, 120, 0.16),
+              transparent 35%
             ),
             linear-gradient(
               135deg,
-              #07111f 0%,
-              #081827 45%,
-              #050b15 100%
+              #06101d 0%,
+              #071a2c 48%,
+              #061422 100%
             );
+
+          overflow-x: hidden;
         }
 
-        /* HEADER */
+        /* =====================================================
+           CABEÇALHO PADRÃO
+        ===================================================== */
 
-        .top-header {
+        .topbar {
           position: relative;
-          z-index: 5;
-          border-bottom: 1px solid rgba(100, 210, 255, 0.1);
-          background: rgba(4, 12, 24, 0.78);
-          backdrop-filter: blur(16px);
-        }
 
-        .header-container {
-          width: min(1180px, calc(100% - 40px));
-          min-height: 76px;
-          margin: 0 auto;
+          width: 100%;
+          min-height: 74px;
+
           display: flex;
           align-items: center;
           justify-content: space-between;
-          gap: 30px;
+
+          gap: 24px;
+
+          padding:
+            0 42px;
+
+          background:
+            rgba(3, 12, 24, 0.94);
+
+          border-bottom:
+            1px solid
+            rgba(76, 177, 237, 0.18);
+
+          backdrop-filter: blur(14px);
         }
 
         .brand {
-          display: inline-flex;
+          display: flex;
           align-items: center;
+
           gap: 10px;
-          color: #ffffff;
+
           text-decoration: none;
-          font-weight: 800;
-          letter-spacing: 0.5px;
+
           white-space: nowrap;
         }
 
-        .brand-icon,
-        .footer-logo-icon {
-          display: inline-flex;
-          align-items: center;
-          justify-content: center;
-          width: 30px;
-          height: 30px;
-          border-radius: 9px;
-          color: #d9f9ff;
-          background: linear-gradient(
-            135deg,
-            rgba(55, 214, 255, 0.95),
-            rgba(41, 91, 255, 0.85)
-          );
-          box-shadow:
-            0 0 18px rgba(0, 191, 255, 0.35),
-            inset 0 1px 0 rgba(255, 255, 255, 0.35);
+        .brand-icon {
+          font-size: 28px;
+
+          line-height: 1;
+
+          filter:
+            drop-shadow(
+              0 0 8px
+              rgba(255, 215, 70, 0.45)
+            );
         }
 
-        .header-nav {
+        .brand-name {
+          color: #ffffff;
+
+          font-size: 20px;
+          font-weight: 800;
+
+          letter-spacing: 0.3px;
+        }
+
+        .nav {
           display: flex;
           align-items: center;
-          justify-content: flex-end;
-          gap: 8px;
-          flex-wrap: wrap;
+
+          gap: 24px;
         }
 
-        .header-nav a {
-          min-height: 38px;
-          padding: 8px 12px;
-          display: inline-flex;
-          align-items: center;
-          gap: 7px;
-          border-radius: 10px;
-          color: rgba(222, 239, 255, 0.72);
+        .nav a {
+          color: #b9c9da;
+
           text-decoration: none;
+
           font-size: 14px;
+          font-weight: 700;
+
           transition:
             color 0.2s ease,
-            background 0.2s ease,
-            box-shadow 0.2s ease;
+            text-shadow 0.2s ease;
         }
 
-        .header-nav a:hover {
-          color: #ffffff;
-          background: rgba(57, 193, 255, 0.08);
+        .nav a:hover {
+          color: #67d4ff;
+
+          text-shadow:
+            0 0 12px
+            rgba(67, 201, 255, 0.55);
         }
 
-        .header-nav a.active {
-          color: #dffaff;
-          background: rgba(38, 185, 255, 0.1);
-          box-shadow: inset 0 0 0 1px rgba(70, 210, 255, 0.12);
+        .nav-active {
+          color: #69d6ff !important;
+
+          text-shadow:
+            0 0 12px
+            rgba(68, 205, 255, 0.45);
         }
 
-        /* CONTEÚDO */
+        /* =====================================================
+           CONTEÚDO
+        ===================================================== */
 
         .content {
-          position: relative;
-          z-index: 1;
-          width: min(1180px, calc(100% - 40px));
+          width:
+            min(
+              1180px,
+              calc(100% - 48px)
+            );
+
           margin: 0 auto;
-          padding: 58px 0 80px;
+
+          padding:
+            58px 0 80px;
         }
 
-        /* TÍTULO */
+        /* =====================================================
+           TÍTULO
+        ===================================================== */
 
-        .title-area {
+        .hero {
+          text-align: center;
+
+          margin-bottom: 44px;
+        }
+
+        .hero-title {
           display: flex;
+
           align-items: center;
-          gap: 20px;
-          margin-bottom: 34px;
+          justify-content: center;
+
+          gap: 18px;
+
+          margin: 0;
+
+          color: #ffffff;
+
+          font-size:
+            clamp(
+              40px,
+              6vw,
+              64px
+            );
+
+          font-weight: 900;
+
+          letter-spacing: 2px;
+
+          text-shadow:
+            0 0 18px
+            rgba(71, 203, 255, 0.2);
         }
 
-        .title-icon {
-          width: 76px;
-          height: 76px;
+        .hero-diamond {
           display: flex;
           align-items: center;
           justify-content: center;
+
+          width: 76px;
+          height: 76px;
+
           flex-shrink: 0;
-          border-radius: 20px;
-          background: rgba(30, 154, 255, 0.08);
-          border: 1px solid rgba(81, 211, 255, 0.14);
-          box-shadow:
-            0 0 30px rgba(0, 172, 255, 0.1),
-            inset 0 0 22px rgba(0, 180, 255, 0.04);
+
+          filter:
+            drop-shadow(
+              0 0 9px
+              rgba(87, 218, 255, 0.85)
+            )
+            drop-shadow(
+              0 0 22px
+              rgba(35, 172, 255, 0.5)
+            );
         }
 
-        .title-diamantes {
-          display: inline-block;
-          font-size: clamp(30px, 4vw, 48px);
-          line-height: 1;
-          font-weight: 900;
-          letter-spacing: 2px;
-          background: linear-gradient(
-            90deg,
-            #ffffff 0%,
-            #a8f0ff 30%,
-            #39cfff 62%,
-            #398cff 100%
-          );
+        .hero-title-text {
+          background:
+            linear-gradient(
+              90deg,
+              #ffffff 0%,
+              #c9f1ff 38%,
+              #59caff 72%,
+              #27a9f0 100%
+            );
+
           -webkit-background-clip: text;
           background-clip: text;
+
           -webkit-text-fill-color: transparent;
-          text-shadow: 0 0 28px rgba(35, 199, 255, 0.25);
         }
 
-        .title-area p {
-          max-width: 700px;
-          margin: 10px 0 0;
-          color: rgba(218, 236, 251, 0.66);
-          font-size: 15px;
+        .hero p {
+          width:
+            min(
+              760px,
+              100%
+            );
+
+          margin:
+            18px auto 0;
+
+          color: #9fb2c5;
+
+          font-size: 18px;
+
           line-height: 1.65;
         }
 
-        /* SALDO */
+        /* =====================================================
+           SALDO
+        ===================================================== */
 
         .balance-card {
-          min-height: 150px;
-          padding: 28px 30px;
+          position: relative;
+
           display: flex;
+
           align-items: center;
           justify-content: space-between;
-          gap: 20px;
-          border-radius: 22px;
-          border: 1px solid rgba(85, 211, 255, 0.18);
-          background: linear-gradient(
-            135deg,
-            rgba(12, 43, 70, 0.8),
-            rgba(7, 21, 38, 0.88)
-          );
+
+          gap: 28px;
+
+          min-height: 180px;
+
+          padding:
+            30px 38px;
+
+          margin-bottom: 62px;
+
+          border-radius: 24px;
+
+          background:
+            linear-gradient(
+              135deg,
+              rgba(8, 37, 59, 0.94),
+              rgba(4, 24, 41, 0.98)
+            );
+
+          border:
+            1px solid
+            rgba(39, 190, 255, 0.42);
+
           box-shadow:
-            0 20px 60px rgba(0, 0, 0, 0.25),
-            inset 0 1px 0 rgba(255, 255, 255, 0.04);
+            0 0 12px
+              rgba(28, 179, 255, 0.2),
+            0 0 35px
+              rgba(17, 119, 190, 0.12),
+            inset 0 0 28px
+              rgba(37, 173, 255, 0.045);
         }
 
         .balance-left {
           display: flex;
           align-items: center;
-          gap: 20px;
+
+          gap: 24px;
+
+          min-width: 0;
         }
 
-        .balance-icon {
-          width: 82px;
-          height: 82px;
+        .balance-diamond {
           display: flex;
+
           align-items: center;
           justify-content: center;
-          border-radius: 20px;
-          background: rgba(24, 164, 255, 0.07);
-          border: 1px solid rgba(82, 210, 255, 0.12);
+
+          width: 88px;
+          height: 88px;
+
+          flex-shrink: 0;
+
+          filter:
+            drop-shadow(
+              0 0 8px
+              rgba(90, 220, 255, 0.9)
+            )
+            drop-shadow(
+              0 0 25px
+              rgba(28, 177, 255, 0.52)
+            );
         }
 
-        .balance-label,
-        .section-kicker {
-          display: block;
+        .balance-info {
+          min-width: 0;
+        }
+
+        .balance-label {
           margin-bottom: 6px;
-          color: rgba(128, 218, 255, 0.68);
-          font-size: 11px;
+
+          color: #8fa7bb;
+
+          font-size: 13px;
           font-weight: 800;
-          letter-spacing: 1.8px;
+
+          letter-spacing: 2px;
+
+          text-transform: uppercase;
         }
 
         .balance-value {
           display: flex;
+
           align-items: baseline;
+
           gap: 10px;
-          font-size: clamp(34px, 5vw, 48px);
-          font-weight: 900;
-          line-height: 1;
+
+          white-space: nowrap;
+        }
+
+        .balance-number {
           color: #ffffff;
+
+          font-size:
+            clamp(
+              42px,
+              6vw,
+              58px
+            );
+
+          font-weight: 900;
+
+          line-height: 1;
         }
 
-        .balance-unit {
-          font-size: 15px;
-          font-weight: 700;
-          color: #73dfff;
-        }
+        .balance-word {
+          color: #5fd0ff;
 
-        .loading-value {
-          color: #72dfff;
-          animation: pulse 1.2s infinite ease-in-out;
+          font-size:
+            clamp(
+              19px,
+              3vw,
+              27px
+            );
+
+          font-weight: 800;
         }
 
         .refresh-button {
-          width: 44px;
-          height: 44px;
-          border: 1px solid rgba(86, 211, 255, 0.16);
-          border-radius: 12px;
-          background: rgba(27, 162, 255, 0.07);
-          color: #75ddff;
-          font-size: 25px;
+          display: flex;
+
+          align-items: center;
+          justify-content: center;
+
+          width: 58px;
+          height: 58px;
+
+          flex-shrink: 0;
+
+          border-radius: 17px;
+
+          border:
+            1px solid
+            rgba(69, 202, 255, 0.32);
+
+          background:
+            rgba(17, 91, 135, 0.16);
+
+          color: #62d4ff;
+
+          font-size: 28px;
+
           cursor: pointer;
+
           transition:
             transform 0.2s ease,
-            background 0.2s ease;
+            background 0.2s ease,
+            box-shadow 0.2s ease;
         }
 
         .refresh-button:hover {
-          transform: rotate(25deg);
-          background: rgba(27, 162, 255, 0.14);
+          transform:
+            translateY(-2px);
+
+          background:
+            rgba(25, 119, 170, 0.24);
+
+          box-shadow:
+            0 0 16px
+            rgba(55, 198, 255, 0.25);
         }
 
         .refresh-button:disabled {
+          opacity: 0.55;
+
           cursor: wait;
-          opacity: 0.5;
         }
 
-        /* SEÇÕES */
+        .refresh-spin {
+          display: inline-block;
 
-        .packages-section,
-        .usage-section {
-          margin-top: 58px;
+          animation:
+            rotate 0.9s linear infinite;
         }
+
+        @keyframes rotate {
+          to {
+            transform:
+              rotate(360deg);
+          }
+        }
+
+        /* =====================================================
+           SEÇÃO PACOTES
+        ===================================================== */
 
         .section-heading {
-          display: flex;
-          align-items: flex-end;
-          justify-content: space-between;
-          gap: 30px;
-          margin-bottom: 24px;
+          margin-bottom: 30px;
+        }
+
+        .section-kicker {
+          margin: 0 0 9px;
+
+          color: #58c9ef;
+
+          font-size: 13px;
+          font-weight: 900;
+
+          letter-spacing: 2.5px;
+
+          text-transform: uppercase;
         }
 
         .section-heading h2 {
           margin: 0;
-          font-size: 28px;
-          line-height: 1.2;
+
           color: #ffffff;
+
+          font-size:
+            clamp(
+              28px,
+              4vw,
+              38px
+            );
+
+          line-height: 1.2;
         }
 
         .section-heading p {
-          max-width: 390px;
-          margin: 0;
-          color: rgba(211, 232, 249, 0.58);
-          font-size: 14px;
+          margin:
+            14px 0 0;
+
+          color: #8fa3b7;
+
+          font-size: 17px;
+
           line-height: 1.6;
-          text-align: right;
         }
 
-        /* PACOTES */
+        /* =====================================================
+           GRID DE PACOTES
+        ===================================================== */
 
         .packages-grid {
           display: grid;
-          grid-template-columns: repeat(4, minmax(0, 1fr));
-          gap: 18px;
+
+          grid-template-columns:
+            repeat(2, minmax(0, 1fr));
+
+          gap: 24px;
+
+          margin-bottom: 56px;
         }
 
         .package-card {
           position: relative;
-          min-height: 390px;
-          padding: 30px 18px 24px;
+
           display: flex;
           flex-direction: column;
-          align-items: center;
-          text-align: center;
-          border: 1px solid rgba(101, 199, 255, 0.1);
-          border-radius: 22px;
-          background: linear-gradient(
-            145deg,
-            rgba(12, 30, 49, 0.88),
-            rgba(6, 16, 29, 0.92)
-          );
+
+          min-height: 510px;
+
+          padding:
+            34px 30px 28px;
+
+          border-radius: 26px;
+
+          background:
+            linear-gradient(
+              145deg,
+              rgba(7, 31, 49, 0.96),
+              rgba(4, 20, 34, 0.98)
+            );
+
+          border:
+            1px solid
+            rgba(66, 160, 210, 0.2);
+
           box-shadow:
-            0 20px 50px rgba(0, 0, 0, 0.2),
-            inset 0 1px 0 rgba(255, 255, 255, 0.03);
+            0 14px 40px
+              rgba(0, 0, 0, 0.2);
+
+          overflow: hidden;
+
           transition:
             transform 0.25s ease,
             border-color 0.25s ease,
             box-shadow 0.25s ease;
         }
 
-        .package-card:hover {
-          transform: translateY(-5px);
-          border-color: rgba(76, 211, 255, 0.28);
-          box-shadow:
-            0 28px 70px rgba(0, 0, 0, 0.28),
-            0 0 35px rgba(0, 174, 255, 0.07);
+        .package-card::before {
+          content: "";
+
+          position: absolute;
+
+          width: 220px;
+          height: 220px;
+
+          top: -120px;
+          right: -100px;
+
+          border-radius: 50%;
+
+          background:
+            rgba(46, 181, 255, 0.09);
+
+          filter:
+            blur(30px);
+
+          pointer-events: none;
         }
 
-        .popular-package {
-          border-color: rgba(68, 211, 255, 0.28);
+        .package-card:hover {
+          transform:
+            translateY(-5px);
+
+          border-color:
+            rgba(71, 194, 244, 0.42);
+
           box-shadow:
-            0 24px 65px rgba(0, 0, 0, 0.25),
-            0 0 40px rgba(0, 188, 255, 0.08);
+            0 15px 45px
+              rgba(0, 0, 0, 0.26),
+            0 0 22px
+              rgba(35, 166, 225, 0.1);
+        }
+
+        .package-featured {
+          border:
+            1px solid
+            rgba(67, 204, 255, 0.62);
+
+          box-shadow:
+            0 0 20px
+              rgba(39, 176, 237, 0.12),
+            inset 0 0 25px
+              rgba(39, 176, 237, 0.035);
         }
 
         .popular-badge {
           position: absolute;
-          top: 14px;
-          right: 14px;
-          padding: 5px 9px;
+
+          top: 18px;
+          right: 18px;
+
+          padding:
+            7px 12px;
+
           border-radius: 999px;
-          background: rgba(35, 192, 255, 0.11);
-          border: 1px solid rgba(71, 213, 255, 0.18);
-          color: #72ddff;
-          font-size: 9px;
+
+          color: #041522;
+
+          background:
+            linear-gradient(
+              90deg,
+              #5bd6ff,
+              #9ceaff
+            );
+
+          font-size: 10px;
           font-weight: 900;
+
           letter-spacing: 0.7px;
-        }
 
-        .package-icon {
-          width: 82px;
-          height: 82px;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          margin-bottom: 15px;
-          border-radius: 22px;
-          background: rgba(21, 160, 255, 0.06);
-          border: 1px solid rgba(86, 211, 255, 0.1);
-        }
-
-        .package-name {
-          color: rgba(211, 234, 249, 0.66);
-          font-size: 12px;
-          font-weight: 800;
-          letter-spacing: 1.2px;
-          text-transform: uppercase;
-        }
-
-        .package-card h3 {
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          gap: 3px;
-          margin: 12px 0 4px;
-          color: #ffffff;
-          font-size: 27px;
-          line-height: 1;
-          font-weight: 900;
-          white-space: nowrap;
+          box-shadow:
+            0 0 13px
+            rgba(69, 204, 255, 0.35);
         }
 
         .package-diamond {
-          display: inline-flex;
+          display: flex;
+
           align-items: center;
+          justify-content: center;
+
+          width: 120px;
+          height: 120px;
+
+          margin:
+            8px auto 12px;
+
+          filter:
+            drop-shadow(
+              0 0 9px
+              rgba(91, 219, 255, 0.95)
+            )
+            drop-shadow(
+              0 0 25px
+              rgba(31, 168, 240, 0.58)
+            );
         }
 
-        .package-unit {
-          align-self: flex-end;
-          margin-bottom: 2px;
-          color: #69d9ff;
-          font-size: 9px;
+        .package-name {
+          margin:
+            4px 0 10px;
+
+          text-align: center;
+
+          color: #8fa8bc;
+
+          font-size: 14px;
+          font-weight: 900;
+
+          letter-spacing: 2px;
+
+          text-transform: uppercase;
+        }
+
+        .package-diamonds {
+          display: flex;
+
+          align-items: center;
+          justify-content: center;
+
+          gap: 8px;
+
+          margin-top: 2px;
+
+          text-align: center;
+        }
+
+        .small-diamond {
+          display: flex;
+
+          align-items: center;
+          justify-content: center;
+
+          width: 40px;
+          height: 40px;
+
+          filter:
+            drop-shadow(
+              0 0 7px
+              rgba(78, 214, 255, 0.8)
+            );
+        }
+
+        .package-number {
+          color: #ffffff;
+
+          font-size:
+            clamp(
+              31px,
+              4vw,
+              42px
+            );
+
+          font-weight: 900;
+
+          line-height: 1;
+        }
+
+        .package-word {
+          color: #5dcfff;
+
+          font-size: 15px;
+
           font-weight: 800;
+
+          align-self: flex-end;
+
+          margin-bottom: 4px;
         }
 
         .package-price {
-          margin-top: 15px;
+          margin:
+            25px 0 12px;
+
+          text-align: center;
+
           color: #ffffff;
-          font-size: 24px;
+
+          font-size:
+            clamp(
+              30px,
+              4vw,
+              38px
+            );
+
           font-weight: 900;
         }
 
         .package-description {
-          min-height: 42px;
-          margin: 10px 0 22px;
-          color: rgba(211, 232, 249, 0.55);
-          font-size: 12px;
+          min-height: 50px;
+
+          margin: 0 auto;
+
+          max-width: 330px;
+
+          text-align: center;
+
+          color: #879caf;
+
+          font-size: 15px;
+
           line-height: 1.6;
         }
 
         .buy-button {
           width: 100%;
-          min-height: 46px;
+
           margin-top: auto;
-          border: 1px solid rgba(73, 210, 255, 0.22);
-          border-radius: 12px;
-          background: linear-gradient(
-            135deg,
-            rgba(29, 177, 255, 0.2),
-            rgba(44, 104, 255, 0.17)
-          );
-          color: #dffaff;
-          font-size: 13px;
-          font-weight: 800;
+
+          padding:
+            16px 20px;
+
+          border-radius: 14px;
+
+          border:
+            1px solid
+            rgba(70, 201, 255, 0.45);
+
+          color: #ffffff;
+
+          background:
+            linear-gradient(
+              90deg,
+              #0b91ed,
+              #0bc1f3
+            );
+
+          font-size: 16px;
+          font-weight: 900;
+
           cursor: pointer;
+
+          box-shadow:
+            0 0 18px
+            rgba(21, 164, 235, 0.22);
+
           transition:
             transform 0.2s ease,
-            background 0.2s ease,
-            box-shadow 0.2s ease;
+            box-shadow 0.2s ease,
+            opacity 0.2s ease;
         }
 
         .buy-button:hover {
-          transform: translateY(-1px);
-          background: linear-gradient(
-            135deg,
-            rgba(29, 177, 255, 0.28),
-            rgba(44, 104, 255, 0.25)
-          );
-          box-shadow: 0 8px 25px rgba(0, 169, 255, 0.12);
+          transform:
+            translateY(-2px);
+
+          box-shadow:
+            0 0 25px
+            rgba(25, 181, 247, 0.4);
         }
 
-        /* INFORMAÇÕES */
+        .buy-button:disabled {
+          opacity: 0.55;
+
+          cursor: wait;
+
+          transform: none;
+        }
+
+        /* =====================================================
+           MENSAGENS
+        ===================================================== */
+
+        .notice {
+          margin:
+            0 auto 28px;
+
+          padding:
+            14px 18px;
+
+          border-radius: 13px;
+
+          font-size: 14px;
+
+          line-height: 1.5;
+
+          text-align: center;
+        }
+
+        .notice-success {
+          color: #91f1c8;
+
+          background:
+            rgba(32, 170, 115, 0.09);
+
+          border:
+            1px solid
+            rgba(73, 224, 162, 0.25);
+        }
+
+        .notice-error {
+          color: #ffb3b3;
+
+          background:
+            rgba(220, 60, 60, 0.09);
+
+          border:
+            1px solid
+            rgba(255, 90, 90, 0.25);
+        }
+
+        /* =====================================================
+           COMO FUNCIONA
+        ===================================================== */
 
         .info-card {
-          margin-top: 34px;
-          padding: 24px;
-          display: flex;
-          align-items: flex-start;
-          gap: 18px;
-          border: 1px solid rgba(101, 199, 255, 0.09);
-          border-radius: 18px;
-          background: rgba(9, 27, 44, 0.62);
+          display: grid;
+
+          grid-template-columns:
+            auto 1fr;
+
+          gap: 24px;
+
+          align-items: start;
+
+          padding:
+            30px;
+
+          margin-bottom: 32px;
+
+          border-radius: 23px;
+
+          background:
+            linear-gradient(
+              145deg,
+              rgba(8, 31, 49, 0.88),
+              rgba(4, 20, 34, 0.96)
+            );
+
+          border:
+            1px solid
+            rgba(69, 164, 215, 0.2);
         }
 
         .info-icon {
-          width: 38px;
-          height: 38px;
-          flex: 0 0 38px;
+          width: 58px;
+          height: 58px;
+
           display: flex;
           align-items: center;
           justify-content: center;
+
           border-radius: 50%;
-          border: 1px solid rgba(74, 207, 255, 0.2);
-          background: rgba(31, 181, 255, 0.08);
-          color: #6edcff;
-          font-size: 18px;
+
+          border:
+            1px solid
+            rgba(73, 200, 255, 0.3);
+
+          color: #61d3ff;
+
+          background:
+            rgba(45, 171, 225, 0.08);
+
+          font-size: 27px;
           font-weight: 900;
+
+          box-shadow:
+            0 0 15px
+            rgba(48, 188, 245, 0.1);
         }
 
-        .info-content h3 {
-          margin: 1px 0 7px;
+        .info-card h3 {
+          margin:
+            0 0 10px;
+
           color: #ffffff;
-          font-size: 16px;
+
+          font-size: 21px;
         }
 
-        .info-content p {
-          margin: 0 0 8px;
-          color: rgba(211, 232, 249, 0.58);
-          font-size: 13px;
-          line-height: 1.65;
-        }
-
-        .info-content p:last-child {
-          margin-bottom: 0;
-        }
-
-        /* HISTÓRICO */
-
-        .empty-history {
-          min-height: 250px;
-          padding: 35px 25px;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          flex-direction: column;
-          text-align: center;
-          border: 1px dashed rgba(102, 204, 255, 0.12);
-          border-radius: 20px;
-          background: rgba(7, 20, 34, 0.45);
-        }
-
-        .empty-history-icon {
-          width: 68px;
-          height: 68px;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          margin-bottom: 15px;
-          border-radius: 18px;
-          background: rgba(27, 166, 255, 0.06);
-          border: 1px solid rgba(80, 208, 255, 0.1);
-        }
-
-        .empty-history h3 {
-          margin: 0 0 7px;
-          color: #ffffff;
-          font-size: 17px;
-        }
-
-        .empty-history p {
-          max-width: 520px;
+        .info-card p {
           margin: 0;
-          color: rgba(211, 232, 249, 0.52);
-          font-size: 13px;
-          line-height: 1.65;
+
+          color: #8ea3b7;
+
+          font-size: 15px;
+
+          line-height: 1.7;
         }
 
-        /* OBSERVAÇÃO */
-
-        .bottom-note {
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          gap: 9px;
-          margin-top: 30px;
-          color: rgba(210, 234, 250, 0.48);
-          font-size: 12px;
-          text-align: center;
+        .info-card strong {
+          color: #c8eaff;
         }
 
-        .bottom-note p {
-          margin: 0;
-        }
-
-        /* FOOTER */
+        /* =====================================================
+           RODAPÉ PADRÃO
+        ===================================================== */
 
         .footer {
-          position: relative;
-          z-index: 1;
-          border-top: 1px solid rgba(100, 210, 255, 0.08);
-          background: rgba(3, 10, 19, 0.82);
+          border-top:
+            1px solid
+            rgba(76, 177, 237, 0.16);
+
+          background:
+            linear-gradient(
+              180deg,
+              rgba(3, 13, 25, 0.98),
+              #020a14
+            );
+
+          padding:
+            52px 42px 24px;
         }
 
-        .footer-container {
-          width: min(1180px, calc(100% - 40px));
+        .footer-inner {
+          width:
+            min(
+              1180px,
+              100%
+            );
+
           margin: 0 auto;
-          padding: 55px 0 45px;
-          display: grid;
-          grid-template-columns: 1.4fr repeat(3, 1fr);
-          gap: 40px;
         }
 
-        .footer-logo {
-          display: inline-flex;
-          align-items: center;
-          gap: 10px;
+        .footer-brand {
+          margin-bottom: 42px;
+        }
+
+        .footer-brand h2 {
+          margin:
+            0 0 8px;
+
           color: #ffffff;
-          text-decoration: none;
-          font-size: 15px;
-          font-weight: 900;
-        }
 
-        .footer-logo-icon {
-          width: 28px;
-          height: 28px;
-          font-size: 13px;
+          font-size: 24px;
+          font-weight: 900;
         }
 
         .footer-brand p {
-          max-width: 220px;
-          margin: 13px 0 0;
-          color: rgba(210, 233, 250, 0.48);
-          font-size: 13px;
-          line-height: 1.6;
+          margin: 0;
+
+          color: #8fa1b3;
+
+          font-size: 15px;
         }
 
-        .footer-column {
-          display: flex;
-          flex-direction: column;
-          align-items: flex-start;
-          gap: 9px;
+        .footer-columns {
+          display: grid;
+
+          grid-template-columns:
+            repeat(3, 1fr);
+
+          gap: 50px;
         }
 
         .footer-column h3 {
-          margin: 0 0 7px;
+          margin:
+            0 0 18px;
+
           color: #ffffff;
-          font-size: 13px;
+
+          font-size: 16px;
           font-weight: 800;
         }
 
         .footer-column a {
-          display: inline-flex;
-          align-items: center;
-          gap: 6px;
-          color: rgba(210, 233, 250, 0.52);
+          display: block;
+
+          width: fit-content;
+
+          margin-bottom: 12px;
+
+          color: #9eafc0;
+
           text-decoration: none;
-          font-size: 12px;
-          line-height: 1.4;
-          transition: color 0.2s ease;
+
+          font-size: 14px;
+
+          transition:
+            color 0.2s ease;
         }
 
         .footer-column a:hover {
-          color: #72ddff;
+          color: #65d3ff;
         }
 
-        .footer-diamantes {
-          color: #72ddff !important;
+        .footer-diamond-link {
+          color: #65d3ff !important;
+
+          font-weight: 700;
         }
 
         .footer-bottom {
-          width: min(1180px, calc(100% - 40px));
-          margin: 0 auto;
-          padding: 20px 0 25px;
-          border-top: 1px solid rgba(100, 210, 255, 0.07);
-          color: rgba(210, 233, 250, 0.35);
-          font-size: 11px;
+          margin-top: 36px;
+
+          padding-top: 22px;
+
+          border-top:
+            1px solid
+            rgba(76, 177, 237, 0.14);
+
+          color: #77889a;
+
           text-align: center;
+
+          font-size: 13px;
         }
 
-        /* ANIMAÇÃO */
+        /* =====================================================
+           LOADING
+        ===================================================== */
 
-        @keyframes pulse {
+        .loading {
+          min-height: 300px;
+
+          display: flex;
+
+          align-items: center;
+          justify-content: center;
+
+          color: #91a7bb;
+
+          font-size: 16px;
+
+          animation:
+            loadingPulse 1.2s infinite;
+        }
+
+        @keyframes loadingPulse {
           0%,
           100% {
-            opacity: 0.35;
+            opacity: 0.45;
           }
 
           50% {
@@ -1028,147 +1326,643 @@ export default function CreditosPage() {
           }
         }
 
-        /* TABLET */
+        /* =====================================================
+           TABLET
+        ===================================================== */
 
-        @media (max-width: 1050px) {
-          .packages-grid {
-            grid-template-columns: repeat(2, minmax(0, 1fr));
+        @media (max-width: 950px) {
+          .topbar {
+            padding:
+              0 24px;
           }
 
-          .package-card {
-            min-height: 380px;
-          }
-        }
-
-        @media (max-width: 900px) {
-          .header-container {
-            padding: 14px 0;
-            align-items: flex-start;
-            flex-direction: column;
-          }
-
-          .header-nav {
-            width: 100%;
-            justify-content: flex-start;
-          }
-
-          .section-heading {
-            align-items: flex-start;
-            flex-direction: column;
-          }
-
-          .section-heading p {
-            text-align: left;
-          }
-
-          .footer-container {
-            grid-template-columns: repeat(2, 1fr);
-          }
-        }
-
-        /* CELULAR */
-
-        @media (max-width: 600px) {
-          .header-container,
-          .content,
-          .footer-container,
-          .footer-bottom {
-            width: min(100% - 28px, 1180px);
-          }
-
-          .content {
-            padding-top: 35px;
-            padding-bottom: 55px;
-          }
-
-          .title-area {
-            align-items: flex-start;
+          .nav {
             gap: 14px;
           }
 
-          .title-icon {
-            width: 62px;
-            height: 62px;
-            border-radius: 17px;
-          }
-
-          .title-diamantes {
-            font-size: 30px;
-            letter-spacing: 1px;
-          }
-
-          .title-area p {
+          .nav a {
             font-size: 13px;
           }
 
-          .balance-card {
+          .packages-grid {
+            grid-template-columns:
+              1fr 1fr;
+          }
+        }
+
+        /* =====================================================
+           MOBILE
+        ===================================================== */
+
+        @media (max-width: 700px) {
+          .topbar {
             min-height: auto;
-            padding: 22px 18px;
+
+            padding:
+              17px 16px;
+
+            flex-direction: column;
+
+            align-items: stretch;
+
+            gap: 15px;
           }
 
-          .balance-left {
-            gap: 13px;
+          .brand {
+            justify-content: center;
           }
 
-          .balance-icon {
-            width: 62px;
-            height: 62px;
-            border-radius: 16px;
+          .nav {
+            display: flex;
+
+            justify-content: center;
+
+            flex-wrap: wrap;
+
+            gap:
+              9px 15px;
           }
 
-          .balance-value {
-            font-size: 31px;
-          }
-
-          .balance-unit {
+          .nav a {
             font-size: 12px;
           }
 
+          .content {
+            width:
+              calc(100% - 28px);
+
+            padding:
+              40px 0 60px;
+          }
+
+          .hero {
+            margin-bottom: 34px;
+          }
+
+          .hero-title {
+            gap: 10px;
+
+            font-size: 39px;
+
+            letter-spacing: 1px;
+          }
+
+          .hero-diamond {
+            width: 60px;
+            height: 60px;
+          }
+
+          .hero p {
+            font-size: 16px;
+
+            line-height: 1.7;
+          }
+
+          .balance-card {
+            min-height: 155px;
+
+            padding:
+              23px 20px;
+
+            gap: 12px;
+
+            border-radius: 21px;
+          }
+
+          .balance-left {
+            gap: 14px;
+          }
+
+          .balance-diamond {
+            width: 67px;
+            height: 67px;
+          }
+
+          .balance-label {
+            font-size: 11px;
+
+            letter-spacing: 1.6px;
+          }
+
+          .balance-number {
+            font-size: 42px;
+          }
+
+          .balance-word {
+            font-size: 18px;
+          }
+
           .refresh-button {
-            width: 40px;
-            height: 40px;
+            width: 51px;
+            height: 51px;
+
+            border-radius: 15px;
+
+            font-size: 24px;
+          }
+
+          .section-heading h2 {
+            font-size: 30px;
+          }
+
+          .section-heading p {
+            font-size: 15px;
           }
 
           .packages-grid {
             grid-template-columns: 1fr;
+
+            gap: 20px;
           }
 
           .package-card {
-            min-height: 350px;
+            min-height: 495px;
+
+            padding:
+              30px 22px 24px;
           }
 
-          .section-heading h2 {
-            font-size: 23px;
+          .package-diamond {
+            width: 105px;
+            height: 105px;
+          }
+
+          .package-number {
+            font-size: 34px;
+          }
+
+          .package-price {
+            font-size: 32px;
           }
 
           .info-card {
-            padding: 18px;
-          }
-
-          .bottom-note {
-            align-items: flex-start;
-          }
-
-          .footer-container {
             grid-template-columns: 1fr;
+
+            gap: 18px;
+
+            padding: 24px;
+          }
+
+          .footer {
+            padding:
+              42px 24px 22px;
+          }
+
+          .footer-columns {
+            grid-template-columns: 1fr;
+
             gap: 30px;
-            padding: 40px 0;
+          }
+        }
+
+        @media (max-width: 430px) {
+          .brand-name {
+            font-size: 18px;
           }
 
-          .footer-column {
-            gap: 10px;
+          .hero-title {
+            font-size: 34px;
           }
 
-          .header-nav {
-            gap: 3px;
+          .hero-diamond {
+            width: 52px;
+            height: 52px;
           }
 
-          .header-nav a {
-            padding: 7px 8px;
-            font-size: 12px;
+          .balance-card {
+            padding:
+              21px 16px;
+          }
+
+          .balance-diamond {
+            width: 60px;
+            height: 60px;
+          }
+
+          .balance-number {
+            font-size: 38px;
+          }
+
+          .balance-word {
+            font-size: 16px;
+          }
+
+          .refresh-button {
+            width: 47px;
+            height: 47px;
           }
         }
       `}</style>
-    </main>
+
+      <main className="page">
+
+        {/* =====================================================
+            CABEÇALHO
+        ===================================================== */}
+
+        <header className="topbar">
+
+          <Link
+            href="/dashboard"
+            className="brand"
+          >
+            <span className="brand-icon">
+              ✨
+            </span>
+
+            <span className="brand-name">
+              CIEL IA STUDIO
+            </span>
+          </Link>
+
+          <nav className="nav">
+
+            <Link href="/minha-conta">
+              Minha Conta
+            </Link>
+
+            <Link href="/projetos">
+              Meus Projetos
+            </Link>
+
+            <Link
+              href="/creditos"
+              className="nav-active"
+            >
+              💎 Diamantes
+            </Link>
+
+            <Link href="/configuracoes">
+              Configurações
+            </Link>
+
+            <Link href="/login">
+              Sair
+            </Link>
+
+          </nav>
+
+        </header>
+
+        {/* =====================================================
+            CONTEÚDO
+        ===================================================== */}
+
+        <section className="content">
+
+          {/* ===================================================
+              HERO
+          =================================================== */}
+
+          <div className="hero">
+
+            <h1 className="hero-title">
+
+              <span className="hero-diamond">
+                <Diamond />
+              </span>
+
+              <span className="hero-title-text">
+                DIAMANTES
+              </span>
+
+            </h1>
+
+            <p>
+              Gerencie seus Diamantes e
+              acompanhe o uso das ferramentas
+              de inteligência artificial do
+              CIEL IA STUDIO.
+            </p>
+
+          </div>
+
+          {/* ===================================================
+              SALDO
+          =================================================== */}
+
+          {loading ? (
+
+            <div className="balance-card loading">
+              Carregando seu saldo de Diamantes...
+            </div>
+
+          ) : (
+
+            <div className="balance-card">
+
+              <div className="balance-left">
+
+                <div className="balance-diamond">
+                  <Diamond />
+                </div>
+
+                <div className="balance-info">
+
+                  <div className="balance-label">
+                    Seu saldo disponível
+                  </div>
+
+                  <div className="balance-value">
+
+                    <span className="balance-number">
+                      {diamantes ?? 0}
+                    </span>
+
+                    <span className="balance-word">
+                      Diamantes
+                    </span>
+
+                  </div>
+
+                </div>
+
+              </div>
+
+              <button
+                type="button"
+                className="refresh-button"
+                onClick={handleRefresh}
+                disabled={refreshing}
+                aria-label="Atualizar saldo"
+                title="Atualizar saldo"
+              >
+                <span
+                  className={
+                    refreshing
+                      ? "refresh-spin"
+                      : ""
+                  }
+                >
+                  ↻
+                </span>
+              </button>
+
+            </div>
+
+          )}
+
+          {/* ===================================================
+              MENSAGENS
+          =================================================== */}
+
+          {message && (
+            <div className="notice notice-success">
+              {message}
+            </div>
+          )}
+
+          {error && (
+            <div className="notice notice-error">
+              {error}
+            </div>
+          )}
+
+          {/* ===================================================
+              PACOTES
+          =================================================== */}
+
+          <div className="section-heading">
+
+            <p className="section-kicker">
+              Escolha seu pacote
+            </p>
+
+            <h2>
+              Mais Diamantes para criar mais
+            </h2>
+
+            <p>
+              Escolha a quantidade ideal
+              para suas criações no
+              CIEL IA STUDIO.
+            </p>
+
+          </div>
+
+          <div className="packages-grid">
+
+            {packages.map((pkg) => (
+
+              <article
+                key={pkg.id}
+                className={
+                  pkg.featured
+                    ? "package-card package-featured"
+                    : "package-card"
+                }
+              >
+
+                {pkg.badge && (
+                  <div className="popular-badge">
+                    {pkg.badge}
+                  </div>
+                )}
+
+                {/* DIAMANTE SEM QUADRADO */}
+
+                <div className="package-diamond">
+                  <Diamond />
+                </div>
+
+                <div className="package-name">
+                  {pkg.name}
+                </div>
+
+                <div className="package-diamonds">
+
+                  <span className="small-diamond">
+                    <Diamond />
+                  </span>
+
+                  <span className="package-number">
+                    {pkg.diamonds.toLocaleString(
+                      "pt-BR"
+                    )}
+                  </span>
+
+                  <span className="package-word">
+                    Diamantes
+                  </span>
+
+                </div>
+
+                <div className="package-price">
+                  {pkg.price}
+                </div>
+
+                <p className="package-description">
+                  {pkg.description}
+                </p>
+
+                <button
+                  type="button"
+                  className="buy-button"
+                  onClick={() =>
+                    handleBuy(pkg)
+                  }
+                  disabled={
+                    buying === pkg.id
+                  }
+                >
+                  {buying === pkg.id
+                    ? "Preparando..."
+                    : "Comprar Diamantes"}
+                </button>
+
+              </article>
+
+            ))}
+
+          </div>
+
+          {/* ===================================================
+              COMO FUNCIONAM
+          =================================================== */}
+
+          <div className="info-card">
+
+            <div className="info-icon">
+              i
+            </div>
+
+            <div>
+
+              <h3>
+                Como funcionam os Diamantes?
+              </h3>
+
+              <p>
+                Os Diamantes são a unidade
+                utilizada pelo CIEL IA STUDIO
+                para realizar suas criações
+                com inteligência artificial.
+                Cada ferramenta possui um
+                custo específico, que será
+                apresentado antes da geração.
+              </p>
+
+            </div>
+
+          </div>
+
+        </section>
+
+        {/* =====================================================
+            RODAPÉ PADRÃO
+        ===================================================== */}
+
+        <footer className="footer">
+
+          <div className="footer-inner">
+
+            <div className="footer-brand">
+
+              <h2>
+                CIEL IA STUDIO
+              </h2>
+
+              <p>
+                Crie. Transforme. Inove com IA.
+              </p>
+
+            </div>
+
+            <div className="footer-columns">
+
+              {/* PRODUTO */}
+
+              <div className="footer-column">
+
+                <h3>
+                  Produto
+                </h3>
+
+                <Link href="/criar-prompts">
+                  Criar Prompts
+                </Link>
+
+                <Link href="/texto-imagem">
+                  Texto → Imagem
+                </Link>
+
+                <Link href="/texto-video">
+                  Texto → Vídeo
+                </Link>
+
+                <Link href="/imagem-imagem">
+                  Imagem → Imagem
+                </Link>
+
+                <Link href="/imagem-video">
+                  Imagem → Vídeo
+                </Link>
+
+                <Link href="/projetos">
+                  Meus Projetos
+                </Link>
+
+                <Link
+                  href="/creditos"
+                  className="footer-diamond-link"
+                >
+                  💎 Diamantes
+                </Link>
+
+              </div>
+
+              {/* SUPORTE */}
+
+              <div className="footer-column">
+
+                <h3>
+                  Suporte
+                </h3>
+
+                <Link href="/ajuda">
+                  Central de Ajuda
+                </Link>
+
+                <Link href="/contato">
+                  Contato
+                </Link>
+
+                <Link href="/sobre">
+                  Sobre o CIEL IA STUDIO
+                </Link>
+
+              </div>
+
+              {/* LEGAL */}
+
+              <div className="footer-column">
+
+                <h3>
+                  Legal
+                </h3>
+
+                <Link href="/termos">
+                  Termos de Uso
+                </Link>
+
+                <Link href="/privacidade">
+                  Política de Privacidade
+                </Link>
+
+              </div>
+
+            </div>
+
+            <div className="footer-bottom">
+              © 2026 CIEL IA STUDIO.
+              Todos os direitos reservados.
+            </div>
+
+          </div>
+
+        </footer>
+
+      </main>
+    </>
   );
 }
