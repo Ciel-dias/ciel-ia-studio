@@ -846,72 +846,149 @@ export default function ConfiguracoesPage() {
         }
 
         /* =========================
-           BOTÃO SAIR DA CONTA
-           DESIGN DA SEGUNDA IMAGEM
+           AÇÕES
+        ========================= */
+
+        .actions-card {
+          margin-bottom: 20px;
+        }
+
+        .action-button {
+          width: 100%;
+
+          min-height: 76px;
+
+          display: flex;
+
+          align-items: center;
+
+          justify-content: center;
+
+          padding: 16px 20px;
+
+          border-radius: 18px;
+
+          text-decoration: none;
+
+          font-size: 18px;
+
+          font-weight: 800;
+
+          transition:
+            transform 0.2s ease,
+            box-shadow 0.2s ease,
+            background 0.2s ease,
+            border-color 0.2s ease;
+        }
+
+        .action-button:hover {
+          transform:
+            translateY(-2px);
+        }
+
+        .action-button.primary {
+          color: #04101b;
+
+          background:
+            linear-gradient(
+              90deg,
+              #5ed2ff,
+              #75e0ff
+            );
+
+          box-shadow:
+            0 0 10px
+            rgba(
+              70,
+              199,
+              255,
+              0.45
+            );
+        }
+
+        .action-button.secondary {
+          margin-top: 14px;
+
+          color:
+            ${dark
+              ? "#b9dcf5"
+              : "#36546c"};
+
+          background:
+            ${
+              dark
+                ? "rgba(24, 47, 68, 0.72)"
+                : "rgba(225, 240, 249, 0.75)"
+            };
+
+          border:
+            1px solid
+            ${
+              dark
+                ? "rgba(83, 185, 235, 0.35)"
+                : "rgba(50, 145, 190, 0.35)"
+            };
+        }
+
+        /* =========================
+           BOTÃO SAIR
         ========================= */
 
         .logout-button {
           width: 100%;
 
-          min-height: 84px;
+          min-height: 76px;
 
-          padding: 20px 24px;
+          margin-top: 14px;
 
-          margin-top: 0;
+          padding: 16px 20px;
 
-          border-radius: 22px;
+          border-radius: 18px;
 
           border:
-            2px solid
+            1px solid
             rgba(
               255,
-              85,
-              105,
-              0.32
+              80,
+              100,
+              0.35
             );
 
           background:
-            rgba(
-              90,
-              35,
-              50,
-              0.24
-            );
+            ${
+              dark
+                ? "rgba(65, 35, 50, 0.38)"
+                : "rgba(255, 235, 238, 0.75)"
+            };
 
           color:
-            #ffb0b8;
+            ${dark
+              ? "#ffabb5"
+              : "#c85b68"};
 
-          font-size: 22px;
+          font-size: 18px;
 
           font-weight: 800;
 
           cursor: pointer;
 
-          box-shadow:
-            0 0 12px
-            rgba(
-              255,
-              70,
-              100,
-              0.04
-            );
-
           transition:
-            background 0.25s ease,
-            border-color 0.25s ease,
-            color 0.25s ease,
-            box-shadow 0.25s ease,
-            transform 0.2s ease;
+            transform 0.2s ease,
+            background 0.2s ease,
+            border-color 0.2s ease,
+            box-shadow 0.2s ease;
         }
 
         .logout-button:hover {
+          transform:
+            translateY(-2px);
+
           background:
-            rgba(
-              110,
-              35,
-              50,
-              0.34
-            );
+            ${
+              dark
+                ? "rgba(85, 35, 50, 0.5)"
+                : "rgba(255, 225, 230, 0.9)"
+            };
 
           border-color:
             rgba(
@@ -921,22 +998,14 @@ export default function ConfiguracoesPage() {
               0.55
             );
 
-          color:
-            #ffc0c7;
-
           box-shadow:
-            0 0 22px
+            0 0 16px
             rgba(
               255,
               70,
               100,
               0.12
             );
-        }
-
-        .logout-button:active {
-          transform:
-            scale(0.98);
         }
 
         /* =========================
@@ -1153,12 +1222,18 @@ export default function ConfiguracoesPage() {
               1fr;
           }
 
+          .action-button {
+            min-height: 74px;
+
+            font-size: 17px;
+          }
+
           .logout-button {
-            min-height: 84px;
+            min-height: 74px;
 
-            font-size: 21px;
+            font-size: 17px;
 
-            border-radius: 22px;
+            border-radius: 18px;
           }
 
           .footer {
@@ -1411,16 +1486,38 @@ export default function ConfiguracoesPage() {
           </section>
 
           {/* =========================
-              SAIR
+              AÇÕES
           ========================= */}
 
-          <button
-            type="button"
-            className="logout-button"
-            onClick={handleLogout}
-          >
-            🚪 Sair da conta
-          </button>
+          <section className="section actions-card">
+
+            <h2>
+              ⚙️ Ações
+            </h2>
+
+            <Link
+              href="/dashboard"
+              className="action-button primary"
+            >
+              ← Dashboard
+            </Link>
+
+            <Link
+              href="/configuracoes"
+              className="action-button secondary"
+            >
+              ⚙️ Configurações
+            </Link>
+
+            <button
+              type="button"
+              className="logout-button"
+              onClick={handleLogout}
+            >
+              🚪 Sair da conta
+            </button>
+
+          </section>
 
         </div>
 
