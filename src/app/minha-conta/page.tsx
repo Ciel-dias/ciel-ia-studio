@@ -2,31 +2,20 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { createClient } from "@supabase/supabase-js";
+import { createClient } from "@/lib/supabase/client";
 import Diamond from "@/components/Diamond";
 
 export const dynamic = "force-dynamic";
 
-const supabaseUrl =
-  process.env.NEXT_PUBLIC_SUPABASE_URL || "";
-
-const supabaseAnonKey =
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "";
-
-const supabase =
-  supabaseUrl && supabaseAnonKey
-    ? createClient(
-        supabaseUrl,
-        supabaseAnonKey
-      )
-    : null;
+const supabase = createClient();
 
 export default function MinhaContaPage() {
   const [email, setEmail] = useState("");
+  const [nome, setNome] = useState("");
   const [userId, setUserId] = useState("");
   const [createdAt, setCreatedAt] = useState("");
 
-  // 💎 Saldo real de Diamantes
+  // 💎 Saldo real
   const [credits, setCredits] = useState(0);
 
   const [loading, setLoading] = useState(true);
@@ -51,20 +40,13 @@ export default function MinhaContaPage() {
   }, []);
 
   // ==========================================
-  // CARREGAR DADOS DA CONTA
+  // CARREGAR CONTA
   // ==========================================
 
   async function loadAccount() {
     try {
       setLoading(true);
       setError("");
-
-      if (!supabase) {
-        setError(
-          "Configuração do Supabase não encontrada."
-        );
-        return;
-      }
 
       // ========================================
       // USUÁRIO AUTENTICADO
@@ -73,8 +55,7 @@ export default function MinhaContaPage() {
       const {
         data: { user },
         error: userError,
-      } =
-        await supabase.auth.getUser();
+      } = await supabase.auth.getUser();
 
       if (userError) {
         throw userError;
@@ -86,10 +67,18 @@ export default function MinhaContaPage() {
       }
 
       // ========================================
-      // INFORMAÇÕES DO USUÁRIO
+      // DADOS DO USUÁRIO
       // ========================================
 
       setEmail(user.email || "");
+
+      setNome(
+        user.user_metadata?.nome ||
+        user.user_metadata?.name ||
+        user.user_metadata?.full_name ||
+        "Usuário"
+      );
+
       setUserId(user.id || "");
 
       if (user.created_at) {
@@ -101,40 +90,29 @@ export default function MinhaContaPage() {
       }
 
       // ========================================
-      // 💎 CARREGAR SALDO REAL
-      //
-      // Usa a mesma rota /api/credits
-      // que já foi testada e está funcionando.
+      // 💎 SALDO REAL DO SUPABASE
       // ========================================
 
-      try {
-        const response =
-          await fetch("/api/credits", {
-            method: "GET",
-            cache: "no-store",
-          });
+      const response =
+        await fetch("/api/credits", {
+          method: "GET",
+          cache: "no-store",
+        });
 
-        const data =
-          await response.json();
+      const data =
+        await response.json();
 
-        if (!response.ok || !data.success) {
-          throw new Error(
-            data?.error ||
-              "Não foi possível carregar os Diamantes."
-          );
-        }
-
-        setCredits(
-          Number(data.balance) || 0
+      if (!response.ok || !data.success) {
+        throw new Error(
+          data?.error ||
+            "Não foi possível carregar os Diamantes."
         );
-      } catch (creditsError) {
-        console.error(
-          "Erro ao carregar Diamantes:",
-          creditsError
-        );
-
-        setCredits(0);
       }
+
+      setCredits(
+        Number(data.balance) || 0
+      );
+
     } catch (err) {
       console.error(
         "Erro ao carregar conta:",
@@ -181,13 +159,6 @@ export default function MinhaContaPage() {
       return;
     }
 
-    if (!supabase) {
-      setError(
-        "Supabase não configurado."
-      );
-      return;
-    }
-
     try {
       setChangingPassword(true);
 
@@ -228,9 +199,7 @@ export default function MinhaContaPage() {
 
   async function handleLogout() {
     try {
-      if (supabase) {
-        await supabase.auth.signOut();
-      }
+      await supabase.auth.signOut();
 
       window.location.replace("/login");
     } catch (err) {
@@ -1036,27 +1005,6 @@ export default function MinhaContaPage() {
             rgba(70, 199, 255, 0.35);
         }
 
-        /*
-          💎 AGORA USA EXATAMENTE
-          A MESMA COR DOS OUTROS LINKS.
-        */
-
-        .footer-diamonds {
-          color: #aebaca !important;
-
-          font-weight: normal;
-
-          text-shadow: none;
-        }
-
-        .footer-diamonds:hover {
-          color: #68d2ff !important;
-
-          text-shadow:
-            0 0 8px
-            rgba(70, 199, 255, 0.35);
-        }
-
         .footer-bottom {
           margin-top: 36px;
 
@@ -1301,12 +1249,11 @@ export default function MinhaContaPage() {
                   </div>
 
                   <h2>
-                    Minha Conta
+                    {nome}
                   </h2>
 
                   <p>
-                    {email ||
-                      "Usuário CIEL IA STUDIO"}
+                    {email || "—"}
                   </p>
 
                 </div>
@@ -1324,6 +1271,18 @@ export default function MinhaContaPage() {
                 </h2>
 
                 <div className="info-list">
+
+                  <div className="info-row">
+
+                    <span className="info-label">
+                      Nome
+                    </span>
+
+                    <span className="info-value">
+                      {nome || "—"}
+                    </span>
+
+                  </div>
 
                   <div className="info-row">
 
@@ -1592,7 +1551,8 @@ export default function MinhaContaPage() {
                   Meus Projetos
                 </Link>
 
-                <Link href="/diamantes">
+                {/* ROTA CORRETA */}
+                <Link href="/creditos">
                   💎 Diamantes
                 </Link>
 
