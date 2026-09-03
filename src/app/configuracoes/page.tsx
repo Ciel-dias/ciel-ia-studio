@@ -1,22 +1,25 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 import { useTheme } from "@/components/ThemeProvider";
 
 export default function ConfiguracoesPage() {
-  const { theme, setTheme } = useTheme();
-
-  const [nome, setNome] = useState("");
-  const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(true);
+  const [email, setEmail] = useState("");
+  const [nome, setNome] = useState("");
 
   const [newPassword, setNewPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
-  const [changingPassword, setChangingPassword] = useState(false);
+  const [confirmPassword, setConfirmPassword] =
+    useState("");
+  const [changingPassword, setChangingPassword] =
+    useState(false);
 
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
+
+  const { theme, setTheme } = useTheme();
 
   useEffect(() => {
     async function loadUser() {
@@ -37,16 +40,19 @@ export default function ConfiguracoesPage() {
           return;
         }
 
-        setEmail(user.email || "");
+        setEmail(user.email ?? "");
 
         setNome(
           user.user_metadata?.nome ||
             user.user_metadata?.name ||
             user.user_metadata?.full_name ||
-            "Usuário"
+            ""
         );
       } catch (err) {
-        console.error("Erro ao carregar usuário:", err);
+        console.error(
+          "Erro ao carregar usuário:",
+          err
+        );
       } finally {
         setLoading(false);
       }
@@ -54,18 +60,6 @@ export default function ConfiguracoesPage() {
 
     loadUser();
   }, []);
-
-  async function handleLogout() {
-    try {
-      const supabase = createClient();
-
-      await supabase.auth.signOut();
-
-      window.location.replace("/login");
-    } catch (err) {
-      console.error("Erro ao sair da conta:", err);
-    }
-  }
 
   async function handleChangePassword() {
     setMessage("");
@@ -77,12 +71,16 @@ export default function ConfiguracoesPage() {
     }
 
     if (newPassword.length < 6) {
-      setError("A senha precisa ter pelo menos 6 caracteres.");
+      setError(
+        "A senha precisa ter pelo menos 6 caracteres."
+      );
       return;
     }
 
     if (newPassword !== confirmPassword) {
-      setError("As senhas não coincidem.");
+      setError(
+        "As senhas não coincidem."
+      );
       return;
     }
 
@@ -100,12 +98,17 @@ export default function ConfiguracoesPage() {
         throw passwordError;
       }
 
-      setMessage("Senha alterada com sucesso!");
+      setMessage(
+        "Senha alterada com sucesso!"
+      );
 
       setNewPassword("");
       setConfirmPassword("");
     } catch (err) {
-      console.error("Erro ao alterar senha:", err);
+      console.error(
+        "Erro ao alterar senha:",
+        err
+      );
 
       setError(
         err instanceof Error
@@ -117,277 +120,271 @@ export default function ConfiguracoesPage() {
     }
   }
 
+  async function handleLogout() {
+    try {
+      const supabase = createClient();
+
+      await supabase.auth.signOut();
+
+      window.location.replace("/login");
+    } catch (err) {
+      console.error(
+        "Erro ao sair:",
+        err
+      );
+    }
+  }
+
+  if (loading) {
+    return (
+      <main
+        style={{
+          minHeight: "100vh",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          background:
+            theme === "dark"
+              ? "#07111f"
+              : "#eef8ff",
+          color:
+            theme === "dark"
+              ? "#ffffff"
+              : "#101827",
+          fontFamily:
+            "Arial, Helvetica, sans-serif",
+        }}
+      >
+        Carregando...
+      </main>
+    );
+  }
+
+  const dark = theme === "dark";
+
   return (
-    <main className="page">
-      <header className="topbar">
-        <div className="logo">✨ CIEL IA STUDIO</div>
-
-        <a href="/dashboard" className="back">
-          ← Voltar ao Dashboard
-        </a>
-      </header>
-
-      <section className="content">
-        <div className="header">
-          <h1>CONFIGURAÇÕES</h1>
-          <p>Gerencie suas preferências e sua conta.</p>
-        </div>
-
-        <div className="cards">
-          <section className="card">
-            <h2>👤 Sua conta</h2>
-
-            <div className="info">
-              <span>Nome</span>
-              <strong>
-                {loading ? "Carregando..." : nome}
-              </strong>
-            </div>
-
-            <div className="info">
-              <span>E-mail</span>
-              <strong>
-                {loading ? "Carregando..." : email}
-              </strong>
-            </div>
-          </section>
-
-          <section className="card">
-            <h2>🎨 Aparência</h2>
-
-            <p className="description">
-              Escolha como o CIEL IA STUDIO será exibido.
-            </p>
-
-            <div className="theme-options">
-              <button
-                type="button"
-                className={`theme-button ${
-                  theme === "dark" ? "active" : ""
-                }`}
-                onClick={() => setTheme("dark")}
-              >
-                🌙 Tema escuro
-              </button>
-
-              <button
-                type="button"
-                className={`theme-button ${
-                  theme === "light" ? "active" : ""
-                }`}
-                onClick={() => setTheme("light")}
-              >
-                ☀️ Tema claro
-              </button>
-            </div>
-          </section>
-
-          <section className="card">
-            <h2>🔐 Segurança</h2>
-
-            <p className="description">
-              Altere sua senha de acesso à conta.
-            </p>
-
-            <div className="password-area">
-              <input
-                type="password"
-                placeholder="Nova senha"
-                value={newPassword}
-                onChange={(e) =>
-                  setNewPassword(e.target.value)
-                }
-              />
-
-              <input
-                type="password"
-                placeholder="Confirme a nova senha"
-                value={confirmPassword}
-                onChange={(e) =>
-                  setConfirmPassword(e.target.value)
-                }
-              />
-
-              <button
-                type="button"
-                className="change-password"
-                onClick={handleChangePassword}
-                disabled={changingPassword}
-              >
-                {changingPassword
-                  ? "Alterando..."
-                  : "🔐 Alterar senha"}
-              </button>
-
-              {message && (
-                <div className="success-message">
-                  {message}
-                </div>
-              )}
-
-              {error && (
-                <div className="error-message">
-                  {error}
-                </div>
-              )}
-            </div>
-          </section>
-
-          <section className="card actions-card">
-            <h2>⚙️ Ações</h2>
-
-            <a href="/dashboard" className="action-button primary">
-              ← Dashboard
-            </a>
-
-            <a
-              href="/configuracoes"
-              className="action-button secondary"
-            >
-              ⚙️ Configurações
-            </a>
-
-            <button
-              type="button"
-              className="logout"
-              onClick={handleLogout}
-            >
-              🚪 Sair da conta
-            </button>
-          </section>
-        </div>
-      </section>
-
-      <footer className="footer">
-        <div className="footer-inner">
-          <div className="footer-brand">
-            <h2>CIEL IA STUDIO</h2>
-            <p>Crie. Transforme. Inove com IA.</p>
-          </div>
-
-          <div className="footer-columns">
-            <div className="footer-column">
-              <h3>Produto</h3>
-
-              <a href="/criar-prompts">
-                Criar Prompts
-              </a>
-
-              <a href="/texto-imagem">
-                Texto → Imagem
-              </a>
-
-              <a href="/texto-video">
-                Texto → Vídeo
-              </a>
-
-              <a href="/imagem-imagem">
-                Imagem → Imagem
-              </a>
-
-              <a href="/imagem-video">
-                Imagem → Vídeo
-              </a>
-
-              <a href="/projetos">
-                Meus Projetos
-              </a>
-
-              <a href="/creditos">
-                💎 Diamantes
-              </a>
-            </div>
-
-            <div className="footer-column">
-              <h3>Suporte</h3>
-
-              <a href="/ajuda">
-                Central de Ajuda
-              </a>
-
-              <a href="/contato">
-                Contato
-              </a>
-
-              <a href="/sobre">
-                Sobre o CIEL IA STUDIO
-              </a>
-            </div>
-
-            <div className="footer-column">
-              <h3>Legal</h3>
-
-              <a href="/termos">
-                Termos de Uso
-              </a>
-
-              <a href="/privacidade">
-                Política de Privacidade
-              </a>
-            </div>
-          </div>
-
-          <div className="footer-bottom">
-            © 2026 CIEL IA STUDIO. Todos os direitos reservados.
-          </div>
-        </div>
-      </footer>
-
-      <style jsx>{`
-        .page {
-          min-height: 100vh;
-          background: linear-gradient(
-            180deg,
-            #07111f 0%,
-            #0a1c30 50%,
-            #06111f 100%
-          );
-          color: #ffffff;
+    <>
+      <style jsx global>{`
+        * {
+          box-sizing: border-box;
         }
 
+        html,
+        body {
+          margin: 0;
+          padding: 0;
+          min-height: 100%;
+        }
+
+        body {
+          font-family:
+            Arial,
+            Helvetica,
+            sans-serif;
+        }
+
+        a {
+          -webkit-tap-highlight-color: transparent;
+        }
+
+        /* =========================
+           PÁGINA
+        ========================= */
+
+        .settings-page {
+          min-height: 100vh;
+
+          color: ${dark
+            ? "#ffffff"
+            : "#101827"};
+
+          background:
+            ${
+              dark
+                ? `
+              radial-gradient(
+                circle at 80% 10%,
+                rgba(20, 119, 190, 0.35),
+                transparent 38%
+              ),
+              radial-gradient(
+                circle at 10% 70%,
+                rgba(15, 76, 125, 0.25),
+                transparent 40%
+              ),
+              linear-gradient(
+                135deg,
+                #06101e 0%,
+                #081a30 48%,
+                #0b3556 100%
+              )
+            `
+                : `
+              radial-gradient(
+                circle at 80% 10%,
+                rgba(91, 190, 255, 0.28),
+                transparent 35%
+              ),
+              radial-gradient(
+                circle at 10% 70%,
+                rgba(80, 150, 220, 0.18),
+                transparent 40%
+              ),
+              linear-gradient(
+                135deg,
+                #eef8ff 0%,
+                #e6f3fc 48%,
+                #d8edf9 100%
+              )
+            `
+            };
+
+          transition:
+            background 0.35s ease,
+            color 0.35s ease;
+
+          overflow-x: hidden;
+        }
+
+        /* =========================
+           CABEÇALHO
+        ========================= */
+
         .topbar {
-          width: min(1180px, 100%);
-          margin: 0 auto;
-          padding: 24px 42px;
+          width: 100%;
+          min-height: 74px;
+
           display: flex;
           align-items: center;
           justify-content: space-between;
+
           gap: 20px;
+
+          padding: 0 42px;
+
+          background: ${
+            dark
+              ? "rgba(4, 12, 24, 0.92)"
+              : "rgba(245, 251, 255, 0.92)"
+          };
+
+          border-bottom:
+            1px solid
+            ${
+              dark
+                ? "rgba(100, 180, 255, 0.18)"
+                : "rgba(40, 130, 180, 0.18)"
+            };
+
+          backdrop-filter: blur(12px);
+
+          transition:
+            background 0.35s ease,
+            border-color 0.35s ease;
         }
 
-        .logo {
+        .brand {
+          display: flex;
+          align-items: center;
+
+          gap: 10px;
+
+          white-space: nowrap;
+        }
+
+        .brand-icon {
+          font-size: 28px;
+
+          filter:
+            drop-shadow(
+              0 0 10px
+              rgba(75, 199, 255, 0.8)
+            );
+        }
+
+        .brand-name {
           font-size: 20px;
+
           font-weight: 800;
-          color: #ffffff;
+
+          letter-spacing: 0.5px;
+
+          color: ${
+            dark
+              ? "#ffffff"
+              : "#101827"
+          };
         }
 
-        .back {
-          color: #9edfff;
+        .back-link {
+          color: #7bd8ff;
+
           text-decoration: none;
-          font-size: 14px;
-          font-weight: 600;
+
+          font-size: 17px;
+
+          font-weight: 700;
+
+          transition:
+            color 0.2s ease,
+            text-shadow 0.2s ease,
+            transform 0.2s ease;
         }
 
-        .back:hover {
-          color: #ffffff;
+        .back-link:hover {
+          color: #b4ecff;
+
+          text-shadow:
+            0 0 12px
+            rgba(75, 199, 255, 0.8);
+
+          transform:
+            translateX(-2px);
         }
 
-        .content {
-          width: min(1180px, 100%);
+        /* =========================
+           CONTAINER
+        ========================= */
+
+        .settings-container {
+          width:
+            min(
+              700px,
+              100%
+            );
+
           margin: 0 auto;
-          padding: 42px 42px 80px;
+
+          padding:
+            55px 20px 70px;
         }
+
+        /* =========================
+           TÍTULO
+        ========================= */
 
         .header {
-          margin-bottom: 42px;
+          margin-bottom: 30px;
+
+          text-align: center;
         }
 
         .header h1 {
           margin: 0;
-          font-size: clamp(32px, 5vw, 50px);
+
+          font-size:
+            clamp(
+              32px,
+              5vw,
+              50px
+            );
+
           line-height: 1.12;
+
           font-weight: 800;
+
           text-transform: uppercase;
+
           background:
             linear-gradient(
               90deg,
@@ -398,267 +395,592 @@ export default function ConfiguracoesPage() {
               #dff8ff 85%,
               #ffffff 100%
             );
-          background-size: 200% auto;
+
+          background-size:
+            200% auto;
+
           -webkit-background-clip: text;
           background-clip: text;
-          color: transparent;
-          text-shadow: 0 0 18px rgba(70, 200, 255, 0.35);
-          animation: title-shine 4s linear infinite;
-        }
 
-        .header p {
-          margin: 12px 0 0;
-          color: #9eacbd;
-          font-size: 16px;
+          color: transparent;
+
+          text-shadow:
+            0 0 18px
+            rgba(
+              70,
+              200,
+              255,
+              0.35
+            );
+
+          animation:
+            title-shine 4s
+            linear infinite;
         }
 
         @keyframes title-shine {
           0% {
-            background-position: 200% center;
+            background-position:
+              200% center;
           }
 
           100% {
-            background-position: -200% center;
+            background-position:
+              -200% center;
           }
         }
 
-        .cards {
-          display: grid;
-          gap: 28px;
+        .header p {
+          margin:
+            15px auto 0;
+
+          max-width: 650px;
+
+          color:
+            ${dark
+              ? "#b7c5d5"
+              : "#536579"};
+
+          font-size: 16px;
+
+          line-height: 1.5;
         }
 
-        .card {
-          padding: 30px;
-          border-radius: 24px;
-          border: 1px solid rgba(80, 190, 255, 0.35);
-          background: rgba(15, 31, 51, 0.82);
+        /* =========================
+           SEÇÕES
+        ========================= */
+
+        .section {
+          margin-bottom: 20px;
+
+          padding: 26px;
+
+          border-radius: 20px;
+
+          background:
+            ${
+              dark
+                ? `
+              linear-gradient(
+                145deg,
+                rgba(35, 47, 65, 0.94),
+                rgba(14, 25, 40, 0.96)
+              )
+            `
+                : `
+              linear-gradient(
+                145deg,
+                rgba(255, 255, 255, 0.96),
+                rgba(225, 241, 251, 0.96)
+              )
+            `
+            };
+
+          border:
+            1px solid
+            ${
+              dark
+                ? "rgba(88, 201, 255, 0.35)"
+                : "rgba(59, 184, 237, 0.35)"
+            };
+
           box-shadow:
-            0 0 24px rgba(40, 180, 255, 0.08),
-            inset 0 0 24px rgba(40, 180, 255, 0.025);
+            0 0 15px
+            ${
+              dark
+                ? "rgba(43, 167, 255, 0.16)"
+                : "rgba(43, 167, 255, 0.10)"
+            };
+
+          transition:
+            background 0.35s ease,
+            border-color 0.35s ease;
         }
 
-        .card h2 {
-          margin: 0 0 24px;
-          font-size: 27px;
-          color: #ffffff;
+        .section h2 {
+          margin:
+            0 0 20px;
+
+          font-size: 20px;
+
+          font-weight: 700;
         }
+
+        /* =========================
+           INFORMAÇÕES
+        ========================= */
 
         .info {
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          gap: 20px;
-          padding: 16px 0;
-          border-bottom: 1px solid rgba(120, 180, 220, 0.12);
+          margin-bottom: 18px;
         }
 
         .info:last-child {
-          border-bottom: none;
+          margin-bottom: 0;
         }
 
-        .info span {
-          color: #91a1b4;
+        .label {
+          margin:
+            0 0 6px;
+
+          color:
+            ${dark
+              ? "#8f9eaf"
+              : "#637587"};
+
+          font-size: 13px;
         }
 
-        .info strong {
-          color: #dff8ff;
-          text-align: right;
-          word-break: break-word;
+        .value {
+          margin: 0;
+
+          color:
+            ${dark
+              ? "#ffffff"
+              : "#142132"};
+
+          font-size: 16px;
+
+          word-break:
+            break-word;
         }
 
-        .description {
-          margin: -8px 0 22px;
-          color: #9eacbd;
-          line-height: 1.6;
-        }
+        /* =========================
+           TEMAS
+        ========================= */
 
         .theme-options {
           display: grid;
-          grid-template-columns: repeat(2, 1fr);
+
+          grid-template-columns:
+            1fr 1fr;
+
           gap: 14px;
         }
 
-        .theme-button {
-          padding: 15px 18px;
-          border-radius: 14px;
-          border: 1px solid rgba(80, 180, 240, 0.28);
-          background: rgba(20, 43, 65, 0.7);
-          color: #b9dfff;
-          font-size: 15px;
-          font-weight: 700;
-          cursor: pointer;
-          transition: 0.25s ease;
-        }
+        .theme-option {
+          min-height: 90px;
 
-        .theme-button:hover {
-          border-color: rgba(80, 200, 255, 0.55);
-          box-shadow: 0 0 16px rgba(70, 190, 255, 0.12);
-        }
-
-        .theme-button.active {
-          background: linear-gradient(
-            135deg,
-            #54c9f5,
-            #75d8f8
-          );
-          color: #06111f;
-          border-color: #6bd8ff;
-          box-shadow: 0 0 22px rgba(60, 200, 255, 0.3);
-        }
-
-        .password-area {
-          display: grid;
-          gap: 14px;
-        }
-
-        .password-area input {
-          width: 100%;
-          box-sizing: border-box;
-          padding: 17px 18px;
-          border-radius: 14px;
-          border: 1px solid rgba(80, 180, 240, 0.3);
-          background: rgba(4, 17, 31, 0.75);
-          color: #ffffff;
-          outline: none;
-          font-size: 15px;
-        }
-
-        .password-area input::placeholder {
-          color: #728398;
-        }
-
-        .password-area input:focus {
-          border-color: #5ccfff;
-          box-shadow: 0 0 16px rgba(70, 200, 255, 0.14);
-        }
-
-        .change-password {
-          width: 100%;
-          margin-top: 4px;
           padding: 18px;
-          border: none;
-          border-radius: 20px;
-          background: linear-gradient(
-            135deg,
-            #54c9f5,
-            #70d8f5
-          );
-          color: #06111f;
-          font-size: 17px;
-          font-weight: 800;
+
+          border-radius: 14px;
+
+          border:
+            2px solid
+            ${
+              dark
+                ? "rgba(100, 180, 255, 0.20)"
+                : "rgba(40, 110, 160, 0.20)"
+            };
+
+          background:
+            ${
+              dark
+                ? "rgba(8, 20, 34, 0.75)"
+                : "rgba(255, 255, 255, 0.65)"
+            };
+
+          color:
+            ${dark
+              ? "#ffffff"
+              : "#142132"};
+
           cursor: pointer;
-          box-shadow: 0 0 25px rgba(70, 200, 255, 0.3);
-          transition: 0.25s ease;
+
+          text-align: left;
+
+          transition:
+            border-color 0.2s ease,
+            background 0.2s ease,
+            transform 0.2s ease;
         }
 
-        .change-password:hover {
-          transform: translateY(-1px);
-          box-shadow: 0 0 30px rgba(70, 200, 255, 0.42);
+        .theme-option:hover {
+          transform:
+            translateY(-2px);
+
+          border-color:
+            #159ddd;
         }
 
-        .change-password:disabled {
-          opacity: 0.65;
+        .theme-option.active {
+          border-color:
+            #159ddd;
+
+          box-shadow:
+            0 0 15px
+            ${
+              dark
+                ? "rgba(21, 157, 221, 0.35)"
+                : "rgba(21, 157, 221, 0.20)"
+            };
+        }
+
+        .theme-icon {
+          font-size: 25px;
+
+          margin-bottom: 8px;
+        }
+
+        .theme-title {
+          display: block;
+
+          font-size: 15px;
+
+          font-weight: 700;
+        }
+
+        .theme-description {
+          display: block;
+
+          margin-top: 4px;
+
+          color:
+            ${dark
+              ? "#9eacbd"
+              : "#607285"};
+
+          font-size: 12px;
+        }
+
+        /* =========================
+           SEGURANÇA
+        ========================= */
+
+        .password-fields {
+          display: grid;
+
+          grid-template-columns:
+            1fr 1fr;
+
+          gap: 14px;
+        }
+
+        .input-group label {
+          display: block;
+
+          margin-bottom: 8px;
+
+          color:
+            ${dark
+              ? "#b7c7d8"
+              : "#536579"};
+
+          font-size: 13px;
+
+          font-weight: 700;
+        }
+
+        .input {
+          width: 100%;
+
+          padding: 14px;
+
+          border-radius: 12px;
+
+          border:
+            1px solid
+            ${
+              dark
+                ? "rgba(94, 203, 255, 0.3)"
+                : "rgba(40, 130, 180, 0.3)"
+            };
+
+          outline: none;
+
+          background:
+            ${
+              dark
+                ? "rgba(3, 13, 25, 0.8)"
+                : "rgba(255, 255, 255, 0.75)"
+            };
+
+          color:
+            ${dark
+              ? "#ffffff"
+              : "#142132"};
+
+          font-size: 14px;
+
+          transition:
+            border-color 0.2s ease,
+            box-shadow 0.2s ease;
+        }
+
+        .input::placeholder {
+          color:
+            ${dark
+              ? "#71869b"
+              : "#8293a5"};
+        }
+
+        .input:focus {
+          border-color:
+            #63d3ff;
+
+          box-shadow:
+            0 0 15px
+            rgba(
+              70,
+              199,
+              255,
+              0.2
+            );
+        }
+
+        .password-button {
+          width: 100%;
+
+          margin-top: 18px;
+
+          padding: 14px;
+
+          border: none;
+
+          border-radius: 12px;
+
+          cursor: pointer;
+
+          color: #04101b;
+
+          background:
+            linear-gradient(
+              90deg,
+              #5ed2ff,
+              #75e0ff
+            );
+
+          font-size: 15px;
+
+          font-weight: 800;
+
+          box-shadow:
+            0 0 10px
+            rgba(
+              70,
+              199,
+              255,
+              0.6
+            );
+
+          transition:
+            transform 0.2s ease,
+            box-shadow 0.2s ease;
+        }
+
+        .password-button:hover:not(:disabled) {
+          transform:
+            translateY(-2px);
+
+          box-shadow:
+            0 0 18px
+            rgba(
+              70,
+              199,
+              255,
+              0.75
+            );
+        }
+
+        .password-button:disabled {
+          opacity: 0.6;
+
           cursor: wait;
         }
 
-        .success-message {
-          padding: 12px 14px;
-          border-radius: 10px;
-          background: rgba(50, 190, 120, 0.1);
-          border: 1px solid rgba(70, 210, 140, 0.3);
-          color: #8ff0bd;
-          font-size: 14px;
+        .message,
+        .error {
+          margin-top: 15px;
+
+          padding:
+            13px 15px;
+
+          border-radius: 11px;
+
+          font-size: 13px;
+
+          line-height: 1.5;
         }
 
-        .error-message {
-          padding: 12px 14px;
-          border-radius: 10px;
-          background: rgba(255, 70, 90, 0.08);
-          border: 1px solid rgba(255, 90, 110, 0.3);
-          color: #ffabb5;
-          font-size: 14px;
+        .message {
+          background:
+            rgba(
+              35,
+              170,
+              115,
+              0.12
+            );
+
+          border:
+            1px solid
+            rgba(
+              65,
+              220,
+              160,
+              0.3
+            );
+
+          color:
+            #8ff0c6;
         }
 
-        .actions-card {
+        .error {
+          background:
+            rgba(
+              220,
+              70,
+              70,
+              0.12
+            );
+
+          border:
+            1px solid
+            rgba(
+              255,
+              100,
+              100,
+              0.3
+            );
+
+          color:
+            #ffb0b0;
+        }
+
+        /* =========================
+           BOTÃO SAIR DA CONTA
+           DESIGN DA SEGUNDA IMAGEM
+        ========================= */
+
+        .logout-button {
+          width: 100%;
+
+          min-height: 84px;
+
+          padding: 20px 24px;
+
           margin-top: 0;
-        }
 
-        .action-button {
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          width: 100%;
-          box-sizing: border-box;
-          padding: 18px;
-          border-radius: 18px;
-          text-decoration: none;
-          font-size: 17px;
+          border-radius: 22px;
+
+          border:
+            2px solid
+            rgba(
+              255,
+              85,
+              105,
+              0.32
+            );
+
+          background:
+            rgba(
+              90,
+              35,
+              50,
+              0.24
+            );
+
+          color:
+            #ffb0b8;
+
+          font-size: 22px;
+
           font-weight: 800;
-          transition: 0.25s ease;
-        }
 
-        .action-button.primary {
-          background: linear-gradient(
-            135deg,
-            #54c9f5,
-            #70d8f5
-          );
-          color: #06111f;
-          box-shadow: 0 0 24px rgba(70, 200, 255, 0.25);
-        }
-
-        .action-button.secondary {
-          margin-top: 14px;
-          border: 1px solid rgba(80, 190, 255, 0.32);
-          background: rgba(25, 48, 70, 0.65);
-          color: #bce6ff;
-        }
-
-        .action-button:hover {
-          transform: translateY(-1px);
-        }
-
-        /*
-          BOTÃO SAIR DA CONTA
-          Igual ao padrão aprovado da página Minha Conta.
-        */
-        .logout {
-          width: 100%;
-          margin-top: 14px;
-          padding: 13px;
-          border-radius: 12px;
-          border: 1px solid rgba(255, 80, 100, 0.35);
-          background: rgba(120, 30, 45, 0.12);
-          color: #ffb0b0;
-          font-size: 14px;
-          font-weight: 700;
           cursor: pointer;
-          transition: 0.25s ease;
+
+          box-shadow:
+            0 0 12px
+            rgba(
+              255,
+              70,
+              100,
+              0.04
+            );
+
+          transition:
+            background 0.25s ease,
+            border-color 0.25s ease,
+            color 0.25s ease,
+            box-shadow 0.25s ease,
+            transform 0.2s ease;
         }
 
-        .logout:hover {
-          background: rgba(120, 30, 45, 0.22);
-          border-color: rgba(255, 100, 120, 0.55);
-          color: #ffc4c4;
-          box-shadow: 0 0 18px rgba(255, 70, 90, 0.15);
+        .logout-button:hover {
+          background:
+            rgba(
+              110,
+              35,
+              50,
+              0.34
+            );
+
+          border-color:
+            rgba(
+              255,
+              100,
+              120,
+              0.55
+            );
+
+          color:
+            #ffc0c7;
+
+          box-shadow:
+            0 0 22px
+            rgba(
+              255,
+              70,
+              100,
+              0.12
+            );
         }
 
-        .logout:active {
-          transform: scale(0.98);
+        .logout-button:active {
+          transform:
+            scale(0.98);
         }
+
+        /* =========================
+           RODAPÉ
+        ========================= */
 
         .footer {
-          border-top: 1px solid rgba(100, 180, 255, 0.18);
-          background: linear-gradient(
-            180deg,
-            rgba(4, 15, 29, 0.96),
-            rgba(3, 11, 22, 1)
-          );
-          padding: 52px 42px 24px;
+          border-top:
+            1px solid
+            rgba(
+              100,
+              180,
+              255,
+              0.18
+            );
+
+          background:
+            linear-gradient(
+              180deg,
+              rgba(
+                4,
+                15,
+                29,
+                0.96
+              ),
+              rgba(
+                3,
+                11,
+                22,
+                1
+              )
+            );
+
+          padding:
+            52px 42px 24px;
         }
 
         .footer-inner {
-          width: min(1180px, 100%);
+          width:
+            min(
+              1180px,
+              100%
+            );
+
           margin: 0 auto;
         }
 
@@ -667,99 +989,556 @@ export default function ConfiguracoesPage() {
         }
 
         .footer-brand h2 {
-          margin: 0 0 8px;
+          margin:
+            0 0 8px;
+
+          color: #ffffff;
+
           font-size: 24px;
         }
 
         .footer-brand p {
           margin: 0;
+
           color: #9eacbd;
+
           font-size: 15px;
         }
 
         .footer-columns {
           display: grid;
-          grid-template-columns: repeat(3, 1fr);
+
+          grid-template-columns:
+            repeat(
+              3,
+              1fr
+            );
+
           gap: 50px;
         }
 
         .footer-column h3 {
-          margin: 0 0 18px;
+          margin:
+            0 0 18px;
+
+          color: #ffffff;
+
           font-size: 16px;
         }
 
         .footer-column a {
           display: block;
+
           width: fit-content;
+
           margin-bottom: 12px;
+
           color: #aebaca;
+
           text-decoration: none;
+
           font-size: 14px;
+
+          transition:
+            color 0.2s ease,
+            text-shadow 0.2s ease;
         }
 
         .footer-column a:hover {
-          color: #7bd8ff;
+          color: #68d2ff;
+
+          text-shadow:
+            0 0 8px
+            rgba(
+              70,
+              199,
+              255,
+              0.35
+            );
         }
 
         .footer-bottom {
           margin-top: 36px;
+
           padding-top: 22px;
-          border-top: 1px solid rgba(100, 180, 255, 0.16);
+
+          border-top:
+            1px solid
+            rgba(
+              100,
+              180,
+              255,
+              0.16
+            );
+
           text-align: center;
+
           color: #8997a9;
+
           font-size: 13px;
         }
 
+        /* =========================
+           RESPONSIVO
+        ========================= */
+
         @media (max-width: 700px) {
           .topbar {
-            padding: 20px 24px;
+            padding:
+              0 20px;
           }
 
-          .logo {
-            font-size: 17px;
+          .brand-name {
+            font-size: 18px;
           }
 
-          .back {
+          .back-link {
+            font-size: 15px;
+          }
+
+          .settings-container {
+            padding:
+              45px 16px 55px;
+          }
+
+          .password-fields {
+            grid-template-columns:
+              1fr;
+          }
+        }
+
+        @media (max-width: 480px) {
+          .topbar {
+            min-height: 68px;
+
+            padding:
+              0 15px;
+          }
+
+          .brand {
+            gap: 7px;
+          }
+
+          .brand-icon {
+            font-size: 23px;
+          }
+
+          .brand-name {
+            font-size: 15px;
+          }
+
+          .back-link {
             font-size: 13px;
           }
 
-          .content {
-            padding: 32px 24px 60px;
+          .settings-container {
+            padding:
+              38px 12px 50px;
           }
 
-          .card {
-            padding: 24px;
-            border-radius: 22px;
+          .header h1 {
+            font-size: 34px;
           }
 
-          .card h2 {
-            font-size: 25px;
+          .header p {
+            font-size: 15px;
+          }
+
+          .section {
+            padding: 21px;
           }
 
           .theme-options {
-            grid-template-columns: 1fr;
+            grid-template-columns:
+              1fr;
           }
 
-          .info {
-            align-items: flex-start;
-            flex-direction: column;
-            gap: 6px;
-          }
+          .logout-button {
+            min-height: 84px;
 
-          .info strong {
-            text-align: left;
+            font-size: 21px;
+
+            border-radius: 22px;
           }
 
           .footer {
-            padding: 42px 24px 22px;
+            padding:
+              42px 24px 22px;
           }
 
           .footer-columns {
-            grid-template-columns: 1fr;
+            grid-template-columns:
+              1fr;
+
             gap: 30px;
           }
         }
       `}</style>
-    </main>
+
+      <main className="settings-page">
+
+        {/* =========================
+            CABEÇALHO
+        ========================= */}
+
+        <header className="topbar">
+
+          <div className="brand">
+
+            <span className="brand-icon">
+              ✨
+            </span>
+
+            <span className="brand-name">
+              CIEL IA STUDIO
+            </span>
+
+          </div>
+
+          <Link
+            href="/dashboard"
+            className="back-link"
+          >
+            ← Voltar ao Dashboard
+          </Link>
+
+        </header>
+
+        {/* =========================
+            CONTEÚDO
+        ========================= */}
+
+        <div className="settings-container">
+
+          <header className="header">
+
+            <h1>
+              CONFIGURAÇÕES
+            </h1>
+
+            <p>
+              Gerencie sua conta e personalize o
+              CIEL IA STUDIO.
+            </p>
+
+          </header>
+
+          {/* =========================
+              CONTA
+          ========================= */}
+
+          <section className="section">
+
+            <h2>
+              Sua conta
+            </h2>
+
+            <div className="info">
+
+              <p className="label">
+                Nome
+              </p>
+
+              <p className="value">
+                {nome || "Não informado"}
+              </p>
+
+            </div>
+
+            <div className="info">
+
+              <p className="label">
+                E-mail
+              </p>
+
+              <p className="value">
+                {email || "—"}
+              </p>
+
+            </div>
+
+          </section>
+
+          {/* =========================
+              APARÊNCIA
+          ========================= */}
+
+          <section className="section">
+
+            <h2>
+              Aparência
+            </h2>
+
+            <div className="theme-options">
+
+              <button
+                type="button"
+                className={`theme-option ${
+                  theme === "dark"
+                    ? "active"
+                    : ""
+                }`}
+                onClick={() =>
+                  setTheme("dark")
+                }
+              >
+
+                <div className="theme-icon">
+                  🌙
+                </div>
+
+                <span className="theme-title">
+                  Tema escuro
+                </span>
+
+                <span className="theme-description">
+                  Visual futurista escuro
+                </span>
+
+              </button>
+
+              <button
+                type="button"
+                className={`theme-option ${
+                  theme === "light"
+                    ? "active"
+                    : ""
+                }`}
+                onClick={() =>
+                  setTheme("light")
+                }
+              >
+
+                <div className="theme-icon">
+                  ☀️
+                </div>
+
+                <span className="theme-title">
+                  Tema claro
+                </span>
+
+                <span className="theme-description">
+                  Visual claro e moderno
+                </span>
+
+              </button>
+
+            </div>
+
+          </section>
+
+          {/* =========================
+              SEGURANÇA
+          ========================= */}
+
+          <section className="section">
+
+            <h2>
+              🔐 Alterar senha
+            </h2>
+
+            <div className="password-fields">
+
+              <div className="input-group">
+
+                <label>
+                  Nova senha
+                </label>
+
+                <input
+                  type="password"
+                  className="input"
+                  value={newPassword}
+                  onChange={(e) =>
+                    setNewPassword(
+                      e.target.value
+                    )
+                  }
+                  placeholder="Digite a nova senha"
+                />
+
+              </div>
+
+              <div className="input-group">
+
+                <label>
+                  Confirmar nova senha
+                </label>
+
+                <input
+                  type="password"
+                  className="input"
+                  value={confirmPassword}
+                  onChange={(e) =>
+                    setConfirmPassword(
+                      e.target.value
+                    )
+                  }
+                  placeholder="Confirme a nova senha"
+                />
+
+              </div>
+
+            </div>
+
+            <button
+              type="button"
+              className="password-button"
+              onClick={
+                handleChangePassword
+              }
+              disabled={
+                changingPassword
+              }
+            >
+              {changingPassword
+                ? "Alterando senha..."
+                : "🔐 Alterar senha"}
+            </button>
+
+            {message && (
+              <div className="message">
+                {message}
+              </div>
+            )}
+
+            {error && (
+              <div className="error">
+                {error}
+              </div>
+            )}
+
+          </section>
+
+          {/* =========================
+              SAIR
+          ========================= */}
+
+          <button
+            type="button"
+            className="logout-button"
+            onClick={handleLogout}
+          >
+            🚪 Sair da conta
+          </button>
+
+        </div>
+
+        {/* =========================
+            RODAPÉ
+        ========================= */}
+
+        <footer className="footer">
+
+          <div className="footer-inner">
+
+            <div className="footer-brand">
+
+              <h2>
+                CIEL IA STUDIO
+              </h2>
+
+              <p>
+                Crie. Transforme. Inove
+                com IA.
+              </p>
+
+            </div>
+
+            <div className="footer-columns">
+
+              {/* PRODUTO */}
+
+              <div className="footer-column">
+
+                <h3>
+                  Produto
+                </h3>
+
+                <Link href="/criar-prompts">
+                  Criar Prompts
+                </Link>
+
+                <Link href="/texto-imagem">
+                  Texto → Imagem
+                </Link>
+
+                <Link href="/texto-video">
+                  Texto → Vídeo
+                </Link>
+
+                <Link href="/imagem-imagem">
+                  Imagem → Imagem
+                </Link>
+
+                <Link href="/imagem-video">
+                  Imagem → Vídeo
+                </Link>
+
+                <Link href="/projetos">
+                  Meus Projetos
+                </Link>
+
+                <Link href="/creditos">
+                  💎 Diamantes
+                </Link>
+
+              </div>
+
+              {/* SUPORTE */}
+
+              <div className="footer-column">
+
+                <h3>
+                  Suporte
+                </h3>
+
+                <Link href="/ajuda">
+                  Central de Ajuda
+                </Link>
+
+                <Link href="/contato">
+                  Contato
+                </Link>
+
+                <Link href="/sobre">
+                  Sobre o CIEL IA STUDIO
+                </Link>
+
+              </div>
+
+              {/* LEGAL */}
+
+              <div className="footer-column">
+
+                <h3>
+                  Legal
+                </h3>
+
+                <Link href="/termos">
+                  Termos de Uso
+                </Link>
+
+                <Link href="/privacidade">
+                  Política de Privacidade
+                </Link>
+
+              </div>
+
+            </div>
+
+            <div className="footer-bottom">
+
+              © 2026 CIEL IA STUDIO.
+              Todos os direitos reservados.
+
+            </div>
+
+          </div>
+
+        </footer>
+
+      </main>
+    </>
   );
 }
