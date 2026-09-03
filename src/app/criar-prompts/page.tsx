@@ -1,9 +1,11 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import Diamond from "@/components/Diamond";
+
+const PROMPT_COST = 1;
 
 export default function CriarPrompts() {
   const [ideia, setIdeia] = useState("");
@@ -11,9 +13,65 @@ export default function CriarPrompts() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
+  const [balance, setBalance] = useState<number | null>(null);
+  const [balanceLoading, setBalanceLoading] =
+    useState(true);
+
+  // =========================================================
+  // BUSCAR SALDO REAL DO SUPABASE
+  // =========================================================
+
+  async function loadBalance() {
+    try {
+      setBalanceLoading(true);
+
+      const response = await fetch("/api/credits", {
+        method: "GET",
+        cache: "no-store",
+      });
+
+      const data = await response.json();
+
+      if (response.ok && data?.success) {
+        setBalance(
+          typeof data.balance === "number"
+            ? data.balance
+            : Number(data.balance)
+        );
+      }
+    } catch (error) {
+      console.error(
+        "Erro ao carregar saldo:",
+        error
+      );
+    } finally {
+      setBalanceLoading(false);
+    }
+  }
+
+  useEffect(() => {
+    loadBalance();
+  }, []);
+
+  // =========================================================
+  // GERAR PROMPT
+  // =========================================================
+
   async function gerarPrompt() {
     if (!ideia.trim()) {
-      alert("Digite sua ideia antes de gerar o prompt.");
+      alert(
+        "Digite sua ideia antes de gerar o prompt."
+      );
+      return;
+    }
+
+    if (
+      balance !== null &&
+      balance < PROMPT_COST
+    ) {
+      alert(
+        "Você não possui Diamantes suficientes para gerar este prompt."
+      );
       return;
     }
 
@@ -24,9 +82,11 @@ export default function CriarPrompts() {
     try {
       const response = await fetch("/api/openai", {
         method: "POST",
+
         headers: {
           "Content-Type": "application/json",
         },
+
         body: JSON.stringify({
           prompt: `Crie um prompt profissional, detalhado e de alta qualidade para criação de conteúdo com inteligência artificial.
 
@@ -60,6 +120,15 @@ Não explique o que você fez. Entregue somente o prompt final.`,
       const data = await response.json();
 
       if (!response.ok) {
+        if (
+          typeof data?.remainingDiamonds ===
+          "number"
+        ) {
+          setBalance(
+            data.remainingDiamonds
+          );
+        }
+
         throw new Error(
           data?.error ||
             "Não foi possível processar a solicitação com a OpenAI."
@@ -77,7 +146,27 @@ Não explique o que você fez. Entregue somente o prompt final.`,
         );
       }
 
+      // =====================================================
+      // O RESULTADO VOLTA PARA O MESMO CAMPO
+      // =====================================================
+
+      setIdeia(resultado);
       setPrompt(resultado);
+
+      // =====================================================
+      // ATUALIZAR SALDO REAL
+      // =====================================================
+
+      if (
+        typeof data?.remainingDiamonds ===
+        "number"
+      ) {
+        setBalance(
+          data.remainingDiamonds
+        );
+      } else {
+        await loadBalance();
+      }
     } catch (error) {
       console.error(
         "Erro ao gerar prompt:",
@@ -89,16 +178,27 @@ Não explique o que você fez. Entregue somente o prompt final.`,
           ? error.message
           : "Não foi possível gerar o prompt."
       );
+
+      // Atualiza o saldo caso a API
+      // tenha realizado algum estorno.
+      await loadBalance();
     } finally {
       setLoading(false);
     }
   }
 
+  // =========================================================
+  // COPIAR PROMPT
+  // =========================================================
+
   async function copiarPrompt() {
-    if (!prompt) return;
+    if (!ideia.trim()) return;
 
     try {
-      await navigator.clipboard.writeText(prompt);
+      await navigator.clipboard.writeText(
+        ideia
+      );
+
       alert("Prompt copiado!");
     } catch (error) {
       console.error(
@@ -127,7 +227,10 @@ Não explique o que você fez. Entregue somente o prompt final.`,
         }
 
         body {
-          font-family: Arial, Helvetica, sans-serif;
+          font-family:
+            Arial,
+            Helvetica,
+            sans-serif;
         }
 
         a,
@@ -138,6 +241,7 @@ Não explique o que você fez. Entregue somente o prompt final.`,
 
         .page {
           min-height: 100vh;
+
           color: #ffffff;
 
           background:
@@ -167,17 +271,22 @@ Não explique o que você fez. Entregue somente o prompt final.`,
 
         .topbar {
           width: 100%;
+
           min-height: 74px;
 
           display: flex;
+
           align-items: center;
+
           justify-content: space-between;
 
           padding: 0 42px;
 
-          background: rgba(4, 12, 24, 0.92);
+          background:
+            rgba(4, 12, 24, 0.92);
 
-          border-bottom: 1px solid
+          border-bottom:
+            1px solid
             rgba(100, 180, 255, 0.18);
 
           backdrop-filter: blur(12px);
@@ -185,7 +294,9 @@ Não explique o que você fez. Entregue somente o prompt final.`,
 
         .brand {
           display: flex;
+
           align-items: center;
+
           gap: 10px;
 
           white-space: nowrap;
@@ -194,14 +305,18 @@ Não explique o que você fez. Entregue somente o prompt final.`,
         .brand-icon {
           font-size: 28px;
 
-          filter: drop-shadow(
-            0 0 10px rgba(75, 199, 255, 0.8)
-          );
+          filter:
+            drop-shadow(
+              0 0 10px
+              rgba(75, 199, 255, 0.8)
+            );
         }
 
         .brand-name {
           font-size: 20px;
+
           font-weight: 800;
+
           letter-spacing: 0.5px;
         }
 
@@ -211,6 +326,7 @@ Não explique o que você fez. Entregue somente o prompt final.`,
           text-decoration: none;
 
           font-size: 17px;
+
           font-weight: 700;
 
           transition:
@@ -223,9 +339,11 @@ Não explique o que você fez. Entregue somente o prompt final.`,
           color: #b4ecff;
 
           text-shadow:
-            0 0 12px rgba(75, 199, 255, 0.8);
+            0 0 12px
+            rgba(75, 199, 255, 0.8);
 
-          transform: translateX(-2px);
+          transform:
+            translateX(-2px);
         }
 
         /* =========================
@@ -233,7 +351,11 @@ Não explique o que você fez. Entregue somente o prompt final.`,
         ========================= */
 
         .content {
-          width: min(1180px, calc(100% - 48px));
+          width:
+            min(
+              1180px,
+              calc(100% - 48px)
+            );
 
           margin: 0 auto;
 
@@ -251,7 +373,11 @@ Não explique o que você fez. Entregue somente o prompt final.`,
           margin: 0;
 
           font-size:
-            clamp(34px, 5vw, 56px);
+            clamp(
+              34px,
+              5vw,
+              56px
+            );
 
           line-height: 1.12;
 
@@ -271,7 +397,11 @@ Não explique o que você fez. Entregue somente o prompt final.`,
           color: #b9c5d4;
 
           font-size:
-            clamp(17px, 2vw, 21px);
+            clamp(
+              17px,
+              2vw,
+              21px
+            );
 
           line-height: 1.5;
         }
@@ -284,11 +414,16 @@ Não explique o que você fez. Entregue somente o prompt final.`,
           width: 100%;
 
           display: flex;
+
           justify-content: center;
         }
 
         .panel {
-          width: min(760px, 100%);
+          width:
+            min(
+              760px,
+              100%
+            );
 
           border-radius: 22px;
 
@@ -305,9 +440,12 @@ Não explique o que você fez. Entregue somente o prompt final.`,
             2px solid #58c9ff;
 
           box-shadow:
-            0 0 8px rgba(70, 199, 255, 0.9),
-            0 0 22px rgba(43, 167, 255, 0.48),
-            inset 0 0 22px rgba(56, 174, 255, 0.08);
+            0 0 8px
+            rgba(70, 199, 255, 0.9),
+            0 0 22px
+            rgba(43, 167, 255, 0.48),
+            inset 0 0 22px
+            rgba(56, 174, 255, 0.08);
 
           transition:
             box-shadow 0.22s ease,
@@ -316,9 +454,12 @@ Não explique o que você fez. Entregue somente o prompt final.`,
 
         .panel:hover {
           box-shadow:
-            0 0 12px rgba(85, 211, 255, 1),
-            0 0 32px rgba(43, 167, 255, 0.7),
-            inset 0 0 25px rgba(56, 174, 255, 0.12);
+            0 0 12px
+            rgba(85, 211, 255, 1),
+            0 0 32px
+            rgba(43, 167, 255, 0.7),
+            inset 0 0 25px
+            rgba(56, 174, 255, 0.12);
         }
 
         .panel-header {
@@ -383,7 +524,8 @@ Não explique o que você fez. Entregue somente o prompt final.`,
           padding: 17px;
 
           border:
-            1px solid rgba(94, 203, 255, 0.45);
+            1px solid
+            rgba(94, 203, 255, 0.45);
 
           border-radius: 14px;
 
@@ -416,7 +558,67 @@ Não explique o que você fez. Entregue somente o prompt final.`,
           border-color: #63d3ff;
 
           box-shadow:
-            0 0 15px rgba(70, 199, 255, 0.25);
+            0 0 15px
+            rgba(
+              70,
+              199,
+              255,
+              0.25
+            );
+        }
+
+        /* =========================
+           SALDO
+        ========================= */
+
+        .credits {
+          margin-top: 20px;
+
+          padding:
+            13px 15px;
+
+          border-radius: 12px;
+
+          background:
+            rgba(
+              29,
+              112,
+              157,
+              0.16
+            );
+
+          border:
+            1px solid
+            rgba(
+              94,
+              203,
+              255,
+              0.25
+            );
+
+          color: #bfeaff;
+
+          font-size: 14px;
+
+          display: flex;
+
+          align-items: center;
+
+          gap: 9px;
+        }
+
+        .credits-diamond {
+          display: inline-flex;
+
+          align-items: center;
+
+          justify-content: center;
+
+          flex-shrink: 0;
+        }
+
+        .credits strong {
+          color: #ffffff;
         }
 
         /* =========================
@@ -434,30 +636,46 @@ Não explique o que você fez. Entregue somente o prompt final.`,
 
           margin-top: 20px;
 
+          min-height: 44px;
+
           color: #aebdcc;
 
           font-size: 14px;
 
           font-weight: 700;
+
+          text-align: center;
         }
 
         .cost-diamond {
           width: 25px;
+
           height: 25px;
 
           display: flex;
 
           align-items: center;
+
           justify-content: center;
 
           filter:
             drop-shadow(
               0 0 6px
-              rgba(75, 210, 255, 0.8)
+              rgba(
+                75,
+                210,
+                255,
+                0.8
+              )
             )
             drop-shadow(
               0 0 12px
-              rgba(45, 180, 255, 0.35)
+              rgba(
+                45,
+                180,
+                255,
+                0.35
+              )
             );
         }
 
@@ -498,8 +716,20 @@ Não explique o que você fez. Entregue somente o prompt final.`,
           font-weight: 800;
 
           box-shadow:
-            0 0 10px rgba(70, 199, 255, 0.7),
-            0 0 24px rgba(43, 167, 255, 0.35);
+            0 0 10px
+            rgba(
+              70,
+              199,
+              255,
+              0.7
+            ),
+            0 0 24px
+            rgba(
+              43,
+              167,
+              255,
+              0.35
+            );
 
           transition:
             transform 0.2s ease,
@@ -507,15 +737,29 @@ Não explique o que você fez. Entregue somente o prompt final.`,
         }
 
         .generate:hover {
-          transform: translateY(-2px);
+          transform:
+            translateY(-2px);
 
           box-shadow:
-            0 0 14px rgba(85, 211, 255, 1),
-            0 0 32px rgba(43, 167, 255, 0.55);
+            0 0 14px
+            rgba(
+              85,
+              211,
+              255,
+              1
+            ),
+            0 0 32px
+            rgba(
+              43,
+              167,
+              255,
+              0.55
+            );
         }
 
         .generate:active {
-          transform: scale(0.98);
+          transform:
+            scale(0.98);
         }
 
         .generate:disabled {
@@ -527,61 +771,8 @@ Não explique o que você fez. Entregue somente o prompt final.`,
         }
 
         /* =========================
-           RESULTADO
+           BOTÃO COPIAR
         ========================= */
-
-        .result {
-          margin-top: 26px;
-
-          padding: 22px;
-
-          border-radius: 16px;
-
-          background:
-            rgba(2, 12, 24, 0.62);
-
-          border:
-            1px solid rgba(104, 207, 255, 0.35);
-
-          box-shadow:
-            inset 0 0 20px rgba(56, 174, 255, 0.05);
-        }
-
-        .result-title {
-          display: flex;
-
-          align-items: center;
-
-          gap: 10px;
-
-          margin-bottom: 14px;
-
-          font-size: 18px;
-
-          font-weight: 700;
-        }
-
-        .result-text {
-          padding: 17px;
-
-          border-radius: 13px;
-
-          background:
-            rgba(3, 13, 25, 0.9);
-
-          color: #dce8f4;
-
-          font-size: 15px;
-
-          line-height: 1.6;
-
-          white-space: pre-wrap;
-
-          word-break: break-word;
-
-          border:
-            1px solid rgba(94, 203, 255, 0.22);
-        }
 
         .copy {
           width: 100%;
@@ -591,7 +782,13 @@ Não explique o que você fez. Entregue somente o prompt final.`,
           padding: 13px;
 
           border:
-            1px solid rgba(94, 203, 255, 0.45);
+            1px solid
+            rgba(
+              94,
+              203,
+              255,
+              0.45
+            );
 
           border-radius: 12px;
 
@@ -600,7 +797,12 @@ Não explique o que você fez. Entregue somente o prompt final.`,
           color: #ffffff;
 
           background:
-            rgba(29, 112, 157, 0.2);
+            rgba(
+              29,
+              112,
+              157,
+              0.2
+            );
 
           font-size: 14px;
 
@@ -613,10 +815,21 @@ Não explique o que você fez. Entregue somente o prompt final.`,
 
         .copy:hover {
           background:
-            rgba(29, 130, 180, 0.35);
+            rgba(
+              29,
+              130,
+              180,
+              0.35
+            );
 
           box-shadow:
-            0 0 15px rgba(70, 199, 255, 0.25);
+            0 0 15px
+            rgba(
+              70,
+              199,
+              255,
+              0.25
+            );
         }
 
         /* =========================
@@ -626,15 +839,27 @@ Não explique o que você fez. Entregue somente o prompt final.`,
         .error-box {
           margin-top: 18px;
 
-          padding: 14px 16px;
+          padding:
+            14px 16px;
 
           border-radius: 12px;
 
           background:
-            rgba(220, 70, 70, 0.12);
+            rgba(
+              220,
+              70,
+              70,
+              0.12
+            );
 
           border:
-            1px solid rgba(255, 100, 100, 0.35);
+            1px solid
+            rgba(
+              255,
+              100,
+              100,
+              0.35
+            );
 
           color: #ffb5b5;
 
@@ -651,13 +876,29 @@ Não explique o que você fez. Entregue somente o prompt final.`,
 
         .footer {
           border-top:
-            1px solid rgba(100, 180, 255, 0.18);
+            1px solid
+            rgba(
+              100,
+              180,
+              255,
+              0.18
+            );
 
           background:
             linear-gradient(
               180deg,
-              rgba(4, 15, 29, 0.96),
-              rgba(3, 11, 22, 1)
+              rgba(
+                4,
+                15,
+                29,
+                0.96
+              ),
+              rgba(
+                3,
+                11,
+                22,
+                1
+              )
             );
 
           padding:
@@ -665,7 +906,11 @@ Não explique o que você fez. Entregue somente o prompt final.`,
         }
 
         .footer-inner {
-          width: min(1180px, 100%);
+          width:
+            min(
+              1180px,
+              100%
+            );
 
           margin: 0 auto;
         }
@@ -693,7 +938,10 @@ Não explique o que você fez. Entregue somente o prompt final.`,
           display: grid;
 
           grid-template-columns:
-            repeat(3, 1fr);
+            repeat(
+              3,
+              1fr
+            );
 
           gap: 50px;
         }
@@ -718,7 +966,8 @@ Não explique o que você fez. Entregue somente o prompt final.`,
 
           font-size: 14px;
 
-          transition: color 0.2s ease;
+          transition:
+            color 0.2s ease;
         }
 
         .footer-column a:hover {
@@ -739,7 +988,13 @@ Não explique o que você fez. Entregue somente o prompt final.`,
           padding-top: 22px;
 
           border-top:
-            1px solid rgba(100, 180, 255, 0.16);
+            1px solid
+            rgba(
+              100,
+              180,
+              255,
+              0.16
+            );
 
           text-align: center;
 
@@ -754,12 +1009,16 @@ Não explique o que você fez. Entregue somente o prompt final.`,
 
         @media (max-width: 900px) {
           .topbar {
-            padding: 0 24px;
+            padding:
+              0 24px;
           }
 
           .content {
             width:
-              min(760px, calc(100% - 40px));
+              min(
+                760px,
+                calc(100% - 40px)
+              );
           }
         }
 
@@ -799,7 +1058,10 @@ Não explique o que você fez. Entregue somente o prompt final.`,
 
           .content {
             width:
-              min(100% - 32px, 430px);
+              min(
+                100% - 32px,
+                430px
+              );
 
             padding:
               42px 0 55px;
@@ -954,78 +1216,106 @@ Não explique o que você fez. Entregue somente o prompt final.`,
                 Descreva sua ideia
               </label>
 
+              {/* =========================
+                  CAMPO DA IDEIA / RESULTADO
+              ========================= */}
+
               <textarea
                 className="prompt-input"
                 value={ideia}
-                onChange={(e) =>
-                  setIdeia(e.target.value)
-                }
+                onChange={(e) => {
+                  setIdeia(
+                    e.target.value
+                  );
+
+                  setPrompt("");
+                }}
                 placeholder="Exemplo: Uma mulher caminhando em uma cidade futurista ao pôr do sol, com aparência cinematográfica..."
               />
 
-              {/* CUSTO DA GERAÇÃO */}
+              {/* =========================
+                  SALDO REAL
+              ========================= */}
 
-              <div className="cost">
+              <div className="credits">
 
-                <span className="cost-diamond">
+                <span className="credits-diamond">
                   <Diamond size={25} />
                 </span>
+
+                <span>
+                  Saldo disponível:{" "}
+
+                  <strong>
+                    {balanceLoading
+                      ? "..."
+                      : balance ?? 0}
+                  </strong>{" "}
+
+                  Diamantes
+                </span>
+
+              </div>
+
+              {/* =========================
+                  CUSTO
+              ========================= */}
+
+              <div className="cost">
 
                 <span>
                   Custo para gerar:
                 </span>
 
+                <span className="cost-diamond">
+                  <Diamond size={25} />
+                </span>
+
                 <span className="cost-number">
-                  1 Diamante
+                  {PROMPT_COST} Diamante
                 </span>
 
               </div>
 
+              {/* =========================
+                  BOTÃO GERAR
+              ========================= */}
+
               <button
                 className="generate"
                 onClick={gerarPrompt}
-                disabled={loading}
+                disabled={
+                  loading ||
+                  balance === null ||
+                  balance < PROMPT_COST
+                }
               >
                 {loading
                   ? "🤖 Criando seu prompt..."
                   : "✨ Gerar Prompt"}
               </button>
 
+              {/* =========================
+                  COPIAR PROMPT
+              ========================= */}
+
+              {prompt && !loading && (
+                <button
+                  className="copy"
+                  onClick={copiarPrompt}
+                >
+                  📋 Copiar Prompt
+                </button>
+              )}
+
+              {/* =========================
+                  ERRO
+              ========================= */}
+
               {error && (
                 <div className="error-box">
                   ⚠️ {error}
                 </div>
-              )}
-
-              {prompt && (
-
-                <div className="result">
-
-                  <div className="result-title">
-
-                    <span>
-                      🚀
-                    </span>
-
-                    <span>
-                      Prompt gerado
-                    </span>
-
-                  </div>
-
-                  <div className="result-text">
-                    {prompt}
-                  </div>
-
-                  <button
-                    className="copy"
-                    onClick={copiarPrompt}
-                  >
-                    📋 Copiar Prompt
-                  </button>
-
-                </div>
-
               )}
 
             </section>
@@ -1135,7 +1425,8 @@ Não explique o que você fez. Entregue somente o prompt final.`,
             </div>
 
             <div className="footer-bottom">
-              © 2026 CIEL IA STUDIO. Todos os direitos reservados.
+              © 2026 CIEL IA STUDIO.
+              Todos os direitos reservados.
             </div>
 
           </div>
