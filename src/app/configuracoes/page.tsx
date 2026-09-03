@@ -11,10 +11,8 @@ export default function ConfiguracoesPage() {
   const [nome, setNome] = useState("");
 
   const [newPassword, setNewPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] =
-    useState("");
-  const [changingPassword, setChangingPassword] =
-    useState(false);
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [changingPassword, setChangingPassword] = useState(false);
 
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
@@ -49,10 +47,7 @@ export default function ConfiguracoesPage() {
             ""
         );
       } catch (err) {
-        console.error(
-          "Erro ao carregar usuário:",
-          err
-        );
+        console.error("Erro ao carregar usuário:", err);
       } finally {
         setLoading(false);
       }
@@ -71,16 +66,12 @@ export default function ConfiguracoesPage() {
     }
 
     if (newPassword.length < 6) {
-      setError(
-        "A senha precisa ter pelo menos 6 caracteres."
-      );
+      setError("A senha precisa ter pelo menos 6 caracteres.");
       return;
     }
 
     if (newPassword !== confirmPassword) {
-      setError(
-        "As senhas não coincidem."
-      );
+      setError("As senhas não coincidem.");
       return;
     }
 
@@ -98,17 +89,12 @@ export default function ConfiguracoesPage() {
         throw passwordError;
       }
 
-      setMessage(
-        "Senha alterada com sucesso!"
-      );
+      setMessage("Senha alterada com sucesso!");
 
       setNewPassword("");
       setConfirmPassword("");
     } catch (err) {
-      console.error(
-        "Erro ao alterar senha:",
-        err
-      );
+      console.error("Erro ao alterar senha:", err);
 
       setError(
         err instanceof Error
@@ -128,10 +114,7 @@ export default function ConfiguracoesPage() {
 
       window.location.replace("/login");
     } catch (err) {
-      console.error(
-        "Erro ao sair:",
-        err
-      );
+      console.error("Erro ao sair:", err);
     }
   }
 
@@ -846,165 +829,88 @@ export default function ConfiguracoesPage() {
         }
 
         /* =========================
-           AÇÕES
-        ========================= */
-
-        .actions-card {
-          margin-bottom: 20px;
-        }
-
-        .action-button {
-          width: 100%;
-
-          min-height: 76px;
-
-          display: flex;
-
-          align-items: center;
-
-          justify-content: center;
-
-          padding: 16px 20px;
-
-          border-radius: 18px;
-
-          text-decoration: none;
-
-          font-size: 18px;
-
-          font-weight: 800;
-
-          transition:
-            transform 0.2s ease,
-            box-shadow 0.2s ease,
-            background 0.2s ease,
-            border-color 0.2s ease;
-        }
-
-        .action-button:hover {
-          transform:
-            translateY(-2px);
-        }
-
-        .action-button.primary {
-          color: #04101b;
-
-          background:
-            linear-gradient(
-              90deg,
-              #5ed2ff,
-              #75e0ff
-            );
-
-          box-shadow:
-            0 0 10px
-            rgba(
-              70,
-              199,
-              255,
-              0.45
-            );
-        }
-
-        .action-button.secondary {
-          margin-top: 14px;
-
-          color:
-            ${dark
-              ? "#b9dcf5"
-              : "#36546c"};
-
-          background:
-            ${
-              dark
-                ? "rgba(24, 47, 68, 0.72)"
-                : "rgba(225, 240, 249, 0.75)"
-            };
-
-          border:
-            1px solid
-            ${
-              dark
-                ? "rgba(83, 185, 235, 0.35)"
-                : "rgba(50, 145, 190, 0.35)"
-            };
-        }
-
-        /* =========================
            BOTÃO SAIR
+           MESMO TAMANHO DO
+           BOTÃO ALTERAR SENHA
         ========================= */
 
         .logout-button {
           width: 100%;
 
-          min-height: 76px;
+          margin: 0;
 
-          margin-top: 14px;
+          padding: 14px;
 
-          padding: 16px 20px;
-
-          border-radius: 18px;
+          border-radius: 12px;
 
           border:
             1px solid
             rgba(
               255,
-              80,
-              100,
-              0.35
+              92,
+              125,
+              0.45
             );
-
-          background:
-            ${
-              dark
-                ? "rgba(65, 35, 50, 0.38)"
-                : "rgba(255, 235, 238, 0.75)"
-            };
-
-          color:
-            ${dark
-              ? "#ffabb5"
-              : "#c85b68"};
-
-          font-size: 18px;
-
-          font-weight: 800;
 
           cursor: pointer;
 
+          color: #ffb0bc;
+
+          background:
+            rgba(
+              35,
+              22,
+              38,
+              0.82
+            );
+
+          font-size: 15px;
+
+          font-weight: 800;
+
+          box-shadow:
+            0 0 10px
+            rgba(
+              255,
+              70,
+              105,
+              0.12
+            );
+
           transition:
             transform 0.2s ease,
-            background 0.2s ease,
             border-color 0.2s ease,
-            box-shadow 0.2s ease;
+            box-shadow 0.2s ease,
+            background 0.2s ease;
         }
 
         .logout-button:hover {
           transform:
             translateY(-2px);
 
-          background:
-            ${
-              dark
-                ? "rgba(85, 35, 50, 0.5)"
-                : "rgba(255, 225, 230, 0.9)"
-            };
-
           border-color:
             rgba(
               255,
               100,
-              120,
-              0.55
+              130,
+              0.75
+            );
+
+          background:
+            rgba(
+              45,
+              25,
+              42,
+              0.9
             );
 
           box-shadow:
-            0 0 16px
+            0 0 18px
             rgba(
               255,
               70,
-              100,
-              0.12
+              105,
+              0.22
             );
         }
 
@@ -1220,20 +1126,6 @@ export default function ConfiguracoesPage() {
           .theme-options {
             grid-template-columns:
               1fr;
-          }
-
-          .action-button {
-            min-height: 74px;
-
-            font-size: 17px;
-          }
-
-          .logout-button {
-            min-height: 74px;
-
-            font-size: 17px;
-
-            border-radius: 18px;
           }
 
           .footer {
@@ -1486,38 +1378,16 @@ export default function ConfiguracoesPage() {
           </section>
 
           {/* =========================
-              AÇÕES
+              SAIR
           ========================= */}
 
-          <section className="section actions-card">
-
-            <h2>
-              ⚙️ Ações
-            </h2>
-
-            <Link
-              href="/dashboard"
-              className="action-button primary"
-            >
-              ← Dashboard
-            </Link>
-
-            <Link
-              href="/configuracoes"
-              className="action-button secondary"
-            >
-              ⚙️ Configurações
-            </Link>
-
-            <button
-              type="button"
-              className="logout-button"
-              onClick={handleLogout}
-            >
-              🚪 Sair da conta
-            </button>
-
-          </section>
+          <button
+            type="button"
+            className="logout-button"
+            onClick={handleLogout}
+          >
+            🚪 Sair da conta
+          </button>
 
         </div>
 
