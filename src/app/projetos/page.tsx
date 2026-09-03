@@ -1114,7 +1114,7 @@ export default function ProjetosPage() {
                   Meus Projetos
                 </a>
 
-                <a href="/diamantes">
+                <a href="/creditos">
                   💎 Diamantes
                 </a>
 
