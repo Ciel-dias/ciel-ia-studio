@@ -16,17 +16,13 @@ export default function ImagemImagemPage() {
 
   const [loading, setLoading] = useState(false);
 
-  const [resultMessage, setResultMessage] =
-    useState("");
+  const [resultMessage, setResultMessage] = useState("");
 
-  const [taskId, setTaskId] =
-    useState("");
+  const [taskId, setTaskId] = useState("");
 
-  const [resultImageUrl, setResultImageUrl] =
-    useState("");
+  const [resultImageUrl, setResultImageUrl] = useState("");
 
-  const [errorMessage, setErrorMessage] =
-    useState("");
+  const [errorMessage, setErrorMessage] = useState("");
 
   function handleImageChange(
     event: React.ChangeEvent<HTMLInputElement>,
@@ -50,8 +46,7 @@ export default function ImagemImagemPage() {
       return;
     }
 
-    const preview =
-      URL.createObjectURL(file);
+    const preview = URL.createObjectURL(file);
 
     if (number === 1) {
       if (preview1) {
@@ -78,248 +73,211 @@ export default function ImagemImagemPage() {
   async function prepareImage(
     file: File
   ): Promise<string> {
-    return new Promise(
-      (resolve, reject) => {
-        const objectUrl =
-          URL.createObjectURL(file);
+    return new Promise((resolve, reject) => {
+      const objectUrl = URL.createObjectURL(file);
 
-        const img =
-          new Image();
+      const img = new Image();
 
-        img.onload = () => {
-          try {
-            URL.revokeObjectURL(
-              objectUrl
+      img.onload = () => {
+        try {
+          URL.revokeObjectURL(objectUrl);
+
+          const MAX_SIZE = 1600;
+
+          let width = img.naturalWidth;
+          let height = img.naturalHeight;
+
+          if (!width || !height) {
+            reject(
+              new Error(
+                "Não foi possível identificar as dimensões da imagem."
+              )
+            );
+            return;
+          }
+
+          if (
+            width > MAX_SIZE ||
+            height > MAX_SIZE
+          ) {
+            const scale = Math.min(
+              MAX_SIZE / width,
+              MAX_SIZE / height
             );
 
-            const MAX_SIZE = 1600;
-
-            let width = img.naturalWidth;
-            let height = img.naturalHeight;
-
-            if (!width || !height) {
-              reject(
-                new Error(
-                  "Não foi possível identificar as dimensões da imagem."
-                )
-              );
-              return;
-            }
-
-            if (
-              width > MAX_SIZE ||
-              height > MAX_SIZE
-            ) {
-              const scale =
-                Math.min(
-                  MAX_SIZE / width,
-                  MAX_SIZE / height
-                );
-
-              width =
-                Math.max(
-                  300,
-                  Math.round(
-                    width * scale
-                  )
-                );
-
-              height =
-                Math.max(
-                  300,
-                  Math.round(
-                    height * scale
-                  )
-                );
-            }
-
-            const canvas =
-              document.createElement(
-                "canvas"
-              );
-
-            canvas.width = width;
-            canvas.height = height;
-
-            const context =
-              canvas.getContext(
-                "2d"
-              );
-
-            if (!context) {
-              reject(
-                new Error(
-                  "Não foi possível preparar a imagem no navegador."
-                )
-              );
-              return;
-            }
-
-            context.fillStyle =
-              "#ffffff";
-
-            context.fillRect(
-              0,
-              0,
-              width,
-              height
+            width = Math.max(
+              300,
+              Math.round(width * scale)
             );
 
-            context.imageSmoothingEnabled =
-              true;
+            height = Math.max(
+              300,
+              Math.round(height * scale)
+            );
+          }
 
-            context.imageSmoothingQuality =
-              "high";
+          const canvas =
+            document.createElement("canvas");
 
-            context.drawImage(
-              img,
-              0,
-              0,
-              width,
-              height
+          canvas.width = width;
+          canvas.height = height;
+
+          const context =
+            canvas.getContext("2d");
+
+          if (!context) {
+            reject(
+              new Error(
+                "Não foi possível preparar a imagem no navegador."
+              )
+            );
+            return;
+          }
+
+          context.fillStyle = "#ffffff";
+
+          context.fillRect(
+            0,
+            0,
+            width,
+            height
+          );
+
+          context.imageSmoothingEnabled = true;
+
+          context.imageSmoothingQuality = "high";
+
+          context.drawImage(
+            img,
+            0,
+            0,
+            width,
+            height
+          );
+
+          let quality = 0.82;
+
+          let dataUrl =
+            canvas.toDataURL(
+              "image/jpeg",
+              quality
             );
 
-            let quality = 0.82;
+          const MAX_BASE64_LENGTH = 2_700_000;
 
-            let dataUrl =
+          while (
+            dataUrl.length >
+              MAX_BASE64_LENGTH &&
+            quality > 0.45
+          ) {
+            quality -= 0.08;
+
+            dataUrl =
               canvas.toDataURL(
                 "image/jpeg",
                 quality
               );
+          }
 
-            const MAX_BASE64_LENGTH =
-              2_700_000;
+          if (
+            dataUrl.length >
+            MAX_BASE64_LENGTH
+          ) {
+            let currentWidth = width;
+            let currentHeight = height;
 
             while (
               dataUrl.length >
                 MAX_BASE64_LENGTH &&
-              quality > 0.45
+              currentWidth > 700 &&
+              currentHeight > 700
             ) {
-              quality -= 0.08;
+              currentWidth = Math.max(
+                700,
+                Math.round(
+                  currentWidth * 0.85
+                )
+              );
+
+              currentHeight = Math.max(
+                700,
+                Math.round(
+                  currentHeight * 0.85
+                )
+              );
+
+              canvas.width = currentWidth;
+              canvas.height = currentHeight;
+
+              context.fillStyle = "#ffffff";
+
+              context.fillRect(
+                0,
+                0,
+                currentWidth,
+                currentHeight
+              );
+
+              context.drawImage(
+                img,
+                0,
+                0,
+                currentWidth,
+                currentHeight
+              );
 
               dataUrl =
                 canvas.toDataURL(
                   "image/jpeg",
-                  quality
+                  0.72
                 );
             }
-
-            if (
-              dataUrl.length >
-              MAX_BASE64_LENGTH
-            ) {
-              let currentWidth =
-                width;
-
-              let currentHeight =
-                height;
-
-              while (
-                dataUrl.length >
-                  MAX_BASE64_LENGTH &&
-                currentWidth > 700 &&
-                currentHeight > 700
-              ) {
-                currentWidth =
-                  Math.max(
-                    700,
-                    Math.round(
-                      currentWidth *
-                        0.85
-                    )
-                  );
-
-                currentHeight =
-                  Math.max(
-                    700,
-                    Math.round(
-                      currentHeight *
-                        0.85
-                    )
-                  );
-
-                canvas.width =
-                  currentWidth;
-
-                canvas.height =
-                  currentHeight;
-
-                context.fillStyle =
-                  "#ffffff";
-
-                context.fillRect(
-                  0,
-                  0,
-                  currentWidth,
-                  currentHeight
-                );
-
-                context.drawImage(
-                  img,
-                  0,
-                  0,
-                  currentWidth,
-                  currentHeight
-                );
-
-                dataUrl =
-                  canvas.toDataURL(
-                    "image/jpeg",
-                    0.72
-                  );
-              }
-            }
-
-            if (
-              dataUrl.length >
-              MAX_BASE64_LENGTH
-            ) {
-              reject(
-                new Error(
-                  "Não foi possível reduzir a imagem o suficiente. Escolha uma foto menor."
-                )
-              );
-              return;
-            }
-
-            const base64 =
-              dataUrl.replace(
-                /^data:image\/jpeg;base64,/,
-                ""
-              );
-
-            resolve(base64);
-          } catch (error) {
-            URL.revokeObjectURL(
-              objectUrl
-            );
-
-            reject(
-              error instanceof Error
-                ? error
-                : new Error(
-                    "Erro ao preparar a imagem."
-                  )
-            );
           }
-        };
 
-        img.onerror = () => {
-          URL.revokeObjectURL(
-            objectUrl
-          );
+          if (
+            dataUrl.length >
+            MAX_BASE64_LENGTH
+          ) {
+            reject(
+              new Error(
+                "Não foi possível reduzir a imagem o suficiente. Escolha uma foto menor."
+              )
+            );
+            return;
+          }
+
+          const base64 =
+            dataUrl.replace(
+              /^data:image\/jpeg;base64,/,
+              ""
+            );
+
+          resolve(base64);
+        } catch (error) {
+          URL.revokeObjectURL(objectUrl);
 
           reject(
-            new Error(
-              "Não foi possível carregar a imagem selecionada."
-            )
+            error instanceof Error
+              ? error
+              : new Error(
+                  "Erro ao preparar a imagem."
+                )
           );
-        };
+        }
+      };
 
-        img.src =
-          objectUrl;
-      }
-    );
+      img.onerror = () => {
+        URL.revokeObjectURL(objectUrl);
+
+        reject(
+          new Error(
+            "Não foi possível carregar a imagem selecionada."
+          )
+        );
+      };
+
+      img.src = objectUrl;
+    });
   }
 
   async function handleGenerate() {
@@ -344,49 +302,63 @@ export default function ImagemImagemPage() {
     setResultImageUrl("");
 
     try {
+      /*
+       * ================================================
+       * PREPARAR PRIMEIRA IMAGEM
+       * ================================================
+       */
+
       const image1Base64 =
-        await prepareImage(
-          image1
-        );
+        await prepareImage(image1);
+
+      /*
+       * ================================================
+       * PREPARAR SEGUNDA IMAGEM — OPCIONAL
+       * ================================================
+       */
 
       let image2Base64 = "";
 
       if (image2) {
         image2Base64 =
-          await prepareImage(
-            image2
-          );
+          await prepareImage(image2);
       }
 
-      const response =
-        await fetch(
-          "/api/kling-image-to-image",
-          {
-            method: "POST",
+      /*
+       * ================================================
+       * CHAMAR OPENAI
+       * ================================================
+       */
 
-            headers: {
-              "Content-Type":
-                "application/json",
-            },
+      const response = await fetch(
+        "/api/openai-image-to-image",
+        {
+          method: "POST",
 
-            body: JSON.stringify({
-              prompt:
-                prompt.trim(),
+          headers: {
+            "Content-Type": "application/json",
+          },
 
-              image:
-                image1Base64,
+          body: JSON.stringify({
+            prompt: prompt.trim(),
 
-              image2:
-                image2Base64 ||
-                undefined,
+            image: image1Base64,
 
-              aspect_ratio:
-                aspectRatio,
+            image2:
+              image2Base64 || undefined,
 
-              style,
-            }),
-          }
-        );
+            aspect_ratio: aspectRatio,
+
+            style,
+          }),
+        }
+      );
+
+      /*
+       * ================================================
+       * LER RESPOSTA
+       * ================================================
+       */
 
       const responseText =
         await response.text();
@@ -394,13 +366,16 @@ export default function ImagemImagemPage() {
       let data: any = null;
 
       try {
-        data =
-          JSON.parse(
-            responseText
-          );
+        data = JSON.parse(responseText);
       } catch {
         data = null;
       }
+
+      /*
+       * ================================================
+       * TRATAMENTO DE ERRO
+       * ================================================
+       */
 
       if (
         !response.ok ||
@@ -408,44 +383,41 @@ export default function ImagemImagemPage() {
       ) {
         const message =
           data?.message ||
-          data?.klingMessage ||
           `O servidor retornou o erro ${response.status}.`;
 
-        setErrorMessage(
-          message
-        );
+        setErrorMessage(message);
 
         return;
       }
 
-      const returnedTaskId =
-        data?.taskId ||
-        data?.data?.task_id ||
-        data?.data?.taskId ||
-        "";
+      /*
+       * ================================================
+       * PEGAR IMAGEM GERADA
+       * ================================================
+       */
 
       const returnedImageUrl =
         data?.imageUrl ||
-        data?.data?.image_url ||
-        data?.data?.imageUrl ||
         "";
 
-      if (returnedTaskId) {
-        setTaskId(
-          returnedTaskId
+      if (!returnedImageUrl) {
+        throw new Error(
+          "A OpenAI não retornou uma imagem."
         );
       }
 
-      if (returnedImageUrl) {
-        setResultImageUrl(
-          returnedImageUrl
-        );
-      }
+      /*
+       * ================================================
+       * MOSTRAR RESULTADO
+       * ================================================
+       */
+
+      setResultImageUrl(
+        returnedImageUrl
+      );
 
       setResultMessage(
-        returnedTaskId
-          ? "Sua solicitação foi enviada com sucesso. A imagem está sendo processada."
-          : "Solicitação enviada com sucesso."
+        "Imagem criada com sucesso pela OpenAI."
       );
     } catch (error) {
       console.error(
@@ -509,14 +481,6 @@ export default function ImagemImagemPage() {
 
           overflow-x: hidden;
         }
-
-        /*
-         * =================================================
-         * CABEÇALHO
-         * CIEL IA STUDIO = ESQUERDA / COR PADRÃO
-         * VOLTAR = DIREITA / AZUL CLARO
-         * =================================================
-         */
 
         .topbar {
           min-height: 74px;
@@ -1643,7 +1607,7 @@ export default function ImagemImagemPage() {
               >
 
                 {loading
-                  ? "✨ Preparando imagem..."
+                  ? "✨ Gerando imagem..."
                   : "✨ Gerar Imagem"}
 
               </button>
@@ -1672,7 +1636,7 @@ export default function ImagemImagemPage() {
                       src={
                         resultImageUrl
                       }
-                      alt="Imagem gerada"
+                      alt="Imagem gerada pela OpenAI"
                       className="preview-image"
                     />
 
@@ -1695,9 +1659,9 @@ export default function ImagemImagemPage() {
                       <h3>
 
                         {loading
-                          ? "Preparando sua solicitação..."
+                          ? "Gerando sua imagem..."
                           : resultMessage
-                          ? "Solicitação enviada!"
+                          ? "Imagem criada!"
                           : errorMessage
                           ? "Não foi possível gerar"
                           : "Sua nova imagem aparecerá aqui"}
@@ -1808,8 +1772,12 @@ export default function ImagemImagemPage() {
                   Imagem → Vídeo
                 </Link>
 
-                <Link href="/projetos">
+                <Link href="/meus-projetos">
                   Meus Projetos
+                </Link>
+
+                <Link href="/creditos">
+                  💎 Diamantes
                 </Link>
 
               </div>
@@ -1846,10 +1814,6 @@ export default function ImagemImagemPage() {
 
                 <Link href="/privacidade">
                   Política de Privacidade
-                </Link>
-
-                <Link href="/reembolso">
-                  Política de Reembolso
                 </Link>
 
               </div>
