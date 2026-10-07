@@ -1,11 +1,6 @@
 import { NextResponse } from "next/server";
-import OpenAI, { toFile } from "openai";
 
 export const runtime = "nodejs";
-
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-});
 
 type RequestBody = {
   prompt?: string;
@@ -20,20 +15,6 @@ function removeDataUrlPrefix(base64: string): string {
     /^data:image\/[a-zA-Z0-9.+-]+;base64,/,
     ""
   );
-}
-
-function getImageSize(aspectRatio: string): string {
-  switch (aspectRatio) {
-    case "9:16":
-      return "1024x1536";
-
-    case "16:9":
-      return "1536x1024";
-
-    case "1:1":
-    default:
-      return "1024x1024";
-  }
 }
 
 function buildPrompt(
@@ -63,26 +44,35 @@ REGRAS IMPORTANTES:
 `.trim();
 }
 
+function wait(ms: number) {
+  return new Promise((resolve) =>
+    setTimeout(resolve, ms)
+  );
+}
+
 export async function POST(
   request: Request
 ) {
   try {
     /*
      * =================================================
-     * VERIFICAÇÃO DA API
+     * VERIFICAÇÃO DA KLING API
      * =================================================
      */
 
-    if (!process.env.OPENAI_API_KEY) {
+    const klingApiKey =
+      process.env.KLING_API_KEY;
+
+    if (!klingApiKey) {
       console.error(
-        "OPENAI_API_KEY não configurada."
+        "KLING_API_KEY não configurada."
       );
 
       return NextResponse.json(
         {
           status: "error",
           message:
-            "A chave da API da OpenAI não está configurada no servidor.",
+            "A chave da API da Kling não está configurada no servidor.",
         },
         { status: 500 }
       );
@@ -140,12 +130,21 @@ export async function POST(
       );
     }
 
+    const allowedAspectRatios = [
+      "1:1",
+      "9:16",
+      "16:9",
+      "4:3",
+      "3:4",
+      "3:2",
+      "2:3",
+      "21:9",
+    ];
+
     if (
-      ![
-        "1:1",
-        "9:16",
-        "16:9",
-      ].includes(aspectRatio)
+      !allowedAspectRatios.includes(
+        aspectRatio
+      )
     ) {
       return NextResponse.json(
         {
@@ -159,16 +158,12 @@ export async function POST(
 
     /*
      * =================================================
-     * LIMITE DE SEGURANÇA DO PAYLOAD
+     * LIMITE DE SEGURANÇA
      * =================================================
-     *
-     * A página já reduz as imagens antes de enviar.
-     * Esta proteção evita receber payloads absurdamente
-     * grandes diretamente na API.
      */
 
     const MAX_BASE64_LENGTH =
-      3_000_000;
+      10_000_000;
 
     if (
       image.length >
@@ -203,46 +198,26 @@ export async function POST(
      * =================================================
      * PREPARAR IMAGENS
      * =================================================
+     *
+     * A Kling aceita Base64 sem o prefixo
+     * data:image/...;base64,
      */
 
     const image1Base64 =
       removeDataUrlPrefix(image);
 
-    const image1Buffer =
-      Buffer.from(
-        image1Base64,
-        "base64"
-      );
-
-    if (!image1Buffer.length) {
-      return NextResponse.json(
-        {
-          status: "error",
-          message:
-            "A primeira imagem não pôde ser processada.",
-        },
-        { status: 400 }
-      );
-    }
-
-    const imageFiles: File[] = [];
-
-    const imageFile1 =
-      await toFile(
-        image1Buffer,
-        "reference-1.jpg",
-        {
-          type: "image/jpeg",
-        }
-      );
-
-    imageFiles.push(
-      imageFile1
-    );
+    const subjectImageList: {
+      subject_image: string;
+    }[] = [
+      {
+        subject_image:
+          image1Base64,
+      },
+    ];
 
     /*
      * =================================================
-     * SEGUNDA IMAGEM — OPCIONAL
+     * SEGUNDA IMAGEM
      * =================================================
      */
 
@@ -252,35 +227,10 @@ export async function POST(
           image2
         );
 
-      const image2Buffer =
-        Buffer.from(
+      subjectImageList.push({
+        subject_image:
           image2Base64,
-          "base64"
-        );
-
-      if (!image2Buffer.length) {
-        return NextResponse.json(
-          {
-            status: "error",
-            message:
-              "A segunda imagem não pôde ser processada.",
-          },
-          { status: 400 }
-        );
-      }
-
-      const imageFile2 =
-        await toFile(
-          image2Buffer,
-          "reference-2.jpg",
-          {
-            type: "image/jpeg",
-          }
-        );
-
-      imageFiles.push(
-        imageFile2
-      );
+      });
     }
 
     /*
@@ -295,33 +245,27 @@ export async function POST(
         style
       );
 
-    const size =
-      getImageSize(
-        aspectRatio
-      );
+    console.log(
+      "========================================"
+    );
 
     console.log(
-      "CIEL IA STUDIO - OpenAI Image-to-Image"
+      "CIEL IA STUDIO - Kling Image"
     );
 
     console.log(
       "Modelo:",
-      "gpt-image-1"
+      "kling-v2-1"
     );
 
     console.log(
       "Imagens:",
-      imageFiles.length
+      subjectImageList.length
     );
 
     console.log(
       "Proporção:",
       aspectRatio
-    );
-
-    console.log(
-      "Tamanho:",
-      size
     );
 
     console.log(
@@ -331,93 +275,305 @@ export async function POST(
 
     /*
      * =================================================
-     * OPENAI IMAGE EDIT
+     * CRIAR TAREFA NA KLING
      * =================================================
      */
 
-    const result =
-      await openai.images.edit({
-        model: "gpt-image-1",
+    const createResponse =
+      await fetch(
+        "https://api-singapore.klingai.com/v1/images/multi-image2image",
+        {
+          method: "POST",
 
-        image:
-          imageFiles,
+          headers: {
+            Authorization:
+              `Bearer ${klingApiKey}`,
 
-        prompt:
-          finalPrompt,
+            "Content-Type":
+              "application/json",
+          },
 
-        size:
-          size as
-            | "1024x1024"
-            | "1024x1536"
-            | "1536x1024",
+          body: JSON.stringify({
+            model_name:
+              "kling-v2-1",
 
-        quality: "high",
+            prompt:
+              finalPrompt,
 
-        n: 1,
+            negative_prompt:
+              "",
 
-        input_fidelity:
-          "high",
-      });
+            subject_image_list:
+              subjectImageList,
 
-    /*
-     * =================================================
-     * PEGAR RESULTADO
-     * =================================================
-     */
+            n: 1,
 
-    const imageBase64 =
-      result.data?.[0]?.b64_json;
+            aspect_ratio:
+              aspectRatio,
 
-    if (!imageBase64) {
-      console.error(
-        "OpenAI não retornou b64_json:",
-        result
+            watermark_info: {
+              enabled: false,
+            },
+          }),
+        }
       );
 
+    const createData =
+      await createResponse.json();
+
+    console.log(
+      "Kling create response:",
+      createData
+    );
+
+    if (
+      !createResponse.ok ||
+      createData?.code !== 0
+    ) {
       return NextResponse.json(
         {
           status: "error",
           message:
-            "A OpenAI não retornou uma imagem válida.",
+            createData?.message ||
+            "A Kling não conseguiu criar a tarefa de geração da imagem.",
+          kling:
+            createData,
+        },
+        {
+          status:
+            createResponse.status >= 400
+              ? createResponse.status
+              : 502,
+        }
+      );
+    }
+
+    const taskId =
+      createData?.data?.task_id;
+
+    if (!taskId) {
+      return NextResponse.json(
+        {
+          status: "error",
+          message:
+            "A Kling não retornou o ID da tarefa.",
         },
         { status: 502 }
       );
     }
 
-    /*
-     * =================================================
-     * RESPOSTA PARA O FRONTEND
-     * =================================================
-     */
-
-    return NextResponse.json({
-      status: "success",
-
-      imageBase64,
-
-      imageUrl:
-        `data:image/png;base64,${imageBase64}`,
-
-      model:
-        "gpt-image-1",
-
-      aspectRatio,
-
-      size,
-
-      style,
-    });
-  } catch (error: any) {
-    console.error(
-      "CIEL IA STUDIO - Erro OpenAI Image-to-Image:",
-      error
+    console.log(
+      "Kling task_id:",
+      taskId
     );
 
     /*
      * =================================================
-     * TRATAMENTO DE ERROS DA OPENAI
+     * CONSULTAR TAREFA
+     * =================================================
+     *
+     * A Kling processa a imagem de forma assíncrona.
+     */
+
+    const maxAttempts = 60;
+
+    for (
+      let attempt = 0;
+      attempt < maxAttempts;
+      attempt++
+    ) {
+      await wait(2000);
+
+      const statusResponse =
+        await fetch(
+          `https://api-singapore.klingai.com/v1/images/multi-image2image/${taskId}`,
+          {
+            method: "GET",
+
+            headers: {
+              Authorization:
+                `Bearer ${klingApiKey}`,
+
+              "Content-Type":
+                "application/json",
+            },
+          }
+        );
+
+      const statusData =
+        await statusResponse.json();
+
+      console.log(
+        "Kling status:",
+        statusData?.data?.task_status,
+        "tentativa:",
+        attempt + 1
+      );
+
+      if (
+        !statusResponse.ok
+      ) {
+        return NextResponse.json(
+          {
+            status: "error",
+            message:
+              statusData?.message ||
+              "Erro ao consultar a tarefa da Kling.",
+            kling:
+              statusData,
+          },
+          {
+            status:
+              statusResponse.status >= 400
+                ? statusResponse.status
+                : 502,
+          }
+        );
+      }
+
+      const taskStatus =
+        statusData?.data?.task_status;
+
+      /*
+       * =================================================
+       * SUCESSO
+       * =================================================
+       */
+
+      if (
+        taskStatus ===
+        "succeed"
+      ) {
+        const imageUrl =
+          statusData?.data
+            ?.task_result
+            ?.images?.[0]
+            ?.url;
+
+        if (!imageUrl) {
+          return NextResponse.json(
+            {
+              status: "error",
+              message:
+                "A Kling concluiu a geração, mas não retornou a URL da imagem.",
+            },
+            { status: 502 }
+          );
+        }
+
+        /*
+         * Baixar a imagem da Kling
+         * e devolver como Base64 para manter
+         * compatibilidade com o frontend atual.
+         */
+
+        const imageResponse =
+          await fetch(
+            imageUrl
+          );
+
+        if (
+          !imageResponse.ok
+        ) {
+          return NextResponse.json(
+            {
+              status: "error",
+              message:
+                "A imagem foi gerada pela Kling, mas não pôde ser baixada.",
+            },
+            { status: 502 }
+          );
+        }
+
+        const imageBuffer =
+          await imageResponse.arrayBuffer();
+
+        const imageBase64 =
+          Buffer.from(
+            imageBuffer
+          ).toString(
+            "base64"
+          );
+
+        console.log(
+          "Kling Image concluído com sucesso."
+        );
+
+        /*
+         * =================================================
+         * RESPOSTA PARA O FRONTEND
+         * =================================================
+         */
+
+        return NextResponse.json({
+          status: "success",
+
+          imageBase64,
+
+          imageUrl:
+            `data:image/png;base64,${imageBase64}`,
+
+          model:
+            "kling-v2-1",
+
+          aspectRatio,
+
+          style,
+
+          taskId,
+        });
+      }
+
+      /*
+       * =================================================
+       * FALHA
+       * =================================================
+       */
+
+      if (
+        taskStatus ===
+        "failed"
+      ) {
+        return NextResponse.json(
+          {
+            status: "error",
+
+            message:
+              statusData?.data
+                ?.task_status_msg ||
+              statusData?.message ||
+              "A Kling falhou ao gerar a imagem.",
+
+            taskId,
+          },
+          { status: 502 }
+        );
+      }
+    }
+
+    /*
+     * =================================================
+     * TIMEOUT
      * =================================================
      */
+
+    return NextResponse.json(
+      {
+        status: "error",
+
+        message:
+          "A Kling demorou mais que o esperado para concluir a imagem. Tente novamente.",
+
+        taskId,
+      },
+      { status: 504 }
+    );
+
+  } catch (error: any) {
+    console.error(
+      "CIEL IA STUDIO - Erro Kling Image:",
+      error
+    );
 
     const statusCode =
       error?.status ||
@@ -425,77 +581,21 @@ export async function POST(
       500;
 
     const apiMessage =
-      error?.error?.message ||
       error?.message ||
       "";
-
-    /*
-     * Erro de autenticação
-     */
-
-    if (
-      statusCode === 401
-    ) {
-      return NextResponse.json(
-        {
-          status: "error",
-          message:
-            "A chave da API da OpenAI é inválida ou não está autorizada.",
-        },
-        { status: 401 }
-      );
-    }
-
-    /*
-     * Sem créditos / limite da OpenAI
-     */
-
-    if (
-      statusCode === 429
-    ) {
-      return NextResponse.json(
-        {
-          status: "error",
-          message:
-            apiMessage ||
-            "A conta da OpenAI atingiu o limite disponível para esta solicitação.",
-        },
-        { status: 429 }
-      );
-    }
-
-    /*
-     * Erro de conteúdo ou imagem
-     */
-
-    if (
-      statusCode === 400
-    ) {
-      return NextResponse.json(
-        {
-          status: "error",
-          message:
-            apiMessage ||
-            "A OpenAI não conseguiu processar as imagens ou o pedido enviado.",
-        },
-        { status: 400 }
-      );
-    }
-
-    /*
-     * Erro geral
-     */
 
     return NextResponse.json(
       {
         status: "error",
+
         message:
           apiMessage ||
-          "Não foi possível gerar a imagem pela OpenAI.",
+          "Não foi possível gerar a imagem pela Kling.",
       },
       {
         status:
-          typeof statusCode === "number" &&
+          typeof statusCode ===
+            "number" &&
           statusCode >= 400 &&
           statusCode < 600
             ? statusCode
