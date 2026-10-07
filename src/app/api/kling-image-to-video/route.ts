@@ -16,15 +16,19 @@ function getApiKey() {
   );
 }
 
-/**
- * GET
- *
- * Sem taskId:
- * verifica se a API está configurada.
- *
- * Com ?taskId=:
- * consulta o status de uma geração.
- */
+/*
+|--------------------------------------------------------------------------
+| GET
+|--------------------------------------------------------------------------
+|
+| Sem taskId:
+|   verifica se a Kling está configurada.
+|
+| Com ?taskId=:
+|   consulta o status da geração do vídeo.
+|
+*/
+
 export async function GET(
   request: NextRequest
 ) {
@@ -48,7 +52,7 @@ export async function GET(
     );
 
   /*
-   * Apenas teste da configuração.
+   * Apenas verifica configuração.
    */
   if (!taskId) {
     return NextResponse.json({
@@ -62,7 +66,7 @@ export async function GET(
   }
 
   /*
-   * Consulta o andamento da tarefa.
+   * Consulta o status da tarefa.
    */
   try {
     const response =
@@ -72,10 +76,12 @@ export async function GET(
         )}`,
         {
           method: "GET",
+
           headers: {
             Authorization:
               `Bearer ${apiKey}`,
           },
+
           cache: "no-store",
         }
       );
@@ -86,28 +92,38 @@ export async function GET(
     let klingData: any = null;
 
     try {
-      klingData = responseText
-        ? JSON.parse(responseText)
-        : null;
+      klingData =
+        responseText
+          ? JSON.parse(
+              responseText
+            )
+          : null;
     } catch {
       klingData = null;
     }
 
+    /*
+     * Erro HTTP.
+     */
     if (!response.ok) {
       return NextResponse.json(
         {
           status: "error",
+
           message:
             klingData?.message ||
             responseText ||
             "Erro ao consultar a tarefa na Kling.",
+
           klingStatus:
             response.status,
+
           klingResponse:
             klingData,
         },
         {
-          status: response.status,
+          status:
+            response.status,
         }
       );
     }
@@ -119,14 +135,18 @@ export async function GET(
       klingData &&
       typeof klingData.code !==
         "undefined" &&
-      Number(klingData.code) !== 0
+      Number(
+        klingData.code
+      ) !== 0
     ) {
       return NextResponse.json(
         {
           status: "error",
+
           message:
             klingData.message ||
             "A Kling retornou um erro.",
+
           klingResponse:
             klingData,
         },
@@ -144,8 +164,7 @@ export async function GET(
       null;
 
     /*
-     * Se terminou com sucesso,
-     * pegamos a URL do vídeo.
+     * VÍDEO PRONTO
      */
     if (
       taskStatus === "succeed"
@@ -164,32 +183,44 @@ export async function GET(
 
       return NextResponse.json({
         status: "success",
+
         taskStatus,
+
         taskId,
+
         videoUrl,
-        video: video ?? null,
+
+        video:
+          video ?? null,
+
         klingResponse:
           klingData,
+
         routeVersion:
           "kling-image-to-video-v3",
       });
     }
 
     /*
-     * Se a Kling informou falha.
+     * FALHA
      */
     if (
       taskStatus === "failed"
     ) {
       return NextResponse.json({
         status: "error",
+
         taskStatus,
+
         taskId,
+
         message:
           data?.task_status_msg ||
           "A Kling não conseguiu gerar o vídeo.",
+
         klingResponse:
           klingData,
+
         routeVersion:
           "kling-image-to-video-v3",
       });
@@ -200,15 +231,20 @@ export async function GET(
      */
     return NextResponse.json({
       status: "processing",
+
       taskStatus,
+
       taskId,
+
       message:
         taskStatus ===
         "submitted"
           ? "A Kling recebeu a tarefa."
           : "A Kling está gerando o vídeo.",
+
       klingResponse:
         klingData,
+
       routeVersion:
         "kling-image-to-video-v3",
     });
@@ -221,22 +257,29 @@ export async function GET(
     return NextResponse.json(
       {
         status: "error",
+
         message:
           error instanceof Error
             ? error.message
             : "Erro interno ao consultar a Kling.",
       },
-      { status: 500 }
+      {
+        status: 500,
+      }
     );
   }
 }
 
 
-/**
- * POST
- *
- * Cria uma tarefa de Image-to-Video.
- */
+/*
+|--------------------------------------------------------------------------
+| POST
+|--------------------------------------------------------------------------
+|
+| Cria uma nova tarefa de Image-to-Video.
+|
+*/
+
 export async function POST(
   request: NextRequest
 ) {
@@ -246,10 +289,13 @@ export async function POST(
     return NextResponse.json(
       {
         status: "error",
+
         message:
           "A chave da Kling não está configurada na Vercel.",
       },
-      { status: 500 }
+      {
+        status: 500,
+      }
     );
   }
 
@@ -258,10 +304,8 @@ export async function POST(
       await request.json();
 
     /*
-     * Aceita:
-     * image
-     * imageUrl
-     * image_url
+     * Aceita diferentes nomes
+     * para a imagem.
      */
     const image =
       body?.image ??
@@ -279,6 +323,9 @@ export async function POST(
         : "";
 
     /*
+     * Duração.
+     *
+     * Permitido:
      * 5 ou 10 segundos.
      */
     const duration =
@@ -288,10 +335,12 @@ export async function POST(
         : "5";
 
     /*
-     * std ou pro.
+     * Qualidade:
      *
-     * Default: pro
-     * para priorizar qualidade.
+     * std = Standard
+     * pro = Pro
+     *
+     * Padrão: pro
      */
     const mode =
       body?.mode === "std"
@@ -300,7 +349,11 @@ export async function POST(
 
     /*
      * Som:
-     * off por padrão.
+     *
+     * on
+     * off
+     *
+     * Padrão: off
      */
     const sound =
       body?.sound === "on"
@@ -308,25 +361,30 @@ export async function POST(
         : "off";
 
     /*
-     * Imagem final opcional.
+     * Segundo frame opcional.
      *
-     * Se futuramente quiseremos fazer
-     * primeiro frame + último frame,
-     * podemos enviar image_tail.
+     * Pode ser utilizado futuramente
+     * como imagem final.
      */
     const imageTail =
       body?.imageTail ??
       body?.image_tail ??
       null;
 
+    /*
+     * Verificação da imagem.
+     */
     if (!image) {
       return NextResponse.json(
         {
           status: "error",
+
           message:
             "Nenhuma imagem foi enviada.",
         },
-        { status: 400 }
+        {
+          status: 400,
+        }
       );
     }
 
@@ -336,36 +394,51 @@ export async function POST(
       return NextResponse.json(
         {
           status: "error",
+
           message:
             "O campo image precisa ser uma URL ou Base64.",
         },
-        { status: 400 }
+        {
+          status: 400,
+        }
       );
     }
 
     /*
-     * Blob URLs não funcionam no servidor.
+     * Blob URLs não podem ser
+     * acessadas pela Kling.
      */
     if (
-      image.startsWith("blob:")
+      image.startsWith(
+        "blob:"
+      )
     ) {
       return NextResponse.json(
         {
           status: "error",
-          code: "LOCAL_BLOB_URL",
+
+          code:
+            "LOCAL_BLOB_URL",
+
           message:
             "A imagem está em uma URL blob local. Envie a imagem como Base64 ou uma URL pública.",
         },
-        { status: 400 }
+        {
+          status: 400,
+        }
       );
     }
 
     /*
-     * Remove o prefixo:
+     * Converte Data URL em Base64 puro.
      *
-     * data:image/png;base64,...
+     * Exemplo:
      *
-     * A Kling precisa somente do Base64.
+     * data:image/png;base64,AAAA
+     *
+     * vira:
+     *
+     * AAAA
      */
     let klingImage = image;
 
@@ -377,14 +450,19 @@ export async function POST(
       const commaIndex =
         image.indexOf(",");
 
-      if (commaIndex === -1) {
+      if (
+        commaIndex === -1
+      ) {
         return NextResponse.json(
           {
             status: "error",
+
             message:
               "Base64 da imagem inválido.",
           },
-          { status: 400 }
+          {
+            status: 400,
+          }
         );
       }
 
@@ -395,7 +473,7 @@ export async function POST(
     }
 
     /*
-     * Detecta se é URL.
+     * Verifica se é URL.
      */
     const isHttpUrl =
       klingImage.startsWith(
@@ -406,7 +484,8 @@ export async function POST(
       );
 
     /*
-     * Se não for URL, validamos Base64.
+     * Se não for URL,
+     * precisa ser Base64.
      */
     if (!isHttpUrl) {
       const base64Regex =
@@ -420,19 +499,18 @@ export async function POST(
         return NextResponse.json(
           {
             status: "error",
+
             message:
               "A imagem precisa ser uma URL pública ou Base64 válido.",
           },
-          { status: 400 }
+          {
+            status: 400,
+          }
         );
       }
 
       /*
-       * Aproximadamente 10 MB.
-       *
-       * A documentação da Kling
-       * estabelece limite de 10 MB para
-       * o formato legacy usado aqui.
+       * Limite aproximado para Base64.
        */
       if (
         klingImage.length >
@@ -441,16 +519,19 @@ export async function POST(
         return NextResponse.json(
           {
             status: "error",
+
             message:
               "A imagem é muito grande para a Kling.",
           },
-          { status: 400 }
+          {
+            status: 400,
+          }
         );
       }
     }
 
     /*
-     * Corpo enviado para a Kling.
+     * Corpo da requisição.
      */
     const klingBody: Record<
       string,
@@ -473,7 +554,8 @@ export async function POST(
     };
 
     /*
-     * Prompt é opcional.
+     * Adiciona prompt somente
+     * quando foi informado.
      */
     if (prompt) {
       klingBody.prompt =
@@ -491,6 +573,9 @@ export async function POST(
       let klingImageTail =
         imageTail.trim();
 
+      /*
+       * Remove Data URL.
+       */
       if (
         klingImageTail.startsWith(
           "data:image/"
@@ -507,10 +592,13 @@ export async function POST(
           return NextResponse.json(
             {
               status: "error",
+
               message:
                 "Base64 do segundo frame inválido.",
             },
-            { status: 400 }
+            {
+              status: 400,
+            }
           );
         }
 
@@ -520,6 +608,9 @@ export async function POST(
           );
       }
 
+      /*
+       * Blob não permitido.
+       */
       if (
         klingImageTail.startsWith(
           "blob:"
@@ -528,12 +619,16 @@ export async function POST(
         return NextResponse.json(
           {
             status: "error",
+
             code:
               "LOCAL_BLOB_URL_TAIL",
+
             message:
               "O segundo frame está em uma URL blob local.",
           },
-          { status: 400 }
+          {
+            status: 400,
+          }
         );
       }
 
@@ -541,23 +636,34 @@ export async function POST(
         klingImageTail;
     }
 
+    /*
+     * Log seguro.
+     *
+     * Não exibimos a API Key
+     * nem a imagem/Base64.
+     */
     console.log(
       "Enviando tarefa Image-to-Video para Kling:",
       {
         model:
           klingBody.model_name,
+
         duration,
+
         mode,
+
         sound,
+
         hasPrompt:
           Boolean(prompt),
+
         hasImageTail:
           Boolean(imageTail),
       }
     );
 
     /*
-     * Criação da tarefa.
+     * Envia para a Kling.
      */
     const klingResponse =
       await fetch(
@@ -579,6 +685,9 @@ export async function POST(
         }
       );
 
+    /*
+     * Lê resposta.
+     */
     const responseText =
       await klingResponse.text();
 
@@ -611,26 +720,31 @@ export async function POST(
         ).toLowerCase();
 
       /*
-       * Saldo.
+       * Saldo insuficiente.
        */
       if (
         messageLower.includes(
           "account balance not enough"
         ) ||
-        messageLower.includes(
-          "balance"
-        ) &&
+        (
+          messageLower.includes(
+            "balance"
+          ) &&
           messageLower.includes(
             "not enough"
           )
+        )
       ) {
         return NextResponse.json(
           {
             status: "error",
+
             message:
               "Saldo insuficiente na Kling para gerar este vídeo.",
+
             klingStatus:
               klingResponse.status,
+
             klingResponse:
               klingData,
           },
@@ -644,10 +758,13 @@ export async function POST(
       return NextResponse.json(
         {
           status: "error",
+
           message:
             klingMessage,
+
           klingStatus:
             klingResponse.status,
+
           klingResponse:
             klingData,
         },
@@ -659,7 +776,11 @@ export async function POST(
     }
 
     /*
-     * Erro interno da Kling.
+     * Código interno da Kling.
+     *
+     * A API pode retornar HTTP 200
+     * e ainda assim indicar erro
+     * através do campo code.
      */
     if (
       klingData &&
@@ -672,11 +793,14 @@ export async function POST(
       return NextResponse.json(
         {
           status: "error",
+
           message:
             klingData.message ||
             "A Kling recusou a solicitação.",
+
           klingStatus:
             klingResponse.status,
+
           klingResponse:
             klingData,
         },
@@ -687,7 +811,7 @@ export async function POST(
     }
 
     /*
-     * Task ID.
+     * Obtém Task ID.
      */
     const taskId =
       klingData?.data
@@ -695,21 +819,30 @@ export async function POST(
       klingData?.task_id ??
       null;
 
+    /*
+     * Se não recebeu task ID,
+     * não consideramos a tarefa
+     * criada corretamente.
+     */
     if (!taskId) {
       return NextResponse.json(
         {
           status: "error",
+
           message:
             "A Kling aceitou a requisição, mas não retornou o task_id.",
+
           klingResponse:
             klingData,
         },
-        { status: 502 }
+        {
+          status: 502,
+        }
       );
     }
 
     /*
-     * Tarefa criada.
+     * Sucesso.
      */
     return NextResponse.json(
       {
