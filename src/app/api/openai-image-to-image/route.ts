@@ -10,10 +10,41 @@ type RequestBody = {
   style?: string;
 };
 
-function removeDataUrlPrefix(base64: string): string {
+/*
+ * =================================================
+ * CONFIGURAÇÕES
+ * =================================================
+ */
+
+const KLING_API_BASE =
+  "https://api-singapore.klingai.com";
+
+const KLING_CREATE_ENDPOINT =
+  `${KLING_API_BASE}/v1/images/multi-image2image`;
+
+const KLING_MODEL =
+  "kling-v2-1";
+
+/*
+ * =================================================
+ * UTILITÁRIOS
+ * =================================================
+ */
+
+function removeDataUrlPrefix(
+  base64: string
+): string {
   return base64.replace(
     /^data:image\/[a-zA-Z0-9.+-]+;base64,/,
     ""
+  );
+}
+
+function wait(
+  milliseconds: number
+): Promise<void> {
+  return new Promise((resolve) =>
+    setTimeout(resolve, milliseconds)
   );
 }
 
@@ -35,20 +66,21 @@ ${selectedStyle}
 
 REGRAS IMPORTANTES:
 - Preserve fielmente as características importantes das pessoas, objetos e elementos presentes nas imagens de referência quando forem relevantes para o pedido.
-- Respeite a composição solicitada pelo usuário.
-- Mantenha aparência visual coerente e natural.
-- Preserve identidade visual, proporções, detalhes e características relevantes das referências.
+- Preserve identidade visual, aparência, proporções, características faciais, roupas, objetos e detalhes importantes das referências quando solicitado.
+- Respeite exatamente a composição solicitada pelo usuário.
+- Mantenha aparência visual natural, coerente e realista.
+- Não altere características importantes das referências sem que isso seja solicitado.
 - Não adicione elementos que não tenham relação com o pedido.
-- Produza uma imagem visualmente consistente, detalhada e de alta qualidade.
+- Produza uma imagem detalhada, consistente e de alta qualidade.
 - O resultado deve parecer uma imagem final profissional.
 `.trim();
 }
 
-function wait(ms: number) {
-  return new Promise((resolve) =>
-    setTimeout(resolve, ms)
-  );
-}
+/*
+ * =================================================
+ * POST
+ * =================================================
+ */
 
 export async function POST(
   request: Request
@@ -56,16 +88,23 @@ export async function POST(
   try {
     /*
      * =================================================
-     * VERIFICAÇÃO DA KLING API
+     * CHAVE DA KLING
      * =================================================
+     *
+     * Preferencial:
+     * KLING_API_KEY
+     *
+     * Compatibilidade:
+     * CHAVE_API_KLING
      */
 
     const klingApiKey =
-      process.env.KLING_API_KEY;
+      process.env.KLING_API_KEY ||
+      process.env.CHAVE_API_KLING;
 
     if (!klingApiKey) {
       console.error(
-        "KLING_API_KEY não configurada."
+        "KLING_API_KEY / CHAVE_API_KLING não configurada."
       );
 
       return NextResponse.json(
@@ -74,13 +113,15 @@ export async function POST(
           message:
             "A chave da API da Kling não está configurada no servidor.",
         },
-        { status: 500 }
+        {
+          status: 500,
+        }
       );
     }
 
     /*
      * =================================================
-     * RECEBER DADOS
+     * RECEBER DADOS DO FRONTEND
      * =================================================
      */
 
@@ -115,7 +156,9 @@ export async function POST(
           message:
             "A primeira imagem de referência é obrigatória.",
         },
-        { status: 400 }
+        {
+          status: 400,
+        }
       );
     }
 
@@ -126,14 +169,20 @@ export async function POST(
           message:
             "Descreva o que deseja criar na imagem.",
         },
-        { status: 400 }
+        {
+          status: 400,
+        }
       );
     }
 
+    /*
+     * A Kling Image 2.1 aceita estas proporções.
+     */
+
     const allowedAspectRatios = [
-      "1:1",
-      "9:16",
       "16:9",
+      "9:16",
+      "1:1",
       "4:3",
       "3:4",
       "3:2",
@@ -152,14 +201,22 @@ export async function POST(
           message:
             "Proporção de imagem inválida.",
         },
-        { status: 400 }
+        {
+          status: 400,
+        }
       );
     }
 
     /*
      * =================================================
-     * LIMITE DE SEGURANÇA
+     * LIMITE DAS IMAGENS
      * =================================================
+     *
+     * A documentação da Kling limita cada imagem
+     * de referência a 10 MB.
+     *
+     * Como o frontend envia Base64, usamos um limite
+     * de segurança de payload.
      */
 
     const MAX_BASE64_LENGTH =
@@ -175,7 +232,9 @@ export async function POST(
           message:
             "A primeira imagem ficou muito grande. Escolha uma imagem menor.",
         },
-        { status: 413 }
+        {
+          status: 413,
+        }
       );
     }
 
@@ -190,21 +249,51 @@ export async function POST(
           message:
             "A segunda imagem ficou muito grande. Escolha uma imagem menor.",
         },
-        { status: 413 }
+        {
+          status: 413,
+        }
       );
     }
 
     /*
      * =================================================
-     * PREPARAR IMAGENS
+     * PREPARAR IMAGEM 1
      * =================================================
-     *
-     * A Kling aceita Base64 sem o prefixo
-     * data:image/...;base64,
      */
 
     const image1Base64 =
-      removeDataUrlPrefix(image);
+      removeDataUrlPrefix(
+        image
+      );
+
+    if (!image1Base64) {
+      return NextResponse.json(
+        {
+          status: "error",
+          message:
+            "A primeira imagem não pôde ser processada.",
+        },
+        {
+          status: 400,
+        }
+      );
+    }
+
+    /*
+     * =================================================
+     * LISTA DE IMAGENS DE REFERÊNCIA
+     * =================================================
+     *
+     * A Kling espera:
+     *
+     * subject_image_list: [
+     *   {
+     *     subject_image: "BASE64"
+     *   }
+     * ]
+     *
+     * Pode receber até 4 imagens.
+     */
 
     const subjectImageList: {
       subject_image: string;
@@ -217,7 +306,7 @@ export async function POST(
 
     /*
      * =================================================
-     * SEGUNDA IMAGEM
+     * IMAGEM 2 — OPCIONAL
      * =================================================
      */
 
@@ -226,6 +315,19 @@ export async function POST(
         removeDataUrlPrefix(
           image2
         );
+
+      if (!image2Base64) {
+        return NextResponse.json(
+          {
+            status: "error",
+            message:
+              "A segunda imagem não pôde ser processada.",
+          },
+          {
+            status: 400,
+          }
+        );
+      }
 
       subjectImageList.push({
         subject_image:
@@ -245,21 +347,32 @@ export async function POST(
         style
       );
 
+    /*
+     * =================================================
+     * LOGS
+     * =================================================
+     */
+
     console.log(
       "========================================"
     );
 
     console.log(
-      "CIEL IA STUDIO - Kling Image"
+      "CIEL IA STUDIO - KLING IMAGE"
+    );
+
+    console.log(
+      "Endpoint:",
+      KLING_CREATE_ENDPOINT
     );
 
     console.log(
       "Modelo:",
-      "kling-v2-1"
+      KLING_MODEL
     );
 
     console.log(
-      "Imagens:",
+      "Quantidade de referências:",
       subjectImageList.length
     );
 
@@ -281,7 +394,7 @@ export async function POST(
 
     const createResponse =
       await fetch(
-        "https://api-singapore.klingai.com/v1/images/multi-image2image",
+        KLING_CREATE_ENDPOINT,
         {
           method: "POST",
 
@@ -295,7 +408,7 @@ export async function POST(
 
           body: JSON.stringify({
             model_name:
-              "kling-v2-1",
+              KLING_MODEL,
 
             prompt:
               finalPrompt,
@@ -318,6 +431,12 @@ export async function POST(
         }
       );
 
+    /*
+     * =================================================
+     * LER RESPOSTA
+     * =================================================
+     */
+
     const createData =
       await createResponse.json();
 
@@ -326,16 +445,29 @@ export async function POST(
       createData
     );
 
+    /*
+     * =================================================
+     * ERRO AO CRIAR TAREFA
+     * =================================================
+     */
+
     if (
       !createResponse.ok ||
       createData?.code !== 0
     ) {
+      console.error(
+        "Kling não criou a tarefa:",
+        createData
+      );
+
       return NextResponse.json(
         {
           status: "error",
+
           message:
             createData?.message ||
             "A Kling não conseguiu criar a tarefa de geração da imagem.",
+
           kling:
             createData,
         },
@@ -348,17 +480,30 @@ export async function POST(
       );
     }
 
+    /*
+     * =================================================
+     * TASK ID
+     * =================================================
+     */
+
     const taskId =
       createData?.data?.task_id;
 
     if (!taskId) {
+      console.error(
+        "Kling não retornou task_id:",
+        createData
+      );
+
       return NextResponse.json(
         {
           status: "error",
           message:
             "A Kling não retornou o ID da tarefa.",
         },
-        { status: 502 }
+        {
+          status: 502,
+        }
       );
     }
 
@@ -372,21 +517,35 @@ export async function POST(
      * CONSULTAR TAREFA
      * =================================================
      *
-     * A Kling processa a imagem de forma assíncrona.
+     * A geração é assíncrona.
+     *
+     * submitted
+     * processing
+     * succeed
+     * failed
      */
 
-    const maxAttempts = 60;
+    const maxAttempts =
+      45;
 
     for (
       let attempt = 0;
       attempt < maxAttempts;
       attempt++
     ) {
+      /*
+       * Aguarda 2 segundos
+       * antes de consultar novamente.
+       */
+
       await wait(2000);
+
+      const statusEndpoint =
+        `${KLING_CREATE_ENDPOINT}/${taskId}`;
 
       const statusResponse =
         await fetch(
-          `https://api-singapore.klingai.com/v1/images/multi-image2image/${taskId}`,
+          statusEndpoint,
           {
             method: "GET",
 
@@ -403,24 +562,42 @@ export async function POST(
       const statusData =
         await statusResponse.json();
 
+      const taskStatus =
+        statusData?.data?.task_status;
+
       console.log(
         "Kling status:",
-        statusData?.data?.task_status,
-        "tentativa:",
+        taskStatus,
+        "| tentativa:",
         attempt + 1
       );
+
+      /*
+       * =================================================
+       * ERRO AO CONSULTAR
+       * =================================================
+       */
 
       if (
         !statusResponse.ok
       ) {
+        console.error(
+          "Erro consultando Kling:",
+          statusData
+        );
+
         return NextResponse.json(
           {
             status: "error",
+
             message:
               statusData?.message ||
               "Erro ao consultar a tarefa da Kling.",
+
             kling:
               statusData,
+
+            taskId,
           },
           {
             status:
@@ -430,9 +607,6 @@ export async function POST(
           }
         );
       }
-
-      const taskStatus =
-        statusData?.data?.task_status;
 
       /*
        * =================================================
@@ -444,46 +618,80 @@ export async function POST(
         taskStatus ===
         "succeed"
       ) {
-        const imageUrl =
+        const generatedImageUrl =
           statusData?.data
             ?.task_result
             ?.images?.[0]
             ?.url;
 
-        if (!imageUrl) {
+        if (!generatedImageUrl) {
+          console.error(
+            "Kling concluiu sem URL:",
+            statusData
+          );
+
           return NextResponse.json(
             {
               status: "error",
+
               message:
                 "A Kling concluiu a geração, mas não retornou a URL da imagem.",
+
+              taskId,
             },
-            { status: 502 }
+            {
+              status: 502,
+            }
           );
         }
 
+        console.log(
+          "Imagem gerada:",
+          generatedImageUrl
+        );
+
         /*
-         * Baixar a imagem da Kling
-         * e devolver como Base64 para manter
-         * compatibilidade com o frontend atual.
+         * =================================================
+         * BAIXAR IMAGEM DA KLING
+         * =================================================
+         *
+         * Fazemos isso para manter compatibilidade
+         * com o frontend atual, que espera imageBase64.
          */
 
         const imageResponse =
           await fetch(
-            imageUrl
+            generatedImageUrl
           );
 
         if (
           !imageResponse.ok
         ) {
+          console.error(
+            "Não foi possível baixar imagem:",
+            imageResponse.status
+          );
+
           return NextResponse.json(
             {
               status: "error",
+
               message:
-                "A imagem foi gerada pela Kling, mas não pôde ser baixada.",
+                "A Kling gerou a imagem, mas o servidor não conseguiu baixá-la.",
+
+              taskId,
             },
-            { status: 502 }
+            {
+              status: 502,
+            }
           );
         }
+
+        /*
+         * =================================================
+         * CONVERTER PARA BASE64
+         * =================================================
+         */
 
         const imageBuffer =
           await imageResponse.arrayBuffer();
@@ -495,15 +703,45 @@ export async function POST(
             "base64"
           );
 
-        console.log(
-          "Kling Image concluído com sucesso."
-        );
+        /*
+         * =================================================
+         * IDENTIFICAR TIPO DA IMAGEM
+         * =================================================
+         */
+
+        const contentType =
+          imageResponse.headers.get(
+            "content-type"
+          ) ||
+          "image/png";
 
         /*
          * =================================================
-         * RESPOSTA PARA O FRONTEND
+         * RESPOSTA FINAL
          * =================================================
          */
+
+        console.log(
+          "========================================"
+        );
+
+        console.log(
+          "CIEL IA STUDIO - Kling concluído"
+        );
+
+        console.log(
+          "Task:",
+          taskId
+        );
+
+        console.log(
+          "Status:",
+          "succeed"
+        );
+
+        console.log(
+          "========================================"
+        );
 
         return NextResponse.json({
           status: "success",
@@ -511,10 +749,18 @@ export async function POST(
           imageBase64,
 
           imageUrl:
-            `data:image/png;base64,${imageBase64}`,
+            `data:${contentType};base64,${imageBase64}`,
+
+          /*
+           * Mantemos o URL original também.
+           * O frontend pode usar posteriormente.
+           */
+
+          klingImageUrl:
+            generatedImageUrl,
 
           model:
-            "kling-v2-1",
+            KLING_MODEL,
 
           aspectRatio,
 
@@ -534,21 +780,40 @@ export async function POST(
         taskStatus ===
         "failed"
       ) {
+        const failureMessage =
+          statusData?.data
+            ?.task_status_msg ||
+          statusData?.message ||
+          "A Kling falhou ao gerar a imagem.";
+
+        console.error(
+          "Kling falhou:",
+          failureMessage
+        );
+
         return NextResponse.json(
           {
             status: "error",
 
             message:
-              statusData?.data
-                ?.task_status_msg ||
-              statusData?.message ||
-              "A Kling falhou ao gerar a imagem.",
+              failureMessage,
 
             taskId,
           },
-          { status: 502 }
+          {
+            status: 502,
+          }
         );
       }
+
+      /*
+       * Se estiver:
+       *
+       * submitted
+       * processing
+       *
+       * continua o loop.
+       */
     }
 
     /*
@@ -556,6 +821,11 @@ export async function POST(
      * TIMEOUT
      * =================================================
      */
+
+    console.error(
+      "Timeout aguardando Kling:",
+      taskId
+    );
 
     return NextResponse.json(
       {
@@ -566,13 +836,32 @@ export async function POST(
 
         taskId,
       },
-      { status: 504 }
+      {
+        status: 504,
+      }
     );
 
   } catch (error: any) {
+    /*
+     * =================================================
+     * ERRO GERAL
+     * =================================================
+     */
+
     console.error(
-      "CIEL IA STUDIO - Erro Kling Image:",
+      "========================================"
+    );
+
+    console.error(
+      "CIEL IA STUDIO - Erro Kling Image"
+    );
+
+    console.error(
       error
+    );
+
+    console.error(
+      "========================================"
     );
 
     const statusCode =
